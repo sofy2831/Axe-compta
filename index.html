@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Comptabilité pratique | Opérations courantes, clôture comptable et écritures d’inventaire</title>
+  <meta name="description" content="Guides pratiques de comptabilité pour comprendre les opérations courantes, les écritures d’inventaire, la clôture comptable, les FNP, CCA, provisions, TVA, paie, bilan et régularisations." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/" />
+
+  <meta property="og:title" content="Comptabilité pratique | Opérations courantes et clôture comptable" />
+  <meta property="og:description" content="Guides pratiques pour comprendre les écritures comptables du quotidien, les écritures d’inventaire et la clôture comptable." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0f4b3b" />
+
+  <style>
+    :root{
+      --green:#0f4b3b;
+      --green2:#123f34;
+      --blue:#0b6f8f;
+      --ink:#17211d;
+      --muted:#5b6863;
+      --soft:#f3f7f5;
+      --line:#dce6e2;
+      --white:#fff;
+      --gold:#d7b56d;
+      --shadow:0 18px 45px rgba(15,75,59,.13);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);
+      line-height:1.6;
+    }
+
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(14px);
+      background:rgba(248,251,250,.86);
+      border-bottom:1px solid rgba(220,230,226,.8);
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      min-height:74px;
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      line-height:1.15;
+      font-weight:800;
+      letter-spacing:-.03em;
+      color:var(--green);
+    }
+
+    .brand span:last-child{
+      font-size:.78rem;
+      font-weight:600;
+      color:var(--muted);
+      letter-spacing:0;
+    }
+
+    .navlinks{
+      display:flex;
+      gap:18px;
+      font-size:.92rem;
+      color:#34413c;
+      align-items:center;
+    }
+
+    .navlinks a:hover{color:var(--green)}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:12px 18px;
+      border-radius:999px;
+      font-weight:750;
+      border:1px solid transparent;
+      transition:.18s ease;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:var(--green);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(15,75,59,.18);
+    }
+    .btn.primary:hover{transform:translateY(-1px);background:#0b3f31}
+    .btn.secondary{
+      background:#fff;
+      border-color:var(--line);
+      color:var(--green);
+    }
+    .btn.secondary:hover{border-color:var(--green);transform:translateY(-1px)}
+
+    .hero{
+      padding:74px 0 48px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero:before{
+      content:"";
+      position:absolute;
+      inset:-200px -180px auto auto;
+      width:520px;
+      height:520px;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(15,75,59,.17),transparent 67%);
+      pointer-events:none;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:42px;
+      align-items:center;
+    }
+
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background:#e7f1ed;
+      color:var(--green);
+      font-size:.88rem;
+      font-weight:750;
+      margin-bottom:18px;
+    }
+
+    h1{
+      font-size:clamp(2.35rem,5vw,4.7rem);
+      line-height:1.02;
+      letter-spacing:-.065em;
+      margin:0 0 20px;
+      color:#10231c;
+    }
+
+    .lead{
+      font-size:1.16rem;
+      color:#40504a;
+      max-width:720px;
+      margin:0 0 28px;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin:26px 0 24px;
+    }
+
+    .trust{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      max-width:760px;
+      margin-top:28px;
+    }
+
+    .trust div{
+      background:rgba(255,255,255,.75);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:13px 14px;
+      font-size:.92rem;
+      color:#465650;
+      font-weight:650;
+    }
+
+    .panel{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:24px;
+      box-shadow:var(--shadow);
+    }
+
+    .book-card{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:18px;
+      align-items:center;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(180deg,#fff,#f7faf9);
+      margin-bottom:16px;
+    }
+
+    .cover{
+      min-height:168px;
+      border-radius:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:10px;
+      color:white;
+      font-family:Georgia,serif;
+      font-weight:800;
+      box-shadow:0 12px 24px rgba(0,0,0,.16);
+    }
+    .cover.blue{background:linear-gradient(180deg,#1582a7 0%,#555 100%)}
+    .cover.green{background:linear-gradient(180deg,#0f4b3b 0%,#555 100%)}
+    .cover small{display:block;font-size:.63rem;margin-top:8px;font-family:Inter,sans-serif;font-weight:500}
+
+    .book-card h2{
+      margin:0 0 8px;
+      font-size:1.15rem;
+      line-height:1.25;
+      letter-spacing:-.02em;
+    }
+
+    .book-card p{
+      margin:0 0 12px;
+      font-size:.95rem;
+      color:var(--muted);
+    }
+
+    .tiny-link{
+      display:inline-flex;
+      font-weight:800;
+      color:var(--green);
+      font-size:.92rem;
+    }
+
+    section{padding:54px 0}
+    .section-title{
+      max-width:780px;
+      margin-bottom:28px;
+    }
+    .section-title h2{
+      font-size:clamp(1.8rem,3.2vw,3rem);
+      line-height:1.1;
+      letter-spacing:-.045em;
+      margin:0 0 12px;
+    }
+    .section-title p{
+      margin:0;
+      color:var(--muted);
+      font-size:1.06rem;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:20px;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:22px;
+      box-shadow:0 12px 28px rgba(17,33,28,.05);
+    }
+
+    .card h3{
+      margin:0 0 10px;
+      font-size:1.15rem;
+      letter-spacing:-.02em;
+    }
+    .card p{margin:0;color:var(--muted);font-size:.97rem}
+    .card ul{
+      margin:14px 0 0;
+      padding:0;
+      list-style:none;
+      color:#3c4c46;
+      font-size:.96rem;
+    }
+    .card li{margin:8px 0}
+    .card li:before{content:"✓ ";font-weight:900;color:var(--green)}
+
+    .category{
+      border-left:5px solid var(--green);
+    }
+    .category.blue-border{border-left-color:var(--blue)}
+
+    .seo-list{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-top:20px;
+    }
+
+    .seo-link{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px 18px;
+      font-weight:760;
+      color:#17211d;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .seo-link span{color:var(--green)}
+    .seo-link:hover{
+      border-color:var(--green);
+      transform:translateY(-1px);
+      box-shadow:0 12px 22px rgba(15,75,59,.08);
+    }
+
+    .cta{
+      background:linear-gradient(135deg,var(--green) 0%,#092f25 100%);
+      color:#fff;
+      border-radius:28px;
+      padding:38px;
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:24px;
+      align-items:center;
+      box-shadow:var(--shadow);
+    }
+    .cta h2{margin:0 0 10px;font-size:2rem;letter-spacing:-.04em}
+    .cta p{margin:0;color:rgba(255,255,255,.82)}
+    .cta .btn{background:#fff;color:var(--green)}
+    .cta-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+
+    footer{
+      padding:36px 0;
+      border-top:1px solid var(--line);
+      color:var(--muted);
+      font-size:.92rem;
+    }
+    .footer-grid{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    @media (max-width:880px){
+      .hero-grid,.grid-2,.grid-3,.cta{grid-template-columns:1fr}
+      .navlinks{display:none}
+      .trust{grid-template-columns:1fr}
+      .seo-list{grid-template-columns:1fr}
+      .cta-actions{justify-content:flex-start}
+      .book-card{grid-template-columns:92px 1fr}
+      .cover{min-height:130px;font-size:.8rem}
+    }
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"Comptabilité pratique — Axe Dossier",
+    "url":"https://compta.axe-dossier.fr/",
+    "description":"Guides pratiques de comptabilité, opérations courantes, écritures d’inventaire et clôture comptable."
+  }
+  </script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="/" class="brand" aria-label="Accueil comptabilité Axe Dossier">
+        <span>Comptabilité pratique</span>
+        <span>Opérations courantes • Inventaire • Clôture</span>
+      </a>
+      <nav class="navlinks" aria-label="Navigation principale">
+        <a href="#guides">Guides</a>
+        <a href="#operations">Opérations courantes</a>
+        <a href="#cloture">Clôture comptable</a>
+        <a href="#ressources">Ressources</a>
+      </nav>
+      <a class="btn primary" href="#guides">Voir les guides</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="badge">Guides pratiques de comptabilité</div>
+          <h1>Comprendre les écritures comptables, du quotidien à la clôture.</h1>
+          <p class="lead">
+            Un site pratique pour apprendre les opérations courantes, les écritures d’inventaire,
+            les FNP, CCA, provisions, amortissements, régularisations et contrôles de clôture comptable.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn primary" href="#cloture">Préparer une clôture comptable</a>
+            <a class="btn secondary" href="#operations">Apprendre les opérations courantes</a>
+          </div>
+
+          <div class="trust">
+            <div>✓ Explications simples</div>
+            <div>✓ Exemples comptables</div>
+            <div>✓ Approche TPE / PME</div>
+          </div>
+        </div>
+
+        <aside class="panel" id="guides" aria-label="Guides comptables">
+          <div class="book-card">
+            <div class="cover blue">
+              Comptabilité<br>Opérations<br>Courantes
+              <small>Guide pratique</small>
+            </div>
+            <div>
+              <h2>Comptabilité — Opérations courantes</h2>
+              <p>Achats, ventes, TVA, banque, paie, immobilisations et écritures du quotidien.</p>
+              <a class="tiny-link" href="#" aria-label="Lien Amazon opérations courantes">Voir le guide Amazon →</a>
+            </div>
+          </div>
+
+          <div class="book-card">
+            <div class="cover green">
+              Écritures<br>d’inventaire<br>& clôture
+              <small>Fin d’exercice</small>
+            </div>
+            <div>
+              <h2>Écritures d’inventaire & clôture comptable</h2>
+              <p>FNP, CCA, provisions, amortissements, fiscalité, contrôles finaux et passage au nouvel exercice.</p>
+              <a class="tiny-link" href="#" aria-label="Lien Amazon clôture comptable">Voir le guide Amazon →</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="operations">
+      <div class="wrap">
+        <div class="section-title">
+          <h2>Opérations courantes</h2>
+          <p>
+            Les écritures comptables du quotidien : achats, ventes, banque, TVA, paie,
+            clients, fournisseurs et immobilisations simples.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card category blue-border">
+            <h3>Achats et fournisseurs</h3>
+            <p>Comprendre l’enregistrement des factures d’achat, règlements, acomptes et avoirs.</p>
+          </article>
+          <article class="card category blue-border">
+            <h3>Ventes et clients</h3>
+            <p>Comptabiliser les factures de vente, règlements clients, écarts et impayés simples.</p>
+          </article>
+          <article class="card category blue-border">
+            <h3>Banque et trésorerie</h3>
+            <p>Lire les opérations bancaires, contrôler les soldes et préparer le rapprochement bancaire.</p>
+          </article>
+        </div>
+
+        <div class="seo-list" aria-label="Pages opérations courantes à venir">
+          <a class="seo-link" href="comptabiliser-facture-achat.html">Comptabiliser une facture d’achat <span>→</span></a>
+          <a class="seo-link" href="comptabiliser-facture-vente.html">Comptabiliser une facture de vente <span>→</span></a>
+          <a class="seo-link" href="ecriture-comptable-tva.html">Écriture comptable de TVA <span>→</span></a>
+          <a class="seo-link" href="rapprochement-bancaire-comptabilite.html">Rapprochement bancaire <span>→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="cloture">
+      <div class="wrap">
+        <div class="section-title">
+          <h2>Écritures d’inventaire et clôture comptable</h2>
+          <p>
+            Comprendre les écritures de fin d’exercice : FNP, CCA, PCA, provisions,
+            amortissements, stocks, TVA, charges sociales et contrôles finaux.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card category">
+            <h3>Régularisations</h3>
+            <ul>
+              <li>FNP — factures non parvenues</li>
+              <li>CCA — charges constatées d’avance</li>
+              <li>PCA et produits à recevoir</li>
+            </ul>
+          </article>
+          <article class="card category">
+            <h3>Contrôles de clôture</h3>
+            <ul>
+              <li>Clients, fournisseurs et banque</li>
+              <li>TVA, État et charges sociales</li>
+              <li>Provisions et capitaux propres</li>
+            </ul>
+          </article>
+          <article class="card category">
+            <h3>Passage au nouvel exercice</h3>
+            <ul>
+              <li>Contrepassations</li>
+              <li>À-nouveaux</li>
+              <li>Préparation du bilan</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="seo-list" aria-label="Pages clôture comptable à venir">
+          <a class="seo-link" href="comment-faire-une-cloture-comptable.html">Comment faire une clôture comptable <span>→</span></a>
+          <a class="seo-link" href="ecriture-inventaire-fin-exercice.html">Écritures d’inventaire de fin d’exercice <span>→</span></a>
+          <a class="seo-link" href="fnp-comptabilite-exemple.html">FNP comptabilité : exemple simple <span>→</span></a>
+          <a class="seo-link" href="cca-comptabilite-exemple.html">CCA comptabilité : exemple simple <span>→</span></a>
+          <a class="seo-link" href="provision-comptable-exemple.html">Provision comptable : exemple <span>→</span></a>
+          <a class="seo-link" href="checklist-cloture-comptable.html">Check-list clôture comptable <span>→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="ressources">
+      <div class="wrap">
+        <div class="cta">
+          <div>
+            <h2>Besoin d’une méthode claire pour apprendre la comptabilité ?</h2>
+            <p>
+              Les guides pratiques regroupent les écritures essentielles, les points de vigilance
+              et les contrôles à effectuer pour comprendre la comptabilité sans jargon inutile.
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn" href="#guides">Voir les livres</a>
+            <a class="btn" href="checklist-cloture-comptable.html">Check-list clôture</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>© 2026 — Comptabilité pratique • Axe Dossier</div>
+      <div>Guides comptables pour TPE, PME, indépendants et étudiants</div>
+    </div>
+  </footer>
+</body>
+</html>
