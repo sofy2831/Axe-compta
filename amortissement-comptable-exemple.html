@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Amortissement comptable : exemple simple, calcul et écriture</title>
+  <meta name="description" content="Amortissement comptable : définition, exemple simple, calcul linéaire, prorata temporis, écriture comptable, durée d’amortissement, immobilisation et clôture." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/amortissement-comptable-exemple.html" />
+
+  <meta property="og:title" content="Amortissement comptable : exemple simple" />
+  <meta property="og:description" content="Comprendre l’amortissement comptable : calcul, durée, prorata temporis, écriture de dotation et erreurs à éviter." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/amortissement-comptable-exemple.html" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0f4b3b" />
+
+  <style>
+    :root{
+      --green:#0f4b3b; --green-dark:#0a3328; --blue:#0b6f8f; --ink:#17211d;
+      --muted:#5b6863; --line:#dce6e2; --soft:#f3f7f5; --white:#fff;
+      --shadow:0 18px 45px rgba(15,75,59,.12); --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);line-height:1.7}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+    header{position:sticky;top:0;z-index:20;background:rgba(248,251,250,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,230,226,.85)}
+    .nav{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;flex-direction:column;line-height:1.15;font-weight:850;letter-spacing:-.03em;color:var(--green)}
+    .brand span:last-child{font-size:.78rem;color:var(--muted);font-weight:650;letter-spacing:0}
+    .navlinks{display:flex;gap:18px;align-items:center;color:#34413c;font-size:.92rem}
+    .navlinks a:hover{color:var(--green)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;font-weight:800;border:1px solid transparent;transition:.18s ease;text-align:center}
+    .btn.primary{background:var(--green);color:#fff;box-shadow:0 10px 24px rgba(15,75,59,.18)}
+    .btn.primary:hover{background:var(--green-dark);transform:translateY(-1px)}
+    .btn.secondary{background:#fff;color:var(--green);border-color:var(--line)}
+    .hero{padding:66px 0 38px;position:relative;overflow:hidden}
+    .hero:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-200px;top:-220px;background:radial-gradient(circle,rgba(15,75,59,.17),transparent 68%);pointer-events:none}
+    .breadcrumb{font-size:.9rem;color:var(--muted);margin-bottom:18px}
+    .breadcrumb a{color:var(--green);font-weight:750}
+    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:start}
+    .badge{display:inline-flex;padding:8px 12px;border-radius:999px;background:#e7f1ed;color:var(--green);font-weight:800;font-size:.88rem;margin-bottom:18px}
+    h1{font-size:clamp(2.25rem,4.7vw,4.35rem);line-height:1.03;letter-spacing:-.06em;margin:0 0 20px;color:#10231c}
+    .lead{color:#40504a;font-size:1.15rem;max-width:790px;margin:0 0 28px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .summary-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:sticky;top:96px}
+    .summary-card h2{margin:0 0 14px;font-size:1.18rem;letter-spacing:-.02em}
+    .summary-card ol{padding-left:20px;margin:0;color:#40504a;font-size:.96rem}
+    .summary-card li{margin:8px 0}
+    .summary-card a{color:var(--green);font-weight:700}
+    main.article-wrap{padding:28px 0 64px}
+    .content-grid{display:grid;grid-template-columns:1fr 320px;gap:34px;align-items:start}
+    article{background:#fff;border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:0 14px 36px rgba(17,33,28,.05)}
+    article h2{font-size:clamp(1.55rem,2.6vw,2.25rem);line-height:1.15;letter-spacing:-.04em;margin:40px 0 14px;color:#10231c}
+    article h2:first-child{margin-top:0}
+    article h3{font-size:1.22rem;margin:24px 0 8px;letter-spacing:-.02em;color:#18342a}
+    article p{color:#35443f;margin:12px 0}
+    article li{margin:8px 0;color:#35443f}
+    .note{border-left:5px solid var(--green);background:#f2f8f5;border-radius:16px;padding:18px 20px;margin:22px 0}
+    .warning{border-left:5px solid #b47b25;background:#fff7e8;border-radius:16px;padding:18px 20px;margin:22px 0}
+    .formula{background:#f8fbfa;border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:20px 0;color:#17342a;font-weight:800}
+    .table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:18px}
+    table{width:100%;border-collapse:collapse;min-width:620px;background:#fff}
+    th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:#f3f7f5;color:#18342a;font-size:.92rem}
+    tr:last-child td{border-bottom:none}
+    .checklist{display:grid;grid-template-columns:1fr;gap:10px;padding:0;list-style:none;margin:18px 0 28px}
+    .checklist li{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0}
+    .checklist li:before{content:"☐ ";color:var(--green);font-weight:900}
+    .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0}
+    .mini-card{background:#f8fbfa;border:1px solid var(--line);border-radius:16px;padding:16px}
+    .mini-card strong{color:#17342a}
+    .side{display:grid;gap:18px}
+    .book-box,.mini-box{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(17,33,28,.06)}
+    .cover{width:110px;height:155px;border-radius:6px;background:linear-gradient(180deg,#0f4b3b 0%,#555 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:Georgia,serif;font-weight:800;box-shadow:0 12px 24px rgba(0,0,0,.16);margin-bottom:14px;font-size:.84rem;padding:9px}
+    .book-box h3,.mini-box h3{margin:0 0 10px;font-size:1.12rem}
+    .book-box p,.mini-box p{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+    .related{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+    .related a{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-weight:780;color:#17342a}
+    .related a:hover{border-color:var(--green);color:var(--green)}
+    .faq details{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0;background:#f8fbfa}
+    .faq summary{cursor:pointer;font-weight:800;color:#17342a}
+    footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+    .footer-grid{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    @media (max-width:940px){.hero-grid,.content-grid{grid-template-columns:1fr}.summary-card{position:relative;top:auto}.navlinks{display:none}article{padding:24px}.related,.mini-grid{grid-template-columns:1fr}}
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"Amortissement comptable : exemple simple, calcul et écriture",
+    "description":"Comprendre l’amortissement comptable : calcul linéaire, prorata temporis, durée d’amortissement, écriture de dotation et exemples.",
+    "author":{"@type":"Person","name":"Sophie Dumas"},
+    "publisher":{"@type":"Organization","name":"Axe Dossier"},
+    "mainEntityOfPage":"https://compta.axe-dossier.fr/amortissement-comptable-exemple.html"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"Qu’est-ce qu’un amortissement comptable ?","acceptedAnswer":{"@type":"Answer","text":"Un amortissement comptable permet de répartir le coût d’une immobilisation sur sa durée probable d’utilisation."}},
+      {"@type":"Question","name":"Quelle écriture passer pour un amortissement ?","acceptedAnswer":{"@type":"Answer","text":"L’écriture classique consiste à débiter un compte de dotation aux amortissements, comme 68112, et à créditer un compte d’amortissement de classe 28."}},
+      {"@type":"Question","name":"Comment calculer un amortissement linéaire ?","acceptedAnswer":{"@type":"Answer","text":"L’amortissement linéaire se calcule en divisant la valeur amortissable du bien par sa durée d’utilisation. La première année peut être calculée au prorata temporis."}}
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="/" class="brand">
+        <span>Comptabilité pratique</span>
+        <span>Opérations courantes • Inventaire • Clôture</span>
+      </a>
+      <nav class="navlinks">
+        <a href="/">Accueil</a>
+        <a href="#definition">Définition</a>
+        <a href="#calcul">Calcul</a>
+        <a href="#exemple">Exemple</a>
+        <a href="#ecriture">Écriture</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir le guide</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/">Accueil</a> → Amortissement comptable</div>
+      <div class="hero-grid">
+        <div>
+          <div class="badge">Immobilisations et clôture</div>
+          <h1>Amortissement comptable : exemple simple</h1>
+          <p class="lead">
+            L’amortissement comptable permet de répartir le coût d’un bien durable sur sa durée d’utilisation.
+            Il fait partie des écritures d’inventaire incontournables lors de la clôture comptable.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#exemple">Voir l’exemple chiffré</a>
+            <a class="btn secondary" href="#checklist">Check-list amortissement</a>
+          </div>
+        </div>
+
+        <aside class="summary-card">
+          <h2>En résumé</h2>
+          <ol>
+            <li><a href="#definition">Comprendre l’amortissement</a></li>
+            <li><a href="#immobiliser">Savoir quand immobiliser</a></li>
+            <li><a href="#calcul">Calculer l’amortissement</a></li>
+            <li><a href="#exemple">Voir un exemple chiffré</a></li>
+            <li><a href="#ecriture">Passer l’écriture comptable</a></li>
+          </ol>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <main class="article-wrap">
+    <div class="wrap content-grid">
+      <article>
+        <h2 id="definition">Qu’est-ce qu’un amortissement comptable ?</h2>
+        <p>
+          L’amortissement comptable permet de constater la perte de valeur progressive d’une immobilisation.
+          Au lieu de comptabiliser tout le coût du bien en charge immédiatement, l’entreprise répartit ce coût
+          sur plusieurs exercices.
+        </p>
+        <p>
+          Cette logique concerne les biens utilisés durablement : matériel, ordinateur, mobilier, véhicule,
+          agencement, logiciel acquis ou équipement professionnel.
+        </p>
+
+        <div class="note">
+          <strong>À retenir :</strong> un amortissement sert à rattacher le coût d’un bien durable aux exercices pendant lesquels il est utilisé.
+        </div>
+
+        <h2 id="immobiliser">Quand faut-il immobiliser un bien ?</h2>
+        <p>
+          Une dépense peut être immobilisée lorsqu’elle correspond à un bien durable destiné à être utilisé plusieurs années.
+        </p>
+        <ul>
+          <li>ordinateur professionnel ;</li>
+          <li>mobilier de bureau ;</li>
+          <li>véhicule ;</li>
+          <li>matériel de production ;</li>
+          <li>équipement informatique ;</li>
+          <li>logiciel acquis durablement.</li>
+        </ul>
+
+        <div class="warning">
+          <strong>Point de vigilance :</strong> un bien inférieur à 500 € HT par unité est souvent admis en charge,
+          mais ce seuil reste une tolérance pratique. Au-delà, l’immobilisation doit être envisagée.
+        </div>
+
+        <h2>Durées d’amortissement fréquentes</h2>
+        <p>
+          La durée d’amortissement dépend de la durée probable d’utilisation du bien.
+          Les exemples ci-dessous sont indicatifs et doivent être adaptés à la réalité de l’entreprise.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Bien</th><th>Durée fréquente</th><th>Commentaire</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ordinateur</td><td>3 ans</td><td>Durée fréquente pour matériel informatique.</td></tr>
+              <tr><td>Mobilier</td><td>5 à 10 ans</td><td>Selon la nature et l’usage.</td></tr>
+              <tr><td>Véhicule</td><td>4 à 5 ans</td><td>À adapter selon l’utilisation réelle.</td></tr>
+              <tr><td>Matériel professionnel</td><td>3 à 10 ans</td><td>Selon le type de matériel.</td></tr>
+              <tr><td>Logiciel acquis</td><td>1 à 3 ans</td><td>À distinguer d’un abonnement SaaS.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="calcul">Comment calculer un amortissement linéaire ?</h2>
+        <p>
+          La méthode linéaire consiste à répartir le coût du bien de manière égale sur sa durée d’utilisation.
+        </p>
+
+        <div class="formula">
+          Amortissement annuel = valeur amortissable ÷ durée d’utilisation
+        </div>
+
+        <p>
+          Si un bien est acheté en cours d’exercice, la première annuité est souvent calculée au prorata temporis.
+        </p>
+
+        <div class="formula">
+          Amortissement proratisé = annuité annuelle × durée d’utilisation sur l’exercice ÷ 12 mois
+        </div>
+
+        <h2 id="exemple">Exemple simple d’amortissement comptable</h2>
+        <p>
+          Une entreprise achète un ordinateur professionnel pour <strong>1 200 € HT</strong>.
+          Elle estime sa durée d’utilisation à <strong>3 ans</strong>.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Élément</th><th>Calcul</th><th>Montant</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Valeur du bien</td><td>Prix HT</td><td>1 200 €</td></tr>
+              <tr><td>Durée</td><td>3 ans</td><td>3 ans</td></tr>
+              <tr><td>Amortissement annuel</td><td>1 200 € ÷ 3</td><td>400 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          L’entreprise comptabilisera donc une dotation aux amortissements de <strong>400 € par an</strong>.
+        </p>
+
+        <h3>Exemple avec prorata temporis</h3>
+        <p>
+          Si le même ordinateur est acheté le 1er juillet, il est utilisé pendant 6 mois sur l’exercice.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Élément</th><th>Calcul</th><th>Montant</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Annuité annuelle</td><td>1 200 € ÷ 3 ans</td><td>400 €</td></tr>
+              <tr><td>Durée utilisée en N</td><td>6 mois</td><td>6 / 12</td></tr>
+              <tr><td>Dotation N</td><td>400 € × 6 / 12</td><td>200 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="ecriture">Écriture comptable d’amortissement</h2>
+        <p>
+          À la clôture, l’amortissement est comptabilisé dans le journal des opérations diverses.
+        </p>
+
+        <h3>Journal OD — Dotation aux amortissements</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>68112</td><td>Dotation aux amortissements</td><td>400 €</td><td></td></tr>
+              <tr><td>28183</td><td>Amortissement du matériel informatique</td><td></td><td>400 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note">
+          <strong>À retenir :</strong> le compte 68112 constate la charge d’amortissement.
+          Le compte 28 enregistre l’amortissement cumulé de l’immobilisation.
+        </div>
+
+        <h2>Amortissement ou dépréciation : quelle différence ?</h2>
+        <p>
+          L’amortissement traduit une perte de valeur normale et progressive liée à l’utilisation du bien.
+          La dépréciation constate une perte de valeur exceptionnelle ou spécifique.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Situation</th><th>Traitement probable</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Usure normale d’un ordinateur</td><td>Amortissement</td></tr>
+              <tr><td>Matériel devenu inutilisable brutalement</td><td>Dépréciation possible</td></tr>
+              <tr><td>Véhicule utilisé plusieurs années</td><td>Amortissement</td></tr>
+              <tr><td>Perte de valeur anormale et documentée</td><td>Dépréciation</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Amortissement et clôture comptable</h2>
+        <p>
+          Les amortissements font partie des écritures d’inventaire à vérifier avant le bilan.
+          Il faut s’assurer que les acquisitions, sorties, cessions et dotations de l’exercice sont correctement traitées.
+        </p>
+
+        <div class="warning">
+          <strong>Point de vigilance :</strong> contrairement à une FNP ou une CCA, une dotation aux amortissements
+          ne se contrepassera pas au 01/01/N+1. Elle fait partie du suivi normal de l’immobilisation.
+        </div>
+
+        <h2>Erreurs fréquentes à éviter</h2>
+        <ul>
+          <li>passer en charge un bien qui devrait être immobilisé ;</li>
+          <li>oublier l’amortissement la première année ;</li>
+          <li>ne pas calculer le prorata temporis ;</li>
+          <li>utiliser une durée d’amortissement incohérente ;</li>
+          <li>continuer à amortir un bien sorti de l’actif ;</li>
+          <li>confondre amortissement et dépréciation ;</li>
+          <li>oublier de documenter le tableau des immobilisations.</li>
+        </ul>
+
+        <h2 id="checklist">Check-list amortissement à la clôture</h2>
+        <ul class="checklist">
+          <li>Les achats immobilisables ont été identifiés.</li>
+          <li>Les petites dépenses en charge ont été vérifiées.</li>
+          <li>Les dates de mise en service sont connues.</li>
+          <li>Les durées d’amortissement sont cohérentes.</li>
+          <li>Le prorata temporis est calculé si nécessaire.</li>
+          <li>Les dotations aux amortissements sont comptabilisées.</li>
+          <li>Les sorties ou cessions d’immobilisations sont traitées.</li>
+          <li>Le tableau des immobilisations est à jour.</li>
+        </ul>
+
+        <h2 id="faq">FAQ — Amortissement comptable</h2>
+        <div class="faq">
+          <details>
+            <summary>Un amortissement est-il une charge ?</summary>
+            <p>Oui. La dotation aux amortissements est une charge comptable qui réduit le résultat de l’exercice.</p>
+          </details>
+          <details>
+            <summary>Quel compte utiliser pour un amortissement ?</summary>
+            <p>On utilise généralement un compte 68112 au débit et un compte 28 au crédit, selon la nature de l’immobilisation.</p>
+          </details>
+          <details>
+            <summary>Faut-il amortir un ordinateur ?</summary>
+            <p>Oui, si sa valeur est significative et qu’il est utilisé durablement. Un ordinateur est souvent amorti sur environ 3 ans.</p>
+          </details>
+          <details>
+            <summary>L’amortissement se contrepassera-t-il ?</summary>
+            <p>Non. Une dotation aux amortissements ne se contrepassera généralement pas au début de l’exercice suivant.</p>
+          </details>
+        </div>
+
+        <h2>À retenir</h2>
+        <p>
+          L’amortissement comptable permet de répartir le coût d’une immobilisation sur sa durée d’utilisation.
+          C’est une écriture de clôture essentielle pour présenter un résultat cohérent et un bilan fiable.
+        </p>
+
+        <div class="related">
+          <a href="comment-faire-une-cloture-comptable.html">Comment faire une clôture comptable</a>
+          <a href="ecriture-inventaire-fin-exercice.html">Écritures d’inventaire</a>
+          <a href="fnp-comptabilite-exemple.html">FNP comptabilité : exemple</a>
+          <a href="cca-comptabilite-exemple.html">CCA comptabilité : exemple</a>
+          <a href="provision-comptable-exemple.html">Provision comptable : exemple</a>
+          <a href="checklist-cloture-comptable.html">Checklist clôture comptable</a>
+        </div>
+      </article>
+
+      <aside class="side">
+        <div class="book-box">
+          <div class="cover">Écritures<br>d’inventaire<br>& clôture</div>
+          <h3>Guide complet de clôture comptable</h3>
+          <p>Un guide pratique pour comprendre les amortissements, immobilisations, FNP, CCA, provisions et régularisations de fin d’exercice.</p>
+          <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir sur Amazon</a>
+        </div>
+        <div class="mini-box">
+          <h3>À lire aussi</h3>
+          <p>Pour comprendre les écritures comptables du quotidien.</p>
+          <a class="btn secondary" href="https://www.amazon.fr/dp/B0H2XZML1F" target="_blank" rel="noopener">Opérations courantes</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>© 2026 — Comptabilité pratique • Axe Dossier</div>
+      <div><a href="/">Accueil</a> · Guides comptables pour TPE, PME, indépendants et étudiants</div>
+    </div>
+  </footer>
+</body>
+</html>
