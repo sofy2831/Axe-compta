@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Écritures d’inventaire de fin d’exercice : exemples et méthode</title>
+  <meta name="description" content="Écritures d’inventaire de fin d’exercice : définition, exemples simples, FNP, CCA, PCA, amortissements, provisions, stocks, TVA et méthode de clôture comptable." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/ecriture-inventaire-fin-exercice.html" />
+
+  <meta property="og:title" content="Écritures d’inventaire de fin d’exercice" />
+  <meta property="og:description" content="Comprendre les écritures d’inventaire : FNP, CCA, PCA, amortissements, provisions, stocks et régularisations de fin d’exercice." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/ecriture-inventaire-fin-exercice.html" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0f4b3b" />
+
+  <style>
+    :root{
+      --green:#0f4b3b; --green-dark:#0a3328; --blue:#0b6f8f; --ink:#17211d;
+      --muted:#5b6863; --line:#dce6e2; --soft:#f3f7f5; --white:#fff;
+      --shadow:0 18px 45px rgba(15,75,59,.12); --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);line-height:1.7}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+    header{position:sticky;top:0;z-index:20;background:rgba(248,251,250,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,230,226,.85)}
+    .nav{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;flex-direction:column;line-height:1.15;font-weight:850;letter-spacing:-.03em;color:var(--green)}
+    .brand span:last-child{font-size:.78rem;color:var(--muted);font-weight:650;letter-spacing:0}
+    .navlinks{display:flex;gap:18px;align-items:center;color:#34413c;font-size:.92rem}
+    .navlinks a:hover{color:var(--green)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;font-weight:800;border:1px solid transparent;transition:.18s ease;text-align:center}
+    .btn.primary{background:var(--green);color:#fff;box-shadow:0 10px 24px rgba(15,75,59,.18)}
+    .btn.primary:hover{background:var(--green-dark);transform:translateY(-1px)}
+    .btn.secondary{background:#fff;color:var(--green);border-color:var(--line)}
+    .hero{padding:66px 0 38px;position:relative;overflow:hidden}
+    .hero:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-200px;top:-220px;background:radial-gradient(circle,rgba(15,75,59,.17),transparent 68%);pointer-events:none}
+    .breadcrumb{font-size:.9rem;color:var(--muted);margin-bottom:18px}
+    .breadcrumb a{color:var(--green);font-weight:750}
+    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:start}
+    .badge{display:inline-flex;padding:8px 12px;border-radius:999px;background:#e7f1ed;color:var(--green);font-weight:800;font-size:.88rem;margin-bottom:18px}
+    h1{font-size:clamp(2.25rem,4.7vw,4.35rem);line-height:1.03;letter-spacing:-.06em;margin:0 0 20px;color:#10231c}
+    .lead{color:#40504a;font-size:1.15rem;max-width:790px;margin:0 0 28px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .summary-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:sticky;top:96px}
+    .summary-card h2{margin:0 0 14px;font-size:1.18rem;letter-spacing:-.02em}
+    .summary-card ol{padding-left:20px;margin:0;color:#40504a;font-size:.96rem}
+    .summary-card li{margin:8px 0}
+    .summary-card a{color:var(--green);font-weight:700}
+    main.article-wrap{padding:28px 0 64px}
+    .content-grid{display:grid;grid-template-columns:1fr 320px;gap:34px;align-items:start}
+    article{background:#fff;border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:0 14px 36px rgba(17,33,28,.05)}
+    article h2{font-size:clamp(1.55rem,2.6vw,2.25rem);line-height:1.15;letter-spacing:-.04em;margin:40px 0 14px;color:#10231c}
+    article h2:first-child{margin-top:0}
+    article h3{font-size:1.22rem;margin:24px 0 8px;letter-spacing:-.02em;color:#18342a}
+    article p{color:#35443f;margin:12px 0}
+    article li{margin:8px 0;color:#35443f}
+    .note{border-left:5px solid var(--green);background:#f2f8f5;border-radius:16px;padding:18px 20px;margin:22px 0}
+    .warning{border-left:5px solid #b47b25;background:#fff7e8;border-radius:16px;padding:18px 20px;margin:22px 0}
+    .table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:18px}
+    table{width:100%;border-collapse:collapse;min-width:620px;background:#fff}
+    th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:#f3f7f5;color:#18342a;font-size:.92rem}
+    tr:last-child td{border-bottom:none}
+    .checklist{display:grid;grid-template-columns:1fr;gap:10px;padding:0;list-style:none}
+    .checklist li{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0}
+    .checklist li:before{content:"☐ ";color:var(--green);font-weight:900}
+    .side{display:grid;gap:18px}
+    .book-box,.mini-box{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(17,33,28,.06)}
+    .cover{width:110px;height:155px;border-radius:6px;background:linear-gradient(180deg,#0f4b3b 0%,#555 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:Georgia,serif;font-weight:800;box-shadow:0 12px 24px rgba(0,0,0,.16);margin-bottom:14px;font-size:.84rem;padding:9px}
+    .book-box h3,.mini-box h3{margin:0 0 10px;font-size:1.12rem}
+    .book-box p,.mini-box p{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+    .related{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+    .related a{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-weight:780;color:#17342a}
+    .related a:hover{border-color:var(--green);color:var(--green)}
+    .faq details{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0;background:#f8fbfa}
+    .faq summary{cursor:pointer;font-weight:800;color:#17342a}
+    footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+    .footer-grid{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    @media (max-width:940px){.hero-grid,.content-grid{grid-template-columns:1fr}.summary-card{position:relative;top:auto}.navlinks{display:none}article{padding:24px}.related{grid-template-columns:1fr}}
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Article",
+    "headline":"Écritures d’inventaire de fin d’exercice",
+    "description":"Méthode et exemples pour comprendre les écritures d’inventaire de fin d’exercice : FNP, CCA, PCA, amortissements, provisions, stocks et régularisations.",
+    "author":{"@type":"Person","name":"Sophie Dumas"},
+    "publisher":{"@type":"Organization","name":"Axe Dossier"},
+    "mainEntityOfPage":"https://compta.axe-dossier.fr/ecriture-inventaire-fin-exercice.html"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {"@type":"Question","name":"Qu’est-ce qu’une écriture d’inventaire ?","acceptedAnswer":{"@type":"Answer","text":"Une écriture d’inventaire est une écriture passée à la clôture pour rattacher les charges, produits, dettes, créances, amortissements et provisions au bon exercice comptable."}},
+      {"@type":"Question","name":"Quelles sont les principales écritures d’inventaire ?","acceptedAnswer":{"@type":"Answer","text":"Les principales écritures d’inventaire concernent les FNP, CCA, PCA, produits à recevoir, amortissements, provisions, stocks, charges sociales à payer et régularisations fiscales."}},
+      {"@type":"Question","name":"Les écritures d’inventaire se contrepassent-elles ?","acceptedAnswer":{"@type":"Answer","text":"Certaines écritures comme les FNP ou CCA sont généralement contrepassées au début de l’exercice suivant. Les provisions, en revanche, sont suivies jusqu’à disparition ou réalisation du risque."}}
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="/" class="brand">
+        <span>Comptabilité pratique</span>
+        <span>Opérations courantes • Inventaire • Clôture</span>
+      </a>
+      <nav class="navlinks">
+        <a href="/">Accueil</a>
+        <a href="#definition">Définition</a>
+        <a href="#exemples">Exemples</a>
+        <a href="#checklist">Check-list</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir le guide</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/">Accueil</a> → Écritures d’inventaire</div>
+      <div class="hero-grid">
+        <div>
+          <div class="badge">Écritures d’inventaire</div>
+          <h1>Écritures d’inventaire de fin d’exercice</h1>
+          <p class="lead">
+            Les écritures d’inventaire permettent de rattacher les charges et produits au bon exercice,
+            de constater les amortissements, provisions, stocks et régularisations nécessaires avant le bilan.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#exemples">Voir les exemples</a>
+            <a class="btn secondary" href="#checklist">Check-list inventaire</a>
+          </div>
+        </div>
+
+        <aside class="summary-card">
+          <h2>En résumé</h2>
+          <ol>
+            <li><a href="#definition">Définir les écritures d’inventaire</a></li>
+            <li><a href="#objectif">Comprendre leur objectif</a></li>
+            <li><a href="#exemples">Voir les principales écritures</a></li>
+            <li><a href="#contrepassation">Identifier les contrepassations</a></li>
+            <li><a href="#checklist">Contrôler avant clôture</a></li>
+          </ol>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <main class="article-wrap">
+    <div class="wrap content-grid">
+      <article>
+        <h2 id="definition">Qu’est-ce qu’une écriture d’inventaire ?</h2>
+        <p>
+          Une écriture d’inventaire est une écriture comptable passée à la clôture de l’exercice.
+          Elle permet d’ajuster les comptes afin que le bilan et le compte de résultat reflètent correctement
+          la situation de l’entreprise.
+        </p>
+        <p>
+          Ces écritures sont souvent passées dans le journal des opérations diverses, également appelé journal OD.
+        </p>
+
+        <div class="note">
+          <strong>À retenir :</strong> une écriture d’inventaire sert à corriger, rattacher ou constater une opération
+          nécessaire avant l’établissement des comptes annuels.
+        </div>
+
+        <h2 id="objectif">À quoi servent les écritures d’inventaire ?</h2>
+        <p>Elles servent principalement à respecter la logique de rattachement des charges et produits au bon exercice.</p>
+        <ul>
+          <li>ne pas oublier une charge de l’exercice ;</li>
+          <li>retirer une charge qui concerne l’exercice suivant ;</li>
+          <li>constater une dépréciation ou une provision ;</li>
+          <li>enregistrer les amortissements ;</li>
+          <li>valoriser les stocks ;</li>
+          <li>vérifier les dettes fiscales et sociales ;</li>
+          <li>préparer un bilan cohérent.</li>
+        </ul>
+
+        <h2 id="exemples">Principales écritures d’inventaire de fin d’exercice</h2>
+
+        <h3>1. Factures non parvenues — FNP</h3>
+        <p>
+          Une FNP est utilisée lorsqu’une charge concerne l’exercice clôturé, mais que la facture fournisseur n’est pas encore reçue.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>6...</td><td>Charge concernée</td><td>X</td><td></td></tr>
+              <tr><td>44586</td><td>TVA sur factures non parvenues</td><td>X</td><td></td></tr>
+              <tr><td>4081</td><td>Fournisseurs — factures non parvenues</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>2. Charges constatées d’avance — CCA</h3>
+        <p>
+          Une CCA sert à neutraliser une charge déjà comptabilisée, mais qui concerne l’exercice suivant.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>486</td><td>Charges constatées d’avance</td><td>X</td><td></td></tr>
+              <tr><td>6...</td><td>Charge concernée</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>3. Produits constatés d’avance — PCA</h3>
+        <p>
+          Un PCA permet de neutraliser un produit déjà comptabilisé, mais qui concerne l’exercice suivant.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>7...</td><td>Produit concerné</td><td>X</td><td></td></tr>
+              <tr><td>487</td><td>Produits constatés d’avance</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>4. Produits à recevoir</h3>
+        <p>
+          Un produit à recevoir concerne un produit acquis à l’exercice, mais non encore facturé ou encaissé.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>4181</td><td>Clients — factures à établir</td><td>X</td><td></td></tr>
+              <tr><td>7...</td><td>Produit concerné</td><td></td><td>X</td></tr>
+              <tr><td>44587</td><td>TVA sur factures à établir</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>5. Amortissements</h3>
+        <p>
+          Les amortissements permettent de constater la perte de valeur progressive d’une immobilisation utilisée durablement.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>68112</td><td>Dotation aux amortissements</td><td>X</td><td></td></tr>
+              <tr><td>28...</td><td>Amortissement de l’immobilisation</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>6. Provisions</h3>
+        <p>
+          Une provision constate un risque probable, estimable et existant à la clôture.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>6815</td><td>Dotation aux provisions</td><td>X</td><td></td></tr>
+              <tr><td>151...</td><td>Provision concernée</td><td></td><td>X</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>7. Stocks</h3>
+        <p>
+          Lorsque l’entreprise détient des stocks, leur variation doit être prise en compte à la clôture.
+          Le traitement dépend de la nature des stocks et de l’activité.
+        </p>
+
+        <div class="warning">
+          <strong>Point de vigilance :</strong> les écritures de stocks peuvent varier selon la méthode utilisée.
+          Il faut conserver l’inventaire physique et les justificatifs de valorisation.
+        </div>
+
+        <h2 id="contrepassation">Contrepassation des écritures d’inventaire</h2>
+        <p>
+          Certaines écritures d’inventaire sont temporaires et doivent généralement être extournées au début de l’exercice suivant.
+        </p>
+        <ul>
+          <li>FNP ;</li>
+          <li>CCA ;</li>
+          <li>PCA ;</li>
+          <li>produits à recevoir ;</li>
+          <li>charges à payer.</li>
+        </ul>
+
+        <div class="warning">
+          <strong>Attention :</strong> une provision ne se contrepassera généralement pas automatiquement.
+          Elle doit être suivie jusqu’à disparition ou réalisation du risque.
+        </div>
+
+        <h2 id="checklist">Check-list des écritures d’inventaire</h2>
+        <ul class="checklist">
+          <li>Les factures fournisseurs reçues après clôture ont été analysées.</li>
+          <li>Les FNP sont comptabilisées si nécessaire.</li>
+          <li>Les charges payées d’avance sont retraitées en CCA.</li>
+          <li>Les produits constatés d’avance sont identifiés.</li>
+          <li>Les produits à recevoir sont justifiés.</li>
+          <li>Les amortissements sont calculés et comptabilisés.</li>
+          <li>Les provisions sont réelles, probables et documentées.</li>
+          <li>Les stocks sont inventoriés et valorisés si l’entreprise est concernée.</li>
+          <li>Les écritures à contrepasser sont identifiées.</li>
+          <li>Les justificatifs sont conservés dans le dossier de clôture.</li>
+        </ul>
+
+        <h2>Comment ne pas se tromper ?</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Situation</th><th>Écriture probable</th></tr></thead>
+            <tbody>
+              <tr><td>Charge de N, facture reçue en N+1</td><td>FNP</td></tr>
+              <tr><td>Charge payée en N mais concernant N+1</td><td>CCA</td></tr>
+              <tr><td>Produit encaissé en N mais concernant N+1</td><td>PCA</td></tr>
+              <tr><td>Produit acquis en N mais non facturé</td><td>Produit à recevoir</td></tr>
+              <tr><td>Bien durable utilisé plusieurs années</td><td>Amortissement</td></tr>
+              <tr><td>Risque probable au 31/12</td><td>Provision</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="faq">FAQ — Écritures d’inventaire</h2>
+        <div class="faq">
+          <details>
+            <summary>Quelle est la différence entre écriture d’inventaire et écriture courante ?</summary>
+            <p>Une écriture courante enregistre une opération quotidienne. Une écriture d’inventaire est passée à la clôture pour régulariser les comptes.</p>
+          </details>
+          <details>
+            <summary>Les écritures d’inventaire sont-elles obligatoires ?</summary>
+            <p>Lorsqu’elles sont nécessaires pour rattacher correctement les charges, produits, dettes ou créances au bon exercice, elles doivent être comptabilisées.</p>
+          </details>
+          <details>
+            <summary>Faut-il toujours contrepasser les écritures d’inventaire ?</summary>
+            <p>Non. Certaines écritures temporaires se contrepassent, mais les provisions et amortissements font l’objet d’un suivi spécifique.</p>
+          </details>
+        </div>
+
+        <h2>À retenir</h2>
+        <p>
+          Les écritures d’inventaire permettent de transformer une comptabilité courante en comptes annuels cohérents.
+          Elles sont indispensables pour rattacher les opérations au bon exercice et préparer une clôture comptable fiable.
+        </p>
+
+        <div class="related">
+          <a href="comment-faire-une-cloture-comptable.html">Comment faire une clôture comptable</a>
+          <a href="fnp-comptabilite-exemple.html">FNP comptabilité : exemple</a>
+          <a href="cca-comptabilite-exemple.html">CCA comptabilité : exemple</a>
+          <a href="provision-comptable-exemple.html">Provision comptable : exemple</a>
+        </div>
+      </article>
+
+      <aside class="side">
+        <div class="book-box">
+          <div class="cover">Écritures<br>d’inventaire<br>& clôture</div>
+          <h3>Guide complet des écritures d’inventaire</h3>
+          <p>Un guide pratique pour comprendre les FNP, CCA, provisions, amortissements, contrôles de clôture et passage au nouvel exercice.</p>
+          <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir sur Amazon</a>
+        </div>
+        <div class="mini-box">
+          <h3>À lire aussi</h3>
+          <p>Pour apprendre les écritures comptables du quotidien.</p>
+          <a class="btn secondary" href="https://www.amazon.fr/dp/B0H2XZML1F" target="_blank" rel="noopener">Opérations courantes</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>© 2026 — Comptabilité pratique • Axe Dossier</div>
+      <div><a href="/">Accueil</a> · Guides comptables pour TPE, PME, indépendants et étudiants</div>
+    </div>
+  </footer>
+</body>
+</html>
