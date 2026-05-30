@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Comment faire une clôture comptable ? Méthode simple et étapes clés</title>
-  <meta name="description" content="Comment faire une clôture comptable : méthode simple, étapes à suivre, FNP, CCA, amortissements, provisions, TVA, paie, bilan et check-list de clôture." />
+  <title>Comment faire une clôture comptable ? Étapes, écritures et check-list</title>
+  <meta name="description" content="Comment faire une clôture comptable : méthode simple, cycles à contrôler, écritures d’inventaire, CCA, PCA, charges à payer, produits à recevoir, extournes et check-list." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://compta.axe-dossier.fr/comment-faire-une-cloture-comptable.html" />
 
   <meta property="og:title" content="Comment faire une clôture comptable ?" />
-  <meta property="og:description" content="Méthode simple pour comprendre les étapes d’une clôture comptable : cycles, écritures d’inventaire, contrôles et passage au nouvel exercice." />
+  <meta property="og:description" content="Méthode claire pour préparer une clôture comptable : contrôles, écritures d’inventaire, régularisations, extournes et check-list finale." />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://compta.axe-dossier.fr/comment-faire-une-cloture-comptable.html" />
 
@@ -18,440 +18,41 @@
   <meta name="theme-color" content="#0f4b3b" />
 
   <style>
-    :root{
-      --green:#0f4b3b;
-      --green-dark:#0a3328;
-      --blue:#0b6f8f;
-      --ink:#17211d;
-      --muted:#5b6863;
-      --soft:#f3f7f5;
-      --line:#dce6e2;
-      --white:#fff;
-      --shadow:0 18px 45px rgba(15,75,59,.12);
-      --radius:22px;
-    }
-
+    :root{--green:#0f4b3b;--green-dark:#0a3328;--blue:#0b6f8f;--ink:#17211d;--muted:#5b6863;--soft:#f3f7f5;--line:#dce6e2;--white:#fff;--shadow:0 18px 45px rgba(15,75,59,.12);--radius:22px}
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:var(--ink);
-      background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);
-      line-height:1.7;
-    }
-
-    a{color:inherit;text-decoration:none}
-    .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
-
-    header{
-      position:sticky;
-      top:0;
-      z-index:20;
-      background:rgba(248,251,250,.9);
-      backdrop-filter:blur(14px);
-      border-bottom:1px solid rgba(220,230,226,.85);
-    }
-
-    .nav{
-      min-height:74px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-    }
-
-    .brand{
-      display:flex;
-      flex-direction:column;
-      line-height:1.15;
-      font-weight:850;
-      letter-spacing:-.03em;
-      color:var(--green);
-    }
-
-    .brand span:last-child{
-      font-size:.78rem;
-      color:var(--muted);
-      font-weight:650;
-      letter-spacing:0;
-    }
-
-    .navlinks{
-      display:flex;
-      gap:18px;
-      align-items:center;
-      color:#34413c;
-      font-size:.92rem;
-    }
-
-    .navlinks a:hover{color:var(--green)}
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:12px 18px;
-      border-radius:999px;
-      font-weight:800;
-      border:1px solid transparent;
-      transition:.18s ease;
-      text-align:center;
-    }
-
-    .btn.primary{
-      background:var(--green);
-      color:#fff;
-      box-shadow:0 10px 24px rgba(15,75,59,.18);
-    }
-
-    .btn.primary:hover{background:var(--green-dark);transform:translateY(-1px)}
-    .btn.secondary{
-      background:#fff;
-      color:var(--green);
-      border-color:var(--line);
-    }
-
-    .hero{
-      padding:66px 0 38px;
-      overflow:hidden;
-      position:relative;
-    }
-
-    .hero:before{
-      content:"";
-      position:absolute;
-      width:520px;
-      height:520px;
-      border-radius:50%;
-      right:-200px;
-      top:-220px;
-      background:radial-gradient(circle,rgba(15,75,59,.17),transparent 68%);
-      pointer-events:none;
-    }
-
-    .breadcrumb{
-      font-size:.9rem;
-      color:var(--muted);
-      margin-bottom:18px;
-    }
-
-    .breadcrumb a{color:var(--green);font-weight:750}
-
-    .hero-grid{
-      display:grid;
-      grid-template-columns:1.15fr .85fr;
-      gap:34px;
-      align-items:start;
-    }
-
-    .badge{
-      display:inline-flex;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#e7f1ed;
-      color:var(--green);
-      font-weight:800;
-      font-size:.88rem;
-      margin-bottom:18px;
-    }
-
-    h1{
-      font-size:clamp(2.25rem,4.7vw,4.35rem);
-      line-height:1.03;
-      letter-spacing:-.06em;
-      margin:0 0 20px;
-      color:#10231c;
-    }
-
-    .lead{
-      color:#40504a;
-      font-size:1.15rem;
-      max-width:790px;
-      margin:0 0 28px;
-    }
-
-    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
-
-    .summary-card{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:24px;
-      box-shadow:var(--shadow);
-      position:sticky;
-      top:96px;
-    }
-
-    .summary-card h2{
-      margin:0 0 14px;
-      font-size:1.18rem;
-      letter-spacing:-.02em;
-    }
-
-    .summary-card ol{
-      padding-left:20px;
-      margin:0;
-      color:#40504a;
-      font-size:.96rem;
-    }
-
-    .summary-card li{margin:8px 0}
-    .summary-card a{color:var(--green);font-weight:700}
-
-    main.article-wrap{
-      padding:28px 0 64px;
-    }
-
-    .content-grid{
-      display:grid;
-      grid-template-columns:1fr 320px;
-      gap:34px;
-      align-items:start;
-    }
-
-    article{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:36px;
-      box-shadow:0 14px 36px rgba(17,33,28,.05);
-    }
-
-    article h2{
-      font-size:clamp(1.55rem,2.6vw,2.25rem);
-      line-height:1.15;
-      letter-spacing:-.04em;
-      margin:40px 0 14px;
-      color:#10231c;
-    }
-
-    article h2:first-child{margin-top:0}
-
-    article h3{
-      font-size:1.22rem;
-      margin:24px 0 8px;
-      letter-spacing:-.02em;
-      color:#18342a;
-    }
-
-    article p{color:#35443f;margin:12px 0}
-    article ul, article ol{color:#35443f}
-    article li{margin:8px 0}
-
-    .note{
-      border-left:5px solid var(--green);
-      background:#f2f8f5;
-      border-radius:16px;
-      padding:18px 20px;
-      margin:22px 0;
-    }
-
-    .warning{
-      border-left:5px solid #b47b25;
-      background:#fff7e8;
-      border-radius:16px;
-      padding:18px 20px;
-      margin:22px 0;
-    }
-
-    .table-wrap{
-      overflow-x:auto;
-      margin:20px 0;
-      border:1px solid var(--line);
-      border-radius:18px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:620px;
-      background:#fff;
-    }
-
-    th,td{
-      padding:13px 14px;
-      border-bottom:1px solid var(--line);
-      text-align:left;
-      vertical-align:top;
-    }
-
-    th{
-      background:#f3f7f5;
-      color:#18342a;
-      font-size:.92rem;
-    }
-
-    tr:last-child td{border-bottom:none}
-
-    .checklist{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      padding:0;
-      list-style:none;
-    }
-
-    .checklist li{
-      background:#f8fbfa;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
-      margin:0;
-    }
-
-    .checklist li:before{
-      content:"☐ ";
-      color:var(--green);
-      font-weight:900;
-    }
-
-    .side{
-      display:grid;
-      gap:18px;
-    }
-
-    .book-box,.mini-box{
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 14px 34px rgba(17,33,28,.06);
-    }
-
-    .cover{
-      width:110px;
-      height:155px;
-      border-radius:6px;
-      background:linear-gradient(180deg,#0f4b3b 0%,#555 100%);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      color:#fff;
-      font-family:Georgia,serif;
-      font-weight:800;
-      box-shadow:0 12px 24px rgba(0,0,0,.16);
-      margin-bottom:14px;
-      font-size:.84rem;
-      padding:9px;
-    }
-
-    .book-box h3,.mini-box h3{
-      margin:0 0 10px;
-      font-size:1.12rem;
-    }
-
-    .book-box p,.mini-box p{
-      margin:0 0 14px;
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .related{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-      margin-top:18px;
-    }
-
-    .related a{
-      background:#f8fbfa;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:13px 14px;
-      font-weight:780;
-      color:#17342a;
-    }
-
-    .related a:hover{border-color:var(--green);color:var(--green)}
-
-    .faq details{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px 18px;
-      margin:12px 0;
-      background:#f8fbfa;
-    }
-
-    .faq summary{
-      cursor:pointer;
-      font-weight:800;
-      color:#17342a;
-    }
-
-    footer{
-      padding:36px 0;
-      border-top:1px solid var(--line);
-      color:var(--muted);
-      font-size:.92rem;
-    }
-
-    .footer-grid{
-      display:flex;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
-    }
-
-    @media (max-width:940px){
-      .hero-grid,.content-grid{grid-template-columns:1fr}
-      .summary-card{position:relative;top:auto}
-      .navlinks{display:none}
-      article{padding:24px}
-      .related{grid-template-columns:1fr}
-    }
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);line-height:1.7}
+    a{color:inherit;text-decoration:none}.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+    header{position:sticky;top:0;z-index:20;background:rgba(248,251,250,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,230,226,.85)}
+    .nav{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;flex-direction:column;line-height:1.15;font-weight:850;letter-spacing:-.03em;color:var(--green)}.brand span:last-child{font-size:.78rem;color:var(--muted);font-weight:650;letter-spacing:0}.navlinks{display:flex;gap:18px;align-items:center;color:#34413c;font-size:.92rem}.navlinks a:hover{color:var(--green)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;font-weight:800;border:1px solid transparent;transition:.18s ease;text-align:center}.btn.primary{background:var(--green);color:#fff;box-shadow:0 10px 24px rgba(15,75,59,.18)}.btn.primary:hover{background:var(--green-dark);transform:translateY(-1px)}.btn.secondary{background:#fff;color:var(--green);border-color:var(--line)}
+    .hero{padding:66px 0 38px;overflow:hidden;position:relative}.hero:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-200px;top:-220px;background:radial-gradient(circle,rgba(15,75,59,.17),transparent 68%);pointer-events:none}.breadcrumb{font-size:.9rem;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--green);font-weight:750}.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:start}.badge{display:inline-flex;padding:8px 12px;border-radius:999px;background:#e7f1ed;color:var(--green);font-weight:800;font-size:.88rem;margin-bottom:18px}h1{font-size:clamp(2.25rem,4.7vw,4.35rem);line-height:1.03;letter-spacing:-.06em;margin:0 0 20px;color:#10231c}.lead{color:#40504a;font-size:1.15rem;max-width:790px;margin:0 0 28px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .summary-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:sticky;top:96px}.summary-card h2{margin:0 0 14px;font-size:1.18rem;letter-spacing:-.02em}.summary-card ol{padding-left:20px;margin:0;color:#40504a;font-size:.96rem}.summary-card li{margin:8px 0}.summary-card a{color:var(--green);font-weight:700}
+    main.article-wrap{padding:28px 0 64px}.content-grid{display:grid;grid-template-columns:1fr 320px;gap:34px;align-items:start}article{background:#fff;border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:0 14px 36px rgba(17,33,28,.05)}article h2{font-size:clamp(1.55rem,2.6vw,2.25rem);line-height:1.15;letter-spacing:-.04em;margin:40px 0 14px;color:#10231c}article h2:first-child{margin-top:0}article h3{font-size:1.22rem;margin:24px 0 8px;letter-spacing:-.02em;color:#18342a}article p{color:#35443f;margin:12px 0}article ul,article ol{color:#35443f}article li{margin:8px 0}
+    .note{border-left:5px solid var(--green);background:#f2f8f5;border-radius:16px;padding:18px 20px;margin:22px 0}.warning{border-left:5px solid #b47b25;background:#fff7e8;border-radius:16px;padding:18px 20px;margin:22px 0}.table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:18px}table{width:100%;border-collapse:collapse;min-width:620px;background:#fff}th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f3f7f5;color:#18342a;font-size:.92rem}tr:last-child td{border-bottom:none}
+    .hub-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:20px 0 28px}.hub-card{display:block;background:#f8fbfa;border:1px solid var(--line);border-radius:18px;padding:18px;transition:.18s ease}.hub-card:hover{border-color:var(--green);transform:translateY(-1px);box-shadow:0 12px 28px rgba(15,75,59,.08)}.hub-card strong{display:block;color:#17342a;font-size:1.02rem;margin-bottom:6px}.hub-card span{display:block;color:var(--muted);font-size:.94rem}.tag{display:inline-flex;margin-top:10px;padding:5px 9px;border-radius:999px;background:#e7f1ed;color:var(--green);font-size:.78rem;font-weight:850}
+    .checklist{display:grid;grid-template-columns:1fr;gap:10px;padding:0;list-style:none}.checklist li{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0}.checklist li:before{content:"☐ ";color:var(--green);font-weight:900}.side{display:grid;gap:18px}.book-box,.mini-box{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(17,33,28,.06)}.cover{width:110px;height:155px;border-radius:6px;background:linear-gradient(180deg,#0f4b3b 0%,#555 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:Georgia,serif;font-weight:800;box-shadow:0 12px 24px rgba(0,0,0,.16);margin-bottom:14px;font-size:.84rem;padding:9px}.book-box h3,.mini-box h3{margin:0 0 10px;font-size:1.12rem}.book-box p,.mini-box p{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+    .related{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.related a{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-weight:780;color:#17342a}.related a:hover{border-color:var(--green);color:var(--green)}.faq details{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0;background:#f8fbfa}.faq summary{cursor:pointer;font-weight:800;color:#17342a}footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}.footer-grid{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    @media (max-width:940px){.hero-grid,.content-grid{grid-template-columns:1fr}.summary-card{position:relative;top:auto}.navlinks{display:none}article{padding:24px}.related,.hub-grid{grid-template-columns:1fr}}
   </style>
 
   <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"Article",
-    "headline":"Comment faire une clôture comptable ?",
-    "description":"Méthode simple pour réaliser une clôture comptable : étapes, cycles à contrôler, écritures d’inventaire, FNP, CCA, provisions, TVA et bilan.",
-    "author":{"@type":"Person","name":"Sophie Dumas"},
-    "publisher":{"@type":"Organization","name":"Axe Dossier"},
-    "mainEntityOfPage":"https://compta.axe-dossier.fr/comment-faire-une-cloture-comptable.html"
-  }
+  {"@context":"https://schema.org","@type":"Article","headline":"Comment faire une clôture comptable ?","description":"Méthode simple pour réaliser une clôture comptable : étapes, cycles à contrôler, écritures d’inventaire, charges à payer, produits à recevoir, CCA, PCA, extournes et bilan.","author":{"@type":"Person","name":"Sophie Dumas"},"publisher":{"@type":"Organization","name":"Axe Dossier"},"mainEntityOfPage":"https://compta.axe-dossier.fr/comment-faire-une-cloture-comptable.html"}
   </script>
-
   <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"FAQPage",
-    "mainEntity":[
-      {
-        "@type":"Question",
-        "name":"Qu’est-ce qu’une clôture comptable ?",
-        "acceptedAnswer":{"@type":"Answer","text":"La clôture comptable consiste à vérifier, régulariser et arrêter les comptes d’un exercice afin de préparer le bilan, le compte de résultat et la liasse fiscale."}
-      },
-      {
-        "@type":"Question",
-        "name":"Quelles sont les écritures principales de clôture ?",
-        "acceptedAnswer":{"@type":"Answer","text":"Les principales écritures de clôture concernent notamment les FNP, CCA, PCA, produits à recevoir, amortissements, provisions, régularisations de TVA, stocks et charges sociales à payer."}
-      },
-      {
-        "@type":"Question",
-        "name":"Peut-on faire une clôture comptable seul ?",
-        "acceptedAnswer":{"@type":"Answer","text":"Une clôture simple peut être préparée seul avec une méthode rigoureuse. Les cas complexes, les choix fiscaux sensibles ou les sociétés avec obligations particulières nécessitent toutefois un professionnel."}
-      }
-    ]
-  }
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"Qu’est-ce qu’une clôture comptable ?","acceptedAnswer":{"@type":"Answer","text":"La clôture comptable consiste à vérifier, régulariser et arrêter les comptes d’un exercice afin de préparer le bilan, le compte de résultat et la liasse fiscale."}},
+    {"@type":"Question","name":"Quelles sont les écritures principales de clôture ?","acceptedAnswer":{"@type":"Answer","text":"Les principales écritures de clôture concernent les charges à payer, produits à recevoir, charges constatées d’avance, produits constatés d’avance, amortissements, provisions, stocks, TVA et extournes."}},
+    {"@type":"Question","name":"Quelle est la différence entre une charge à payer et une charge constatée d’avance ?","acceptedAnswer":{"@type":"Answer","text":"Une charge à payer concerne une charge de l’exercice dont la facture n’est pas encore reçue. Une charge constatée d’avance concerne une charge déjà enregistrée mais qui relève de l’exercice suivant."}},
+    {"@type":"Question","name":"Pourquoi faut-il extourner certaines écritures ?","acceptedAnswer":{"@type":"Answer","text":"L’extourne permet d’annuler automatiquement certaines écritures d’inventaire au début de l’exercice suivant afin d’éviter un double impact comptable."}}
+  ]}
   </script>
 </head>
 
 <body>
   <header>
     <div class="wrap nav">
-      <a href="/" class="brand">
-        <span>Comptabilité pratique</span>
-        <span>Opérations courantes • Inventaire • Clôture</span>
-      </a>
-      <nav class="navlinks">
-        <a href="/">Accueil</a>
-        <a href="#etapes">Étapes</a>
-        <a href="#checklist">Check-list</a>
-        <a href="#faq">FAQ</a>
-      </nav>
+      <a href="/" class="brand"><span>Comptabilité pratique</span><span>Opérations courantes • Inventaire • Clôture</span></a>
+      <nav class="navlinks"><a href="/">Accueil</a><a href="#methode">Méthode</a><a href="#ecritures">Écritures</a><a href="#checklist">Check-list</a><a href="#faq">FAQ</a></nav>
       <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir le guide</a>
     </div>
   </header>
@@ -461,28 +62,19 @@
       <div class="breadcrumb"><a href="/">Accueil</a> → Clôture comptable</div>
       <div class="hero-grid">
         <div>
-          <div class="badge">Clôture comptable</div>
+          <div class="badge">Page pilier clôture comptable</div>
           <h1>Comment faire une clôture comptable ?</h1>
-          <p class="lead">
-            Faire une clôture comptable consiste à vérifier les comptes, passer les écritures d’inventaire,
-            contrôler le résultat et préparer le bilan. Voici une méthode simple, structurée et adaptée aux TPE, PME,
-            indépendants, étudiants et gestionnaires.
-          </p>
-          <div class="hero-actions">
-            <a class="btn primary" href="#etapes">Voir les étapes</a>
-            <a class="btn secondary" href="#checklist">Accéder à la check-list</a>
-          </div>
+          <p class="lead">Faire une clôture comptable consiste à contrôler les cycles, passer les écritures d’inventaire, rattacher les charges et produits au bon exercice, puis préparer le bilan. La méthode doit être carrée, sinon la clôture devient vite une soupe comptable.</p>
+          <div class="hero-actions"><a class="btn primary" href="#methode">Voir la méthode</a><a class="btn secondary" href="#ecritures">Voir les écritures clés</a></div>
         </div>
-
         <aside class="summary-card">
           <h2>En résumé</h2>
           <ol>
-            <li><a href="#definition">Comprendre le rôle de la clôture</a></li>
-            <li><a href="#documents">Réunir les documents</a></li>
-            <li><a href="#etapes">Contrôler les cycles comptables</a></li>
-            <li><a href="#ecritures">Passer les écritures d’inventaire</a></li>
-            <li><a href="#fiscal">Préparer la liasse fiscale</a></li>
-            <li><a href="#checklist">Vérifier avant validation</a></li>
+            <li><a href="#definition">Comprendre la clôture</a></li>
+            <li><a href="#methode">Suivre une méthode par cycles</a></li>
+            <li><a href="#ecritures">Identifier les écritures d’inventaire</a></li>
+            <li><a href="#extournes">Préparer les extournes</a></li>
+            <li><a href="#checklist">Valider la check-list finale</a></li>
           </ol>
         </aside>
       </div>
@@ -493,333 +85,100 @@
     <div class="wrap content-grid">
       <article>
         <h2 id="definition">Qu’est-ce qu’une clôture comptable ?</h2>
-        <p>
-          La clôture comptable est l’opération qui permet d’arrêter les comptes d’une entreprise à la fin d’un exercice.
-          Elle sert à produire les comptes annuels : bilan, compte de résultat, annexes éventuelles et liasse fiscale.
-        </p>
-        <p>
-          Concrètement, la clôture consiste à vérifier que chaque charge, chaque produit, chaque dette et chaque créance
-          est rattaché au bon exercice comptable.
-        </p>
+        <p>La clôture comptable est l’opération qui permet d’arrêter les comptes d’une entreprise à la fin d’un exercice. Elle sert à produire les comptes annuels : bilan, compte de résultat, annexes éventuelles et liasse fiscale.</p>
+        <p>Le principe est simple : chaque charge et chaque produit doivent être rattachés au bon exercice. Dans la pratique, c’est là que les ennuis commencent : facture reçue trop tard, abonnement payé d’avance, vente réalisée mais non facturée, charge sociale à provisionner, amortissement oublié.</p>
+        <div class="note"><strong>À retenir :</strong> une clôture comptable n’est pas une simple formalité. C’est un contrôle de cohérence complet avant d’arrêter le résultat.</div>
 
-        <div class="note">
-          <strong>À retenir :</strong> une clôture comptable n’est pas seulement une saisie d’écritures. C’est surtout une logique de contrôle, de cohérence et de justification.
-        </div>
+        <h2 id="methode">Méthode simple pour faire une clôture comptable</h2>
+        <p>La bonne méthode consiste à avancer cycle par cycle. On évite ainsi de regarder une balance générale pendant trois heures en espérant qu’elle parle toute seule. Mauvaise nouvelle : elle ne parle pas.</p>
+        <div class="table-wrap"><table><thead><tr><th>Cycle</th><th>Contrôles à faire</th><th>Écritures possibles</th></tr></thead><tbody>
+          <tr><td>Banque</td><td>Rapprochement bancaire, soldes, chèques non débités</td><td>Frais bancaires, écritures manquantes</td></tr>
+          <tr><td>Clients</td><td>Créances, avoirs, ventes non facturées</td><td>Produits à recevoir, PCA, dépréciations clients</td></tr>
+          <tr><td>Fournisseurs</td><td>Dettes, factures reçues après clôture, abonnements</td><td>Charges à payer, CCA, FNP</td></tr>
+          <tr><td>Immobilisations</td><td>Acquisitions, cessions, mises au rebut</td><td>Amortissements, sorties d’actifs</td></tr>
+          <tr><td>Personnel</td><td>Salaires, charges sociales, congés payés</td><td>Charges sociales à payer, provisions congés</td></tr>
+          <tr><td>Fiscal</td><td>TVA, IS, CFE, taxes diverses</td><td>Régularisations fiscales, charges à payer</td></tr>
+          <tr><td>Stocks</td><td>Inventaire physique, variations, dépréciation</td><td>Variation de stocks, provision pour dépréciation</td></tr>
+        </tbody></table></div>
 
-        <h2 id="documents">Quels documents réunir avant la clôture ?</h2>
-        <p>Avant de commencer, il faut réunir les pièces utiles. Sans justificatifs, la clôture devient fragile.</p>
-
+        <h2 id="documents">Documents à réunir avant de clôturer</h2>
         <ul>
-          <li>balance générale provisoire ;</li>
-          <li>grand livre ;</li>
-          <li>rapprochements bancaires ;</li>
-          <li>factures clients et fournisseurs ;</li>
-          <li>factures reçues après la clôture ;</li>
-          <li>tableau des immobilisations ;</li>
-          <li>état des stocks si l’entreprise est concernée ;</li>
-          <li>journaux de paie et charges sociales ;</li>
-          <li>déclarations de TVA ;</li>
-          <li>justificatifs des provisions et litiges.</li>
+          <li>balance générale provisoire ;</li><li>grand livre ;</li><li>journaux comptables ;</li><li>rapprochements bancaires ;</li><li>factures clients et fournisseurs ;</li><li>factures reçues après la clôture ;</li><li>tableau des immobilisations ;</li><li>état des stocks ;</li><li>journaux de paie et charges sociales ;</li><li>déclarations de TVA ;</li><li>justificatifs des provisions, litiges et créances douteuses.</li>
         </ul>
 
-        <h2 id="etapes">Les grandes étapes d’une clôture comptable</h2>
-        <p>
-          Une clôture comptable sérieuse se fait cycle par cycle. Cette méthode évite de se perdre dans la balance générale
-          et permet d’identifier les anomalies plus facilement.
-        </p>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Étape</th>
-                <th>Contrôle à effectuer</th>
-                <th>Objectif</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Banque</td>
-                <td>Rapprochements bancaires</td>
-                <td>Vérifier que les soldes bancaires sont cohérents.</td>
-              </tr>
-              <tr>
-                <td>Clients</td>
-                <td>Créances, avoirs, produits à recevoir</td>
-                <td>Identifier les ventes rattachées au bon exercice.</td>
-              </tr>
-              <tr>
-                <td>Fournisseurs</td>
-                <td>Factures non parvenues, dettes, charges</td>
-                <td>Ne pas oublier les charges de l’exercice.</td>
-              </tr>
-              <tr>
-                <td>Immobilisations</td>
-                <td>Achats, cessions, amortissements</td>
-                <td>Mettre à jour les biens durables et leurs amortissements.</td>
-              </tr>
-              <tr>
-                <td>Personnel</td>
-                <td>Salaires, charges sociales, congés payés</td>
-                <td>Rattacher les charges sociales au bon exercice.</td>
-              </tr>
-              <tr>
-                <td>État</td>
-                <td>TVA, IS, taxes, CAP/PAR</td>
-                <td>Vérifier les dettes et créances fiscales.</td>
-              </tr>
-            </tbody>
-          </table>
+        <h2 id="ecritures">Les écritures de clôture à connaître</h2>
+        <p>Les écritures de clôture sont aussi appelées écritures d’inventaire. Elles permettent de corriger le résultat pour respecter le principe d’indépendance des exercices.</p>
+        <div class="hub-grid">
+          <a class="hub-card" href="comment-faire-ecritures-inventaire.html"><strong>Écritures d’inventaire</strong><span>La page pilier pour comprendre toutes les OD de fin d’exercice.</span><em class="tag">Page centrale</em></a>
+          <a class="hub-card" href="charge-a-payer-comptabilite.html"><strong>Charge à payer</strong><span>Charge de N dont la facture ou le montant exact n’est pas encore enregistré.</span><em class="tag">Dette à rattacher</em></a>
+          <a class="hub-card" href="produit-a-recevoir-comptabilite.html"><strong>Produit à recevoir</strong><span>Produit acquis sur N mais non encore facturé ou non encore comptabilisé.</span><em class="tag">Créance à rattacher</em></a>
+          <a class="hub-card" href="charge-constatee-avance.html"><strong>Charge constatée d’avance</strong><span>Charge déjà comptabilisée mais qui concerne N+1.</span><em class="tag">Compte 486</em></a>
+          <a class="hub-card" href="produit-constate-avance.html"><strong>Produit constaté d’avance</strong><span>Produit déjà comptabilisé mais qui concerne l’exercice suivant.</span><em class="tag">Compte 487</em></a>
+          <a class="hub-card" href="extourne-comptable-definition.html"><strong>Extourne comptable</strong><span>L’écriture inverse à passer au début de l’exercice suivant.</span><em class="tag">Terrain pur</em></a>
         </div>
 
-        <h2 id="ecritures">Quelles écritures passer à la clôture ?</h2>
-        <p>
-          Les écritures de clôture sont aussi appelées écritures d’inventaire ou OD de fin d’exercice.
-          Elles permettent de corriger le résultat pour rattacher les charges et produits au bon exercice.
-        </p>
+        <h3>Charge à payer : ne pas oublier les charges de l’exercice</h3>
+        <p>Une charge à payer concerne une charge rattachée à l’exercice N, même si la facture n’est pas encore reçue ou si le montant définitif n’est pas encore connu.</p>
+        <div class="table-wrap"><table><thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead><tbody><tr><td>6...</td><td>Charge concernée</td><td>X</td><td></td></tr><tr><td>44586</td><td>TVA sur factures non parvenues si applicable</td><td>X</td><td></td></tr><tr><td>4081 / 428 / 438 / 448</td><td>Charge à payer selon la nature</td><td></td><td>X</td></tr></tbody></table></div>
+        <p><a href="charge-a-payer-comptabilite.html"><strong>Voir la page complète sur les charges à payer</strong></a></p>
 
-        <h3>1. Les factures non parvenues — FNP</h3>
-        <p>
-          Une FNP concerne une charge de l’exercice dont la facture n’est pas encore reçue à la date de clôture.
-        </p>
+        <h3>Produit à recevoir : ne pas oublier les produits acquis</h3>
+        <p>Un produit à recevoir permet de constater un produit qui concerne l’exercice N, mais qui n’a pas encore été facturé ou enregistré à la clôture.</p>
+        <div class="table-wrap"><table><thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead><tbody><tr><td>4181 / 4687</td><td>Produit à recevoir</td><td>X</td><td></td></tr><tr><td>7...</td><td>Produit concerné</td><td></td><td>X</td></tr><tr><td>44587</td><td>TVA sur facture à établir si applicable</td><td></td><td>X</td></tr></tbody></table></div>
+        <p><a href="produit-a-recevoir-comptabilite.html"><strong>Voir la page complète sur les produits à recevoir</strong></a></p>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Compte</th>
-                <th>Libellé</th>
-                <th>Débit</th>
-                <th>Crédit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>6...</td>
-                <td>Charge concernée</td>
-                <td>X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>44586</td>
-                <td>TVA sur factures non parvenues</td>
-                <td>X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>4081</td>
-                <td>Fournisseurs — factures non parvenues</td>
-                <td></td>
-                <td>X</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <h3>CCA et PCA : corriger ce qui a été comptabilisé trop tôt</h3>
+        <p>Les charges constatées d’avance et les produits constatés d’avance traitent le problème inverse : une facture a déjà été enregistrée, mais elle concerne en partie l’exercice suivant.</p>
+        <div class="table-wrap"><table><thead><tr><th>Situation</th><th>Écriture</th><th>Compte clé</th></tr></thead><tbody><tr><td>Charge comptabilisée en N mais concernant N+1</td><td>Charge constatée d’avance</td><td>486</td></tr><tr><td>Produit comptabilisé en N mais concernant N+1</td><td>Produit constaté d’avance</td><td>487</td></tr></tbody></table></div>
+        <p><a href="charge-constatee-avance.html"><strong>Voir la page CCA</strong></a> · <a href="produit-constate-avance.html"><strong>Voir la page PCA</strong></a></p>
 
-        <h3>2. Les charges constatées d’avance — CCA</h3>
-        <p>
-          Une CCA concerne une charge déjà comptabilisée, mais qui concerne en réalité l’exercice suivant.
-        </p>
+        <h3>Amortissements et provisions</h3>
+        <p>Les amortissements constatent la perte de valeur progressive des immobilisations. Les provisions constatent un risque probable, existant à la clôture et estimable.</p>
+        <div class="warning"><strong>Point de vigilance :</strong> une provision ne se traite pas comme une charge à payer. Elle doit être justifiée et suivie jusqu’à disparition ou réalisation du risque.</div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Compte</th>
-                <th>Libellé</th>
-                <th>Débit</th>
-                <th>Crédit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>486</td>
-                <td>Charges constatées d’avance</td>
-                <td>X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>6...</td>
-                <td>Charge concernée</td>
-                <td></td>
-                <td>X</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <h2 id="extournes">Préparer les extournes de début d’exercice</h2>
+        <p>Une partie des écritures d’inventaire doit être extournée au début de l’exercice suivant. L’extourne consiste à passer l’écriture inverse pour éviter de comptabiliser deux fois la même charge ou le même produit.</p>
+        <div class="table-wrap"><table><thead><tr><th>Écriture</th><th>Extourne fréquente ?</th><th>Pourquoi ?</th></tr></thead><tbody><tr><td>Charge à payer / FNP</td><td>Oui</td><td>Pour neutraliser l’écriture quand la facture réelle arrive.</td></tr><tr><td>Produit à recevoir</td><td>Oui</td><td>Pour éviter un double produit lors de la facturation.</td></tr><tr><td>CCA</td><td>Oui</td><td>Pour réintégrer la charge dans N+1.</td></tr><tr><td>PCA</td><td>Oui</td><td>Pour rattacher le produit à N+1.</td></tr><tr><td>Provision</td><td>Non automatique</td><td>Elle reste tant que le risque existe.</td></tr><tr><td>Amortissement</td><td>Non</td><td>Il ne s’extourne pas.</td></tr></tbody></table></div>
+        <p><a href="extourne-comptable-definition.html"><strong>Voir la page complète sur l’extourne comptable</strong></a></p>
 
-        <h3>3. Les amortissements</h3>
-        <p>
-          Les amortissements permettent de répartir le coût d’une immobilisation sur sa durée d’utilisation.
-        </p>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Compte</th>
-                <th>Libellé</th>
-                <th>Débit</th>
-                <th>Crédit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>68112</td>
-                <td>Dotation aux amortissements</td>
-                <td>X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>28...</td>
-                <td>Amortissement de l’immobilisation</td>
-                <td></td>
-                <td>X</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3>4. Les provisions</h3>
-        <p>
-          Une provision permet de constater un risque probable, estimable et existant à la clôture.
-        </p>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Compte</th>
-                <th>Libellé</th>
-                <th>Débit</th>
-                <th>Crédit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>6815</td>
-                <td>Dotation aux provisions</td>
-                <td>X</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>151...</td>
-                <td>Provision concernée</td>
-                <td></td>
-                <td>X</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="warning">
-          <strong>Point de vigilance :</strong> toutes les écritures de clôture ne se contrepassent pas automatiquement.
-          Une FNP est souvent extournée au début de l’exercice suivant. Une provision, elle, est suivie jusqu’à disparition ou réalisation du risque.
-        </div>
+        <h2 id="controle">Contrôles essentiels avant validation</h2>
+        <p>Avant de considérer la clôture comme terminée, il faut vérifier la cohérence globale. Une écriture peut être techniquement juste et produire un résultat absurde. C’est le moment de lever le nez de la saisie.</p>
+        <ul><li>comparer le résultat avec l’exercice précédent ;</li><li>analyser les variations importantes de charges et produits ;</li><li>vérifier les soldes clients et fournisseurs anormaux ;</li><li>contrôler les comptes d’attente ;</li><li>rapprocher TVA déclarée et TVA comptabilisée ;</li><li>vérifier que les écritures d’inventaire sont justifiées ;</li><li>préparer les extournes pour N+1.</li></ul>
 
         <h2 id="fiscal">Préparer le résultat fiscal et la liasse</h2>
-        <p>
-          Une fois les écritures comptables passées, il faut vérifier le résultat fiscal.
-          Celui-ci peut être différent du résultat comptable.
-        </p>
-
-        <p>
-          Certaines charges peuvent être comptabilisées mais non déductibles fiscalement.
-          Exemple fréquent : certaines amendes. Elles peuvent devoir être réintégrées fiscalement dans la liasse.
-        </p>
-
-        <div class="note">
-          <strong>Exemple simple :</strong> résultat comptable de 10 000 € + amende non déductible de 150 € =
-          résultat fiscal de 10 150 €.
-        </div>
+        <p>Après les écritures comptables, il faut vérifier le résultat fiscal. Le résultat comptable n’est pas toujours le résultat imposable. Certaines charges peuvent être non déductibles et certains produits peuvent suivre un traitement spécifique.</p>
+        <div class="note"><strong>Exemple simple :</strong> résultat comptable de 10 000 € + amende non déductible de 150 € = résultat fiscal de 10 150 €.</div>
 
         <h2 id="checklist">Check-list finale pour faire une clôture comptable</h2>
-        <ul class="checklist">
-          <li>Les banques sont rapprochées.</li>
-          <li>Les comptes clients sont justifiés.</li>
-          <li>Les comptes fournisseurs sont contrôlés.</li>
-          <li>Les FNP sont comptabilisées.</li>
-          <li>Les CCA et PCA sont analysées.</li>
-          <li>Les amortissements sont passés.</li>
-          <li>Les provisions sont justifiées.</li>
-          <li>Les stocks sont vérifiés si l’entreprise est concernée.</li>
-          <li>Les comptes de TVA sont cohérents.</li>
-          <li>Les dettes sociales et fiscales sont contrôlées.</li>
-          <li>Les comptes d’attente sont soldés ou expliqués.</li>
-          <li>Le résultat comptable est cohérent.</li>
-          <li>Les contrepassations de début d’exercice sont identifiées.</li>
-        </ul>
+        <ul class="checklist"><li>Les banques sont rapprochées.</li><li>Les comptes clients sont justifiés.</li><li>Les comptes fournisseurs sont contrôlés.</li><li>Les charges à payer sont identifiées.</li><li>Les produits à recevoir sont comptabilisés.</li><li>Les CCA et PCA sont analysées.</li><li>Les amortissements sont passés.</li><li>Les provisions sont justifiées.</li><li>Les stocks sont vérifiés si l’entreprise est concernée.</li><li>Les comptes de TVA sont cohérents.</li><li>Les dettes sociales et fiscales sont contrôlées.</li><li>Les comptes d’attente sont soldés ou expliqués.</li><li>Les écritures d’inventaire sont documentées.</li><li>Les extournes de N+1 sont préparées.</li><li>Le résultat comptable est cohérent.</li></ul>
 
-        <h2>Quand faut-il demander l’aide d’un professionnel ?</h2>
-        <p>
-          Une clôture simple peut être préparée seul avec méthode. En revanche, certains cas nécessitent une vigilance particulière :
-        </p>
-        <ul>
-          <li>résultat fiscal complexe ;</li>
-          <li>provisions importantes ;</li>
-          <li>litige social ou fiscal ;</li>
-          <li>TVA internationale ;</li>
-          <li>groupes de sociétés ;</li>
-          <li>forte variation du résultat ;</li>
-          <li>capitaux propres dégradés.</li>
-        </ul>
+        <h2>Quand demander l’aide d’un professionnel ?</h2>
+        <p>Une clôture simple peut être préparée seul avec méthode. En revanche, il faut éviter de bricoler quand les enjeux deviennent sensibles.</p>
+        <ul><li>résultat fiscal complexe ;</li><li>provisions importantes ;</li><li>litige social ou fiscal ;</li><li>TVA internationale ;</li><li>stocks importants ou difficiles à valoriser ;</li><li>forte variation du résultat ;</li><li>capitaux propres dégradés ;</li><li>cession, transformation ou restructuration de société.</li></ul>
 
         <h2 id="faq">FAQ — Clôture comptable</h2>
         <div class="faq">
-          <details>
-            <summary>Quelle est la différence entre clôture comptable et bilan ?</summary>
-            <p>La clôture est le processus de vérification et de régularisation des comptes. Le bilan est l’un des documents produits après cette clôture.</p>
-          </details>
-          <details>
-            <summary>Une FNP est-elle obligatoire ?</summary>
-            <p>Elle doit être comptabilisée lorsqu’une charge concerne l’exercice clôturé mais que la facture n’a pas encore été reçue.</p>
-          </details>
-          <details>
-            <summary>Une CCA se contrepassera-t-elle l’année suivante ?</summary>
-            <p>Oui, généralement une CCA est extournée au début de l’exercice suivant afin d’éviter un double impact sur les charges.</p>
-          </details>
-          <details>
-            <summary>Une provision se contrepassera-t-elle automatiquement ?</summary>
-            <p>Non. Une provision est maintenue tant que le risque existe. Elle est reprise lorsque le risque disparaît ou se réalise.</p>
-          </details>
+          <details><summary>Quelle est la différence entre clôture comptable et bilan ?</summary><p>La clôture est le processus de vérification et de régularisation des comptes. Le bilan est l’un des documents produits après cette clôture.</p></details>
+          <details><summary>Quelles écritures faut-il passer à la clôture ?</summary><p>Les principales écritures concernent les charges à payer, produits à recevoir, charges constatées d’avance, produits constatés d’avance, amortissements, provisions, stocks, TVA et charges sociales.</p></details>
+          <details><summary>Faut-il extourner toutes les écritures d’inventaire ?</summary><p>Non. Les charges à payer, produits à recevoir, CCA et PCA sont souvent extournés. Les amortissements ne s’extournent pas. Les provisions sont suivies selon l’évolution du risque.</p></details>
+          <details><summary>Peut-on faire une clôture comptable seul ?</summary><p>Oui pour une clôture simple, avec une méthode rigoureuse. En cas d’enjeu fiscal, social, juridique ou patrimonial, il vaut mieux faire valider par un professionnel.</p></details>
         </div>
 
         <h2>À retenir</h2>
-        <p>
-          Faire une clôture comptable demande surtout une méthode : contrôler les cycles, identifier les écritures d’inventaire,
-          justifier les soldes importants et vérifier la cohérence du résultat.
-        </p>
-
-        <div class="related">
-          <a href="fnp-comptabilite-exemple.html">FNP comptabilité : exemple</a>
-          <a href="cca-comptabilite-exemple.html">CCA comptabilité : exemple</a>
-          <a href="provision-comptable-exemple.html">Provision comptable : exemple</a>
-          <a href="ecriture-inventaire-fin-exercice.html">Écritures d’inventaire</a>
-        </div>
+        <p>Faire une clôture comptable demande surtout de la méthode : contrôler les cycles, rattacher les charges et produits au bon exercice, justifier les écritures d’inventaire, préparer les extournes et vérifier la cohérence du résultat.</p>
+        <div class="related"><a href="comment-faire-ecritures-inventaire.html">Comment faire les écritures d’inventaire</a><a href="charge-a-payer-comptabilite.html">Charge à payer comptabilité</a><a href="produit-a-recevoir-comptabilite.html">Produit à recevoir comptabilité</a><a href="charge-constatee-avance.html">Charge constatée d’avance</a><a href="produit-constate-avance.html">Produit constaté d’avance</a><a href="extourne-comptable-definition.html">Extourne comptable définition</a></div>
       </article>
 
       <aside class="side">
-        <div class="book-box">
-          <div class="cover">Écritures<br>d’inventaire<br>& clôture</div>
-          <h3>Guide complet de clôture comptable</h3>
-          <p>Un guide pratique pour comprendre les écritures d’inventaire, FNP, CCA, provisions, amortissements et contrôles de clôture.</p>
-          <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir sur Amazon</a>
-        </div>
-
-        <div class="mini-box">
-          <h3>À lire aussi</h3>
-          <p>Pour apprendre les écritures du quotidien avant la clôture.</p>
-          <a class="btn secondary" href="https://www.amazon.fr/dp/B0H2XZML1F" target="_blank" rel="noopener">Opérations courantes</a>
-        </div>
+        <div class="book-box"><div class="cover">Écritures<br>d’inventaire<br>& clôture</div><h3>Guide complet de clôture comptable</h3><p>Un guide pratique pour comprendre les écritures d’inventaire, charges à payer, produits à recevoir, CCA, PCA, extournes, provisions et amortissements.</p><a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir sur Amazon</a></div>
+        <div class="mini-box"><h3>Pages clés</h3><p>Le cœur du maillage clôture comptable.</p><a class="btn secondary" href="comment-faire-ecritures-inventaire.html">Écritures d’inventaire</a></div>
+        <div class="mini-box"><h3>À lire aussi</h3><p>Pour apprendre les écritures du quotidien avant la clôture.</p><a class="btn secondary" href="https://www.amazon.fr/dp/B0H2XZML1F" target="_blank" rel="noopener">Opérations courantes</a></div>
       </aside>
     </div>
   </main>
 
   <footer>
-    <div class="wrap footer-grid">
-      <div>© 2026 — Comptabilité pratique • Axe Dossier</div>
-      <div><a href="/">Accueil</a> · Guides comptables pour TPE, PME, indépendants et étudiants</div>
-    </div>
+    <div class="wrap footer-grid"><div>© 2026 — Comptabilité pratique • Axe Dossier</div><div><a href="/">Accueil</a> · Guides comptables pour TPE, PME, indépendants et étudiants</div></div>
   </footer>
 </body>
 </html>
