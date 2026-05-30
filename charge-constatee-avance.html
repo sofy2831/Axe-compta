@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Charge constatée d’avance : définition, exemple et écriture comptable</title>
+  <meta name="description" content="Charge constatée d’avance : définition simple, exemple chiffré, compte 486, écriture comptable, contrepassation et différence avec FNP en clôture comptable." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/charge-constatee-avance.html" />
+
+  <meta property="og:title" content="Charge constatée d’avance : exemple simple" />
+  <meta property="og:description" content="Comprendre la charge constatée d’avance : compte 486, calcul prorata, écriture comptable, contrepassation et erreurs à éviter." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/charge-constatee-avance.html" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0f4b3b" />
+
+  <style>
+    :root{--green:#0f4b3b;--green-dark:#0a3328;--ink:#17211d;--muted:#5b6863;--line:#dce6e2;--shadow:0 18px 45px rgba(15,75,59,.12);--radius:22px}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8fbfa 0%,#eef5f2 100%);line-height:1.7}
+    a{color:inherit;text-decoration:none}.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+    header{position:sticky;top:0;z-index:20;background:rgba(248,251,250,.9);backdrop-filter:blur(14px);border-bottom:1px solid rgba(220,230,226,.85)}
+    .nav{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;flex-direction:column;line-height:1.15;font-weight:850;letter-spacing:-.03em;color:var(--green)}.brand span:last-child{font-size:.78rem;color:var(--muted);font-weight:650;letter-spacing:0}.navlinks{display:flex;gap:18px;align-items:center;color:#34413c;font-size:.92rem}.navlinks a:hover{color:var(--green)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:999px;font-weight:800;border:1px solid transparent;transition:.18s ease;text-align:center}.btn.primary{background:var(--green);color:#fff;box-shadow:0 10px 24px rgba(15,75,59,.18)}.btn.primary:hover{background:var(--green-dark);transform:translateY(-1px)}.btn.secondary{background:#fff;color:var(--green);border-color:var(--line)}
+    .hero{padding:66px 0 38px;position:relative;overflow:hidden}.hero:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-200px;top:-220px;background:radial-gradient(circle,rgba(15,75,59,.17),transparent 68%);pointer-events:none}.breadcrumb{font-size:.9rem;color:var(--muted);margin-bottom:18px}.breadcrumb a{color:var(--green);font-weight:750}.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:start}.badge{display:inline-flex;padding:8px 12px;border-radius:999px;background:#e7f1ed;color:var(--green);font-weight:800;font-size:.88rem;margin-bottom:18px}h1{font-size:clamp(2.25rem,4.7vw,4.35rem);line-height:1.03;letter-spacing:-.06em;margin:0 0 20px;color:#10231c}.lead{color:#40504a;font-size:1.15rem;max-width:790px;margin:0 0 28px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    .summary-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);position:sticky;top:96px}.summary-card h2{margin:0 0 14px;font-size:1.18rem;letter-spacing:-.02em}.summary-card ol{padding-left:20px;margin:0;color:#40504a;font-size:.96rem}.summary-card li{margin:8px 0}.summary-card a{color:var(--green);font-weight:700}
+    main.article-wrap{padding:28px 0 64px}.content-grid{display:grid;grid-template-columns:1fr 320px;gap:34px;align-items:start}article{background:#fff;border:1px solid var(--line);border-radius:28px;padding:36px;box-shadow:0 14px 36px rgba(17,33,28,.05)}article h2{font-size:clamp(1.55rem,2.6vw,2.25rem);line-height:1.15;letter-spacing:-.04em;margin:40px 0 14px;color:#10231c}article h2:first-child{margin-top:0}article h3{font-size:1.22rem;margin:24px 0 8px;letter-spacing:-.02em;color:#18342a}article p{color:#35443f;margin:12px 0}article li{margin:8px 0;color:#35443f}
+    .note{border-left:5px solid var(--green);background:#f2f8f5;border-radius:16px;padding:18px 20px;margin:22px 0}.warning{border-left:5px solid #b47b25;background:#fff7e8;border-radius:16px;padding:18px 20px;margin:22px 0}.formula{background:#f8fbfa;border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:20px 0;color:#17342a;font-weight:800}.table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:18px}table{width:100%;border-collapse:collapse;min-width:620px;background:#fff}th,td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f3f7f5;color:#18342a;font-size:.92rem}tr:last-child td{border-bottom:none}
+    .checklist{display:grid;grid-template-columns:1fr;gap:10px;padding:0;list-style:none;margin:18px 0 28px}.checklist li{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0}.checklist li:before{content:"☐ ";color:var(--green);font-weight:900}.side{display:grid;gap:18px}.book-box,.mini-box{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(17,33,28,.06)}.cover{width:110px;height:155px;border-radius:6px;background:linear-gradient(180deg,#0f4b3b 0%,#555 100%);display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-family:Georgia,serif;font-weight:800;box-shadow:0 12px 24px rgba(0,0,0,.16);margin-bottom:14px;font-size:.84rem;padding:9px}.book-box h3,.mini-box h3{margin:0 0 10px;font-size:1.12rem}.book-box p,.mini-box p{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+    .related{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.related a{background:#f8fbfa;border:1px solid var(--line);border-radius:14px;padding:13px 14px;font-weight:780;color:#17342a}.related a:hover{border-color:var(--green);color:var(--green)}.faq details{border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:12px 0;background:#f8fbfa}.faq summary{cursor:pointer;font-weight:800;color:#17342a}footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}.footer-grid{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    @media (max-width:940px){.hero-grid,.content-grid{grid-template-columns:1fr}.summary-card{position:relative;top:auto}.navlinks{display:none}article{padding:24px}.related{grid-template-columns:1fr}}
+  </style>
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Article","headline":"Charge constatée d’avance : définition, exemple et écriture comptable","description":"Comprendre la charge constatée d’avance : compte 486, exemple chiffré, calcul au prorata, écriture comptable et contrepassation.","author":{"@type":"Person","name":"Sophie Dumas"},"publisher":{"@type":"Organization","name":"Axe Dossier"},"mainEntityOfPage":"https://compta.axe-dossier.fr/charge-constatee-avance.html"}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"Qu’est-ce qu’une charge constatée d’avance ?","acceptedAnswer":{"@type":"Answer","text":"Une charge constatée d’avance est une charge déjà comptabilisée pendant l’exercice mais qui concerne en partie ou en totalité l’exercice suivant."}},
+    {"@type":"Question","name":"Quel compte utiliser pour une charge constatée d’avance ?","acceptedAnswer":{"@type":"Answer","text":"Le compte généralement utilisé est le compte 486 Charges constatées d’avance."}},
+    {"@type":"Question","name":"Une charge constatée d’avance se contrepassera-t-elle ?","acceptedAnswer":{"@type":"Answer","text":"Oui, elle est généralement extournée au début de l’exercice suivant afin de rattacher la charge au bon exercice."}}
+  ]}
+  </script>
+</head>
+
+<body>
+  <header>
+    <div class="wrap nav">
+      <a href="/" class="brand"><span>Comptabilité pratique</span><span>Opérations courantes • Inventaire • Clôture</span></a>
+      <nav class="navlinks"><a href="/">Accueil</a><a href="#definition">Définition</a><a href="#exemple">Exemple</a><a href="#contrepassation">Contrepassation</a><a href="#faq">FAQ</a></nav>
+      <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir le guide</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="breadcrumb"><a href="/">Accueil</a> → Charge constatée d’avance</div>
+      <div class="hero-grid">
+        <div>
+          <div class="badge">Charge constatée d’avance</div>
+          <h1>Charge constatée d’avance : exemple simple</h1>
+          <p class="lead">
+            Une charge constatée d’avance permet de retirer de l’exercice une charge déjà comptabilisée,
+            mais qui concerne l’exercice suivant. C’est une écriture d’inventaire fréquente à la clôture.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#exemple">Voir l’écriture comptable</a>
+            <a class="btn secondary" href="#checklist">Check-list CCA</a>
+          </div>
+        </div>
+
+        <aside class="summary-card">
+          <h2>En résumé</h2>
+          <ol>
+            <li><a href="#definition">Comprendre la charge constatée d’avance</a></li>
+            <li><a href="#utilite">Savoir quand l’utiliser</a></li>
+            <li><a href="#calcul">Calculer le montant</a></li>
+            <li><a href="#exemple">Voir un exemple chiffré</a></li>
+            <li><a href="#contrepassation">Prévoir l’extourne</a></li>
+          </ol>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <main class="article-wrap">
+    <div class="wrap content-grid">
+      <article>
+        <h2 id="definition">Qu’est-ce qu’une charge constatée d’avance ?</h2>
+        <p>
+          Une charge constatée d’avance est une charge déjà enregistrée en comptabilité,
+          mais qui concerne l’exercice suivant.
+        </p>
+        <p>
+          À la clôture, il faut donc retirer temporairement cette charge du résultat de l’exercice N
+          pour la rattacher à l’exercice N+1.
+        </p>
+
+        <div class="note">
+          <strong>À retenir :</strong> la charge constatée d’avance ne supprime pas la charge. Elle la déplace vers le bon exercice comptable.
+        </div>
+
+        <h2 id="utilite">Quand faut-il comptabiliser une charge constatée d’avance ?</h2>
+        <p>Elle doit être envisagée lorsqu’une charge :</p>
+        <ul>
+          <li>a déjà été comptabilisée en N ;</li>
+          <li>a déjà été facturée ou payée ;</li>
+          <li>concerne en partie ou totalement N+1.</li>
+        </ul>
+
+        <h3>Exemples fréquents</h3>
+        <ul>
+          <li>assurance annuelle payée d’avance ;</li>
+          <li>loyer payé d’avance ;</li>
+          <li>abonnement logiciel annuel ;</li>
+          <li>contrat de maintenance ;</li>
+          <li>hébergement internet ou nom de domaine ;</li>
+          <li>cotisation annuelle couvrant deux exercices.</li>
+        </ul>
+
+        <h2 id="calcul">Comment calculer une charge constatée d’avance ?</h2>
+        <p>
+          Il faut isoler la partie de la charge qui concerne l’exercice suivant.
+          Le calcul se fait souvent au prorata temporis.
+        </p>
+
+        <div class="formula">
+          Charge constatée d’avance = charge totale × période concernant N+1 / période totale couverte
+        </div>
+
+        <div class="warning">
+          <strong>Point de vigilance :</strong> le calcul doit être justifié par la facture, le contrat et la période couverte.
+        </div>
+
+        <h2 id="exemple">Exemple de charge constatée d’avance avec écriture comptable</h2>
+        <p>
+          Une entreprise paie le 1er octobre N une assurance annuelle de <strong>1 200 €</strong>,
+          couvrant la période du 1er octobre N au 30 septembre N+1.
+        </p>
+        <p>
+          À la clôture du 31 décembre N, seuls 3 mois concernent N.
+          Les 9 mois de janvier à septembre N+1 doivent être retraités.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Élément</th><th>Calcul</th><th>Montant</th></tr></thead>
+            <tbody>
+              <tr><td>Charge totale</td><td>Assurance annuelle</td><td>1 200 €</td></tr>
+              <tr><td>Part concernant N</td><td>3 mois / 12 mois</td><td>300 €</td></tr>
+              <tr><td>Part concernant N+1</td><td>9 mois / 12 mois</td><td>900 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Le montant de la charge constatée d’avance est donc de <strong>900 €</strong>.</p>
+
+        <h3>Journal OD — Charge constatée d’avance</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>486</td><td>Charges constatées d’avance</td><td>900 €</td><td></td></tr>
+              <tr><td>616</td><td>Assurances</td><td></td><td>900 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Quel est l’effet sur le résultat ?</h2>
+        <p>
+          La charge constatée d’avance diminue les charges de l’exercice N.
+          Elle augmente donc le résultat de N, car une partie de la charge est reportée sur N+1.
+        </p>
+
+        <div class="note">
+          <strong>Effet comptable :</strong> on ne garde dans l’exercice N que la part de charge qui concerne réellement N.
+        </div>
+
+        <h2 id="contrepassation">Contrepassation d’une charge constatée d’avance</h2>
+        <p>
+          La charge constatée d’avance est généralement contrepassée au début de l’exercice suivant.
+          Cela permet de réintégrer la charge dans N+1.
+        </p>
+
+        <h3>Journal OD — Contrepassation au 01/01/N+1</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Compte</th><th>Libellé</th><th>Débit</th><th>Crédit</th></tr></thead>
+            <tbody>
+              <tr><td>616</td><td>Assurances</td><td>900 €</td><td></td></tr>
+              <tr><td>486</td><td>Charges constatées d’avance</td><td></td><td>900 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Charge constatée d’avance ou FNP : comment ne pas confondre ?</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Situation</th><th>Écriture concernée</th></tr></thead>
+            <tbody>
+              <tr><td>Charge déjà comptabilisée en N mais concernant N+1</td><td>Charge constatée d’avance</td></tr>
+              <tr><td>Charge de N mais facture non reçue</td><td>FNP</td></tr>
+              <tr><td>Assurance annuelle payée d’avance</td><td>Charge constatée d’avance</td></tr>
+              <tr><td>Prestation de décembre facturée en janvier</td><td>FNP</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Erreurs fréquentes à éviter</h2>
+        <ul>
+          <li>oublier les abonnements annuels ;</li>
+          <li>ne pas vérifier la période couverte par la facture ;</li>
+          <li>confondre charge constatée d’avance et FNP ;</li>
+          <li>calculer le prorata sans justificatif ;</li>
+          <li>oublier la contrepassation au 01/01/N+1.</li>
+        </ul>
+
+        <h2 id="checklist">Check-list charge constatée d’avance</h2>
+        <ul class="checklist">
+          <li>Les factures couvrant plusieurs périodes sont identifiées.</li>
+          <li>Les assurances, loyers, abonnements et maintenances sont vérifiés.</li>
+          <li>La part concernant N+1 est calculée.</li>
+          <li>Le compte 486 est justifié.</li>
+          <li>La contrepassation au 01/01/N+1 est prévue.</li>
+          <li>Les justificatifs sont conservés dans le dossier de clôture.</li>
+        </ul>
+
+        <h2 id="faq">FAQ — Charge constatée d’avance</h2>
+        <div class="faq">
+          <details><summary>Une charge constatée d’avance est-elle une charge ?</summary><p>Non, c’est un compte de régularisation qui permet de retirer temporairement une charge de N lorsqu’elle concerne N+1.</p></details>
+          <details><summary>Quel compte utiliser ?</summary><p>Le compte utilisé est généralement le compte 486 Charges constatées d’avance.</p></details>
+          <details><summary>Une charge constatée d’avance augmente-t-elle le résultat ?</summary><p>Oui, elle augmente le résultat de N car elle diminue les charges enregistrées sur cet exercice.</p></details>
+          <details><summary>Faut-il la contrepasser ?</summary><p>Oui, elle est généralement extournée au début de l’exercice suivant.</p></details>
+        </div>
+
+        <h2>À retenir</h2>
+        <p>
+          La charge constatée d’avance est une écriture de clôture indispensable lorsqu’une charge a été comptabilisée trop tôt.
+          Elle permet de rattacher la dépense au bon exercice et d’obtenir un résultat plus cohérent.
+        </p>
+
+        <div class="related">
+          <a href="comment-faire-une-cloture-comptable.html">Comment faire une clôture comptable</a>
+          <a href="ecriture-inventaire-fin-exercice.html">Écritures d’inventaire</a>
+          <a href="cca-comptabilite-exemple.html">CCA comptabilité : exemple</a>
+          <a href="fnp-comptabilite-exemple.html">FNP comptabilité : exemple</a>
+          <a href="produit-constate-avance.html">Produit constaté d’avance</a>
+          <a href="checklist-cloture-comptable.html">Checklist clôture comptable</a>
+        </div>
+      </article>
+
+      <aside class="side">
+        <div class="book-box">
+          <div class="cover">Écritures<br>d’inventaire<br>& clôture</div>
+          <h3>Guide complet de clôture comptable</h3>
+          <p>Un guide pratique pour comprendre les charges constatées d’avance, FNP, PCA, provisions et régularisations de fin d’exercice.</p>
+          <a class="btn primary" href="https://www.amazon.fr/dp/B0BVT728PV" target="_blank" rel="noopener">Voir sur Amazon</a>
+        </div>
+        <div class="mini-box">
+          <h3>À lire aussi</h3>
+          <p>Pour apprendre les écritures comptables du quotidien.</p>
+          <a class="btn secondary" href="https://www.amazon.fr/dp/B0H2XZML1F" target="_blank" rel="noopener">Opérations courantes</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>© 2026 — Comptabilité pratique • Axe Dossier</div>
+      <div><a href="/">Accueil</a> · Guides comptables pour TPE, PME, indépendants et étudiants</div>
+    </div>
+  </footer>
+</body>
+</html>
