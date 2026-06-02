@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Axe Compta IA — Assistant de clôture comptable</title>
+  <meta name="description" content="Préparez votre clôture comptable avec une IA spécialisée : analyse de balance générale, grand livre, questions guidées et écritures d'inventaire proposées." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/" />
+
+  <meta property="og:title" content="Axe Compta IA — Assistant de clôture comptable" />
+  <meta property="og:description" content="Importez balance et grand livre, répondez aux questions clés, obtenez les écritures d'inventaire à vérifier avant clôture." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#080b12;
+      --bg2:#0d1321;
+      --card:rgba(255,255,255,.075);
+      --card2:rgba(255,255,255,.105);
+      --line:rgba(255,255,255,.13);
+      --text:#f7f8fb;
+      --muted:#aab3c5;
+      --soft:#dce3f2;
+      --blue:#68a7ff;
+      --cyan:#70f0ff;
+      --green:#73e2a7;
+      --orange:#ffcc7a;
+      --red:#ff7f98;
+      --shadow:0 30px 90px rgba(0,0,0,.45);
+      --radius:26px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(104,167,255,.28), transparent 32%),
+        radial-gradient(circle at 80% 0%, rgba(112,240,255,.18), transparent 28%),
+        linear-gradient(135deg,var(--bg),var(--bg2) 55%,#101827);
+      min-height:100vh;
+    }
+
+    a{color:inherit;text-decoration:none}
+    .wrap{width:min(1180px,92%);margin:auto}
+
+    header{
+      position:sticky;top:0;z-index:20;
+      backdrop-filter: blur(18px);
+      background:rgba(8,11,18,.78);
+      border-bottom:1px solid var(--line);
+    }
+    .nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:22px}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:-.04em;font-size:22px}
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      background:linear-gradient(135deg,var(--blue),var(--cyan));
+      display:grid;place-items:center;color:#07101d;font-weight:900;
+      box-shadow:0 16px 40px rgba(104,167,255,.25);
+    }
+    .navlinks{display:flex;align-items:center;gap:18px;color:var(--muted);font-size:14px;font-weight:700}
+    .navlinks a:hover{color:var(--text)}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      min-height:48px;padding:0 20px;border-radius:999px;
+      border:1px solid var(--line);font-weight:800;cursor:pointer;
+      background:rgba(255,255,255,.08);color:var(--text);
+      transition:.18s ease;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
+    .btn.primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#07101d;border:none}
+    .btn.dark{background:#111827;color:#fff;border:1px solid rgba(255,255,255,.12)}
+    .btn.small{min-height:38px;padding:0 14px;font-size:13px}
+
+    .hero{padding:82px 0 54px}
+    .grid{display:grid;grid-template-columns:1.06fr .94fr;gap:34px;align-items:center}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid rgba(112,240,255,.28);
+      background:rgba(112,240,255,.08);color:#d9fbff;
+      padding:8px 12px;border-radius:999px;font-weight:800;font-size:13px;
+      margin-bottom:22px;
+    }
+    h1{font-size:clamp(42px,6vw,76px);line-height:.94;margin:0 0 22px;letter-spacing:-.07em}
+    .lead{font-size:19px;line-height:1.65;color:var(--soft);max-width:700px;margin:0 0 28px}
+    .heroActions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 24px}
+    .trust{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:13px;font-weight:700}
+    .trust span{border:1px solid var(--line);background:rgba(255,255,255,.055);padding:9px 12px;border-radius:999px}
+
+    .panel{
+      border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.055));
+      border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
+    }
+    .panelHead{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:15px}
+    .dots{display:flex;gap:7px}.dots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.32)}
+    .status{font-size:12px;color:#c9f8dc;font-weight:900;background:rgba(115,226,167,.12);border:1px solid rgba(115,226,167,.24);padding:7px 10px;border-radius:999px}
+    .mock{padding:22px;display:grid;gap:14px}
+    .mockCard{border:1px solid var(--line);background:rgba(0,0,0,.18);border-radius:20px;padding:16px}
+    .mockTitle{display:flex;justify-content:space-between;gap:14px;font-weight:900;margin-bottom:10px}
+    .pill{font-size:12px;padding:5px 8px;border-radius:999px;background:rgba(104,167,255,.12);color:#d4e7ff;border:1px solid rgba(104,167,255,.25);white-space:nowrap}
+    .bar{height:9px;background:rgba(255,255,255,.09);border-radius:999px;overflow:hidden;margin-top:10px}
+    .bar span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:999px}
+    .muted{color:var(--muted)}
+
+    section{padding:64px 0}
+    .sectionTitle{font-size:clamp(31px,4vw,48px);line-height:1.05;letter-spacing:-.055em;margin:0 0 14px;text-align:center}
+    .sectionLead{color:var(--muted);font-size:17px;line-height:1.65;text-align:center;max-width:780px;margin:0 auto 34px}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{border:1px solid var(--line);background:var(--card);border-radius:24px;padding:22px}
+    .card h3{margin:0 0 10px;font-size:20px;letter-spacing:-.03em}
+    .card p{margin:0;color:var(--muted);line-height:1.6;font-size:15px}
+    .icon{width:42px;height:42px;border-radius:14px;background:rgba(112,240,255,.11);border:1px solid rgba(112,240,255,.22);display:grid;place-items:center;margin-bottom:15px;font-weight:900;color:#d9fbff}
+
+    .app{display:grid;grid-template-columns:.78fr 1.22fr;gap:22px;align-items:start}
+    .box{border:1px solid var(--line);background:rgba(255,255,255,.07);border-radius:26px;padding:22px;box-shadow:0 20px 70px rgba(0,0,0,.25)}
+    .box h2,.box h3{margin:0 0 12px;letter-spacing:-.04em}
+    label{display:block;font-size:13px;font-weight:900;color:#dce8ff;margin:16px 0 8px}
+    input,textarea,select{
+      width:100%;border:1px solid var(--line);background:rgba(0,0,0,.22);color:var(--text);
+      border-radius:16px;padding:13px 14px;font:inherit;outline:none;
+    }
+    textarea{min-height:98px;resize:vertical;line-height:1.5}
+    input[type="file"]{padding:12px;background:rgba(255,255,255,.06)}
+    .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+    .checks{display:grid;gap:10px;margin-top:12px}
+    .check{display:flex;gap:10px;align-items:flex-start;color:var(--soft);font-size:14px;line-height:1.45}
+    .check input{width:auto;margin-top:3px}
+    .resultHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:18px}
+    .score{display:grid;place-items:center;width:92px;height:92px;border-radius:24px;background:rgba(115,226,167,.12);border:1px solid rgba(115,226,167,.25);font-weight:900;color:#c9f8dc;text-align:center}
+    .score b{font-size:26px;line-height:1}.score span{font-size:11px;color:#bdeed1}
+    table{width:100%;border-collapse:separate;border-spacing:0 10px;font-size:14px}
+    th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding:0 10px}
+    td{background:rgba(0,0,0,.2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:13px 10px;color:#eef3ff;vertical-align:top}
+    td:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px;font-weight:800}
+    td:last-child{border-right:1px solid var(--line);border-radius:0 14px 14px 0}
+    .confidence{font-weight:900;color:#c9f8dc}
+    .warning{color:var(--orange);font-weight:900}
+    .danger{color:var(--red);font-weight:900}
+    .resultActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .notice{border:1px solid rgba(255,204,122,.25);background:rgba(255,204,122,.08);color:#ffe4b5;padding:14px 16px;border-radius:18px;font-size:13px;line-height:1.55;margin-top:16px}
+
+    .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px}
+    .price{border:1px solid var(--line);background:rgba(255,255,255,.075);border-radius:26px;padding:24px;position:relative}
+    .price.featured{background:linear-gradient(180deg,rgba(104,167,255,.18),rgba(255,255,255,.075));border-color:rgba(104,167,255,.38)}
+    .price h3{margin:0 0 8px;font-size:21px}.amount{font-size:44px;font-weight:900;letter-spacing:-.06em;margin:14px 0}.amount small{font-size:15px;color:var(--muted);letter-spacing:0}
+    .price ul{padding:0;margin:18px 0 0;list-style:none;display:grid;gap:10px;color:var(--soft);font-size:14px}.price li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
+
+    footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13px;line-height:1.6}
+
+    @media(max-width:900px){
+      .grid,.app,.cards,.pricing{grid-template-columns:1fr}
+      .navlinks{display:none}
+      .hero{padding-top:52px}
+      .resultHeader{flex-direction:column}.score{width:100%;height:auto;padding:18px}
+      table{font-size:13px}
+      th:nth-child(4),td:nth-child(4){display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="#top"><span class="logo">AC</span><span>Axe Compta IA</span></a>
+      <nav class="navlinks">
+        <a href="#fonctionnement">Fonctionnement</a>
+        <a href="#demo">Démo</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#prudence">Responsabilité</a>
+      </nav>
+      <a class="btn small primary" href="#demo">Tester l'analyse</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap grid">
+        <div>
+          <div class="badge">Assistant IA de préparation de clôture comptable</div>
+          <h1>Détectez les écritures d'inventaire à vérifier avant clôture.</h1>
+          <p class="lead">
+            Importez votre balance générale et votre grand livre. L'assistant analyse les comptes, pose les bonnes questions et propose les écritures de clôture possibles : CCA, PCA, FNP, FAE, amortissements, provisions et anomalies de comptes.
+          </p>
+          <div class="heroActions">
+            <a class="btn primary" href="#demo">Lancer une analyse pilote</a>
+            <a class="btn" href="#fonctionnement">Voir le processus</a>
+          </div>
+          <div class="trust">
+            <span>Balance générale</span>
+            <span>Grand livre</span>
+            <span>Questions guidées</span>
+            <span>Export OD</span>
+          </div>
+        </div>
+
+        <div class="panel" aria-label="Aperçu analyse IA">
+          <div class="panelHead">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="status">Analyse IA simulée</div>
+          </div>
+          <div class="mock">
+            <div class="mockCard">
+              <div class="mockTitle">Compte 616 — Assurance <span class="pill">CCA possible</span></div>
+              <p class="muted">Charge annuelle détectée. L'IA demande la période couverte pour calculer la quote-part N+1.</p>
+              <div class="bar"><span style="width:84%"></span></div>
+            </div>
+            <div class="mockCard">
+              <div class="mockTitle">Compte 681 — Dotations <span class="pill">À contrôler</span></div>
+              <p class="muted">Immobilisations présentes en classe 2, mais aucune dotation significative détectée.</p>
+              <div class="bar"><span style="width:71%"></span></div>
+            </div>
+            <div class="mockCard">
+              <div class="mockTitle">Compte 408 — FNP <span class="pill">Écriture proposée</span></div>
+              <p class="muted">Facture fournisseur récurrente absente sur décembre. Vérification demandée.</p>
+              <div class="bar"><span style="width:62%"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fonctionnement">
+      <div class="wrap">
+        <h2 class="sectionTitle">Un assistant de clôture, pas une promesse magique.</h2>
+        <p class="sectionLead">
+          L'objectif n'est pas de remplacer l'expert-comptable. L'objectif est de préparer proprement le dossier, d'identifier les oublis probables et de sortir une liste d'écritures à valider.
+        </p>
+        <div class="cards">
+          <article class="card"><div class="icon">1</div><h3>Import des fichiers</h3><p>Balance générale et grand livre au format CSV, Excel ou export logiciel comptable.</p></article>
+          <article class="card"><div class="icon">2</div><h3>Analyse IA ciblée</h3><p>L'assistant repère les comptes sensibles : 2, 4, 6, 7, provisions, amortissements et régularisations.</p></article>
+          <article class="card"><div class="icon">3</div><h3>Questions utiles</h3><p>Le client répond aux zones grises : période d'assurance, factures non reçues, stocks, litiges, abonnements.</p></article>
+          <article class="card"><div class="icon">4</div><h3>Écritures proposées</h3><p>Débit, crédit, libellé, justification, calcul et niveau de confiance.</p></article>
+          <article class="card"><div class="icon">5</div><h3>Validation humaine</h3><p>Chaque écriture peut être acceptée, refusée ou modifiée. Rien n'est injecté sans contrôle.</p></article>
+          <article class="card"><div class="icon">6</div><h3>Export OD</h3><p>Export Excel ou CSV pour transmission à l'expert-comptable ou saisie dans le logiciel.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="wrap app">
+        <div class="box">
+          <h2>Analyse pilote</h2>
+          <p class="muted">Cette maquette montre le parcours utilisateur. En production, les fichiers seront envoyés à un backend sécurisé, puis analysés via l'API OpenAI.</p>
+
+          <label for="company">Entreprise</label>
+          <input id="company" value="SARL Exemple" />
+
+          <label for="date">Date de clôture</label>
+          <input id="date" type="date" value="2026-12-31" />
+
+          <label for="balance">Balance générale</label>
+          <input id="balance" type="file" accept=".csv,.xlsx,.xls" />
+          <div class="hint">Exemple : export balance générale au 31/12.</div>
+
+          <label for="ledger">Grand livre</label>
+          <input id="ledger" type="file" accept=".csv,.xlsx,.xls" />
+          <div class="hint">Exemple : grand livre détaillé par compte.</div>
+
+          <label for="notes">Informations utiles</label>
+          <textarea id="notes" placeholder="Exemple : assurance annuelle payée en octobre, prêt bancaire en cours, stock au 31/12 estimé à 14 500 €, litige client en cours..."></textarea>
+
+          <div class="checks">
+            <label class="check"><input type="checkbox" checked /> J'ai des factures fournisseurs non reçues à la clôture</label>
+            <label class="check"><input type="checkbox" /> Certains produits concernent l'exercice suivant</label>
+            <label class="check"><input type="checkbox" checked /> Des immobilisations ont été achetées cette année</label>
+            <label class="check"><input type="checkbox" /> Un inventaire de stock existe au 31/12</label>
+          </div>
+
+          <div class="resultActions">
+            <button class="btn primary" id="simulateBtn">Simuler l'analyse IA</button>
+            <button class="btn" id="resetBtn">Réinitialiser</button>
+          </div>
+
+          <div class="notice">
+            En vrai SaaS : jamais de clé OpenAI dans ce fichier HTML. Il faut une fonction backend Firebase / Cloud Function pour appeler l'API proprement.
+          </div>
+        </div>
+
+        <div class="box" id="resultBox">
+          <div class="resultHeader">
+            <div>
+              <h2>Résultat de clôture</h2>
+              <p class="muted">Écritures d'inventaire proposées à partir de l'analyse. Les montants ci-dessous sont des exemples de démonstration.</p>
+            </div>
+            <div class="score"><b>7</b><span>points à vérifier</span></div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Écriture</th>
+                <th>Débit</th>
+                <th>Crédit</th>
+                <th>Montant</th>
+                <th>Confiance</th>
+              </tr>
+            </thead>
+            <tbody id="rows">
+              <tr>
+                <td>CCA assurance</td>
+                <td>486</td>
+                <td>616</td>
+                <td>900,00 €</td>
+                <td class="confidence">Forte</td>
+              </tr>
+              <tr>
+                <td>FNP électricité</td>
+                <td>6061</td>
+                <td>4081</td>
+                <td>320,00 €</td>
+                <td class="warning">Moyenne</td>
+              </tr>
+              <tr>
+                <td>Dotation amortissement</td>
+                <td>6811</td>
+                <td>2815</td>
+                <td>1 250,00 €</td>
+                <td class="confidence">Forte</td>
+              </tr>
+              <tr>
+                <td>Produit à recevoir</td>
+                <td>4181</td>
+                <td>706</td>
+                <td>780,00 €</td>
+                <td class="danger">À confirmer</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="notice" id="iaComment">
+            Commentaire IA : plusieurs écritures semblent probables, mais les justificatifs doivent être contrôlés. Priorité : période des assurances, immobilisations, factures fournisseurs manquantes et produits rattachés à l'exercice.
+          </div>
+
+          <div class="resultActions">
+            <button class="btn primary">Exporter en Excel</button>
+            <button class="btn">Exporter journal OD</button>
+            <button class="btn">Préparer dossier expert-comptable</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tarifs">
+      <div class="wrap">
+        <h2 class="sectionTitle">Tarification simple.</h2>
+        <p class="sectionLead">Au démarrage, je viserais un paiement à la clôture. L'abonnement vient seulement pour les cabinets ou utilisateurs multi-dossiers.</p>
+
+        <div class="pricing">
+          <div class="price">
+            <h3>Clôture unique</h3>
+            <p class="muted">Pour TPE, indépendant, étudiant ou dirigeant qui veut préparer un dossier.</p>
+            <div class="amount">39€</div>
+            <a href="#demo" class="btn primary">Analyser une clôture</a>
+            <ul>
+              <li>1 balance générale</li>
+              <li>1 grand livre</li>
+              <li>Questions guidées</li>
+              <li>Écritures proposées</li>
+            </ul>
+          </div>
+
+          <div class="price featured">
+            <h3>Pro mensuel</h3>
+            <p class="muted">Pour assistant administratif, freelance compta ou petite structure.</p>
+            <div class="amount">89€ <small>/mois</small></div>
+            <a href="#demo" class="btn primary">Démarrer</a>
+            <ul>
+              <li>5 clôtures par mois</li>
+              <li>Exports Excel / CSV</li>
+              <li>Historique des analyses</li>
+              <li>Support prioritaire</li>
+            </ul>
+          </div>
+
+          <div class="price">
+            <h3>Cabinet</h3>
+            <p class="muted">Pour multi-sociétés, collaborateurs comptables et dossiers récurrents.</p>
+            <div class="amount">199€ <small>/mois</small></div>
+            <a href="#demo" class="btn primary">Voir l'offre</a>
+            <ul>
+              <li>Clôtures illimitées raisonnables</li>
+              <li>Multi-dossiers</li>
+              <li>Exports OD</li>
+              <li>Contrôle avancé</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="prudence">
+      <div class="wrap">
+        <div class="box">
+          <h2>Positionnement juridique et comptable</h2>
+          <p class="muted">
+            Axe Compta IA ne doit pas vendre une clôture comptable automatique ni certifier un bilan. Le bon angle commercial est : assistant de préparation, détection d'anomalies, aide à la décision et génération d'écritures à valider.
+          </p>
+          <div class="notice">
+            Formulation recommandée : « Les écritures proposées doivent être contrôlées et validées par l'utilisateur ou par un professionnel compétent. L'outil ne remplace pas l'expert-comptable et ne constitue pas une mission de présentation ou de certification des comptes. »
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <strong>Axe Compta IA</strong><br />
+      Assistant de préparation de clôture comptable — analyse, questions guidées, écritures proposées et export OD.
+    </div>
+  </footer>
+
+  <script>
+    const simulateBtn = document.getElementById('simulateBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const rows = document.getElementById('rows');
+    const iaComment = document.getElementById('iaComment');
+
+    const initialRows = rows.innerHTML;
+    const initialComment = iaComment.innerHTML;
+
+    simulateBtn.addEventListener('click', () => {
+      simulateBtn.textContent = 'Analyse en cours...';
+      simulateBtn.disabled = true;
+
+      setTimeout(() => {
+        rows.innerHTML = `
+          <tr><td>CCA assurance multirisque</td><td>486</td><td>616</td><td>1 080,00 €</td><td class="confidence">Forte</td></tr>
+          <tr><td>FNP expert-comptable</td><td>6226</td><td>4081</td><td>1 450,00 €</td><td class="warning">Moyenne</td></tr>
+          <tr><td>Dotation matériel informatique</td><td>6811</td><td>28183</td><td>740,00 €</td><td class="confidence">Forte</td></tr>
+          <tr><td>Facture à établir client</td><td>4181</td><td>706</td><td>2 300,00 €</td><td class="danger">À confirmer</td></tr>
+          <tr><td>Provision litige fournisseur</td><td>6815</td><td>1511</td><td>3 000,00 €</td><td class="danger">Justificatif requis</td></tr>
+        `;
+        iaComment.innerHTML = "Commentaire IA : l'analyse détecte 5 écritures probables. Les plus solides sont la CCA assurance et la dotation d'amortissement. Les FNP, FAE et provisions doivent être confirmées par pièces justificatives avant validation.";
+        simulateBtn.textContent = 'Relancer l’analyse IA';
+        simulateBtn.disabled = false;
+      }, 900);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      rows.innerHTML = initialRows;
+      iaComment.innerHTML = initialComment;
+      simulateBtn.textContent = 'Simuler l’analyse IA';
+      simulateBtn.disabled = false;
+    });
+
+    /*
+      FUTURE INTÉGRATION OPENAI — SCHÉMA PROPRE
+
+      1. Frontend : upload balance + grand livre + réponses utilisateur.
+      2. Firebase Storage : stockage temporaire sécurisé.
+      3. Cloud Function : lecture des fichiers, extraction CSV/XLSX.
+      4. Appel API OpenAI côté serveur uniquement.
+      5. Retour JSON structuré :
+         {
+           "questions": [],
+           "anomalies": [],
+           "entries": [
+             {"label":"CCA assurance", "debit":"486", "credit":"616", "amount":900, "reason":"...", "confidence":"forte"}
+           ]
+         }
+      6. Affichage + validation humaine + export Excel/CSV.
+
+      Ne jamais mettre la clé API OpenAI dans ce fichier HTML.
+    */
+  </script>
+</body>
+</html>
