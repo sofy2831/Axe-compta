@@ -6,25 +6,151 @@
   <title>Connexion | Axe Compta IA</title>
   <meta name="description" content="Connexion à l'espace client Axe Compta IA." />
   <meta name="robots" content="noindex,nofollow" />
-  <style>
-    :root{--bg:#0b1f3a;--card:#173b66;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto}header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px)}.nav{height:86px;display:flex;align-items:center;justify-content:space-between}.logoImg{height:52px;width:auto;display:block}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:13px 19px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20);width:100%}main{padding:70px 0}.grid{display:grid;grid-template-columns:1fr .86fr;gap:28px;align-items:center}.intro{background:linear-gradient(180deg,rgba(28,67,113,.76),rgba(19,52,91,.68));border:1px solid var(--line);border-radius:var(--radius);padding:34px;box-shadow:var(--shadow)}.box{background:linear-gradient(180deg,rgba(28,67,113,.90),rgba(19,52,91,.80));border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}h1{font-size:clamp(38px,5vw,60px);line-height:.98;letter-spacing:-.06em;margin:0 0 18px}.lead,p{color:var(--muted)}label{display:block;margin:15px 0 7px;color:#dbe6f4;font-size:13px;font-weight:800}input{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(13,41,75,.82);color:var(--text);padding:14px;font:inherit;outline:none}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}.tab{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:999px;padding:10px;font-weight:850;cursor:pointer}.tab.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;border-color:transparent}.hint{font-size:13px;color:var(--muted);margin-top:12px}.features{display:grid;gap:12px;margin-top:22px}.feature{border:1px solid var(--line);background:rgba(19,52,91,.58);border-radius:16px;padding:14px}.feature b{display:block}.feature span{display:block;color:var(--muted);font-size:14px}.form{display:none}.form.active{display:block}.msg{display:none;margin-top:16px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}@media(max-width:860px){.grid{grid-template-columns:1fr}.nav{height:76px}}
-  </style>
+  <style>{login_css}</style>
 </head>
 <body>
-  <header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><a class="btn" href="assistant-cloture-comptable.html">Retour au site</a></div></header>
-  <main><div class="wrap grid">
-    <div class="intro"><h1>Accédez à votre espace de clôture.</h1><p class="lead">Créez votre compte ou connectez-vous pour retrouver vos clôtures, vos analyses et vos exports.</p><div class="features"><div class="feature"><b>Clôture active</b><span>Un exercice à traiter après paiement ponctuel.</span></div><div class="feature"><b>Multi-dossiers</b><span>Gestion de plusieurs sociétés avec l’abonnement mensuel.</span></div><div class="feature"><b>Exports</b><span>Journal OD, Excel et CSV une fois l’analyse terminée.</span></div></div></div>
-    <div class="box">
-      <div class="tabs"><button class="tab active" data-tab="login">Connexion</button><button class="tab" data-tab="register">Créer un compte</button></div>
-      <form class="form active" id="loginForm"><label>Email</label><input type="email" id="loginEmail" placeholder="vous@email.fr" required><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="Votre mot de passe" required><div style="height:18px"></div><button class="btn primary" type="submit">Me connecter</button><p class="hint">Mot de passe oublié : lien à brancher avec Firebase Auth.</p></form>
-      <form class="form" id="registerForm"><label>Email utilisé pour le paiement</label><input type="email" id="registerEmail" placeholder="vous@email.fr" required><label>Créer un mot de passe</label><input type="password" id="registerPassword" placeholder="8 caractères minimum" required><label>Nom de l’entreprise</label><input type="text" id="companyName" placeholder="Ex : SARL Exemple"><div style="height:18px"></div><button class="btn primary" type="submit">Créer mon espace</button><p class="hint">Votre accès sera vérifié avec votre paiement.</p></form>
-      <div class="msg" id="msg">Version prête pour branchement Firebase. Pour l’instant, le bouton renvoie vers le tableau de bord de démonstration.</div>
+  <header>
+    <div class="wrap nav">
+      <a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a>
+      <a class="btn" href="assistant-cloture-comptable.html">Retour au site</a>
     </div>
-  </div></main>
+  </header>
+
+  <main>
+    <div class="wrap grid">
+      <div class="intro">
+        <h1>Accédez à votre espace de clôture.</h1>
+        <p class="lead">Créez votre compte ou connectez-vous pour retrouver vos clôtures, vos analyses et vos exports.</p>
+        <div class="features">
+          <div class="feature"><b>Clôture active</b><span>Un exercice à traiter après paiement ponctuel.</span></div>
+          <div class="feature"><b>Multi-dossiers</b><span>Gestion de plusieurs sociétés avec l’abonnement mensuel.</span></div>
+          <div class="feature"><b>Exports</b><span>Journal OD, Excel et CSV une fois l’analyse terminée.</span></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="tabs">
+          <button class="tab active" type="button" data-tab="login">Connexion</button>
+          <button class="tab" type="button" data-tab="register">Créer un compte</button>
+        </div>
+
+        <form class="form active" id="loginForm">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="vous@email.fr" required>
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" placeholder="Votre mot de passe" required>
+          <div style="height:18px"></div>
+          <button class="btn primary" type="submit">Me connecter</button>
+          <p class="hint"><a href="#" id="resetPasswordLink">Mot de passe oublié ?</a></p>
+        </form>
+
+        <form class="form" id="registerForm">
+          <label for="registerEmail">Email utilisé pour le paiement</label>
+          <input type="email" id="registerEmail" placeholder="vous@email.fr" required>
+          <label for="registerPassword">Créer un mot de passe</label>
+          <input type="password" id="registerPassword" placeholder="8 caractères minimum" required>
+          <label for="companyName">Nom de l’entreprise</label>
+          <input type="text" id="companyName" placeholder="Ex : SARL Exemple">
+          <div style="height:18px"></div>
+          <button class="btn primary" type="submit">Créer mon espace</button>
+          <p class="hint">Votre accès sera relié à votre formule active.</p>
+        </form>
+
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </main>
+
   <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
-  <script>
-    document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.form').forEach(f=>f.classList.remove('active'));tab.classList.add('active');document.getElementById(tab.dataset.tab+'Form').classList.add('active');});});
-    document.querySelectorAll('form').forEach(form=>{form.addEventListener('submit',e=>{e.preventDefault();document.getElementById('msg').style.display='block';setTimeout(()=>{window.location.href='tableau-de-bord.html';},700);});});
+
+  <script type="module">
+    import {{ auth, db }} from "./firebase-config.js";
+    import {{
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged
+    }} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    import {{ doc, setDoc, serverTimestamp }} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const msg = document.getElementById("msg");
+
+    function showMessage(text, isError = false) {{
+      msg.textContent = text;
+      msg.classList.toggle("error", isError);
+      msg.style.display = "block";
+    }}
+
+    function readableFirebaseError(error) {{
+      const code = error?.code || "";
+      if (code.includes("auth/invalid-email")) return "Adresse email invalide.";
+      if (code.includes("auth/user-not-found") || code.includes("auth/wrong-password") || code.includes("auth/invalid-credential")) return "Email ou mot de passe incorrect.";
+      if (code.includes("auth/email-already-in-use")) return "Un compte existe déjà avec cet email.";
+      if (code.includes("auth/weak-password")) return "Le mot de passe doit contenir au moins 6 caractères.";
+      return "Erreur : " + (error?.message || "impossible de continuer.");
+    }}
+
+    document.querySelectorAll(".tab").forEach(tab => {{
+      tab.addEventListener("click", () => {{
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".form").forEach(f => f.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab + "Form").classList.add("active");
+        msg.style.display = "none";
+      }});
+    }});
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {{
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      try {{
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "tableau-de-bord.html";
+      }} catch (error) {{
+        showMessage(readableFirebaseError(error), true);
+      }}
+    }});
+
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {{
+      e.preventDefault();
+      const email = document.getElementById("registerEmail").value.trim();
+      const password = document.getElementById("registerPassword").value;
+      const companyName = document.getElementById("companyName").value.trim();
+
+      try {{
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", cred.user.uid), {{
+          email,
+          companyName,
+          plan: "pending",
+          active: true,
+          createdAt: serverTimestamp()
+        }}, {{ merge: true }});
+        window.location.href = "tableau-de-bord.html";
+      }} catch (error) {{
+        showMessage(readableFirebaseError(error), true);
+      }}
+    }});
+
+    document.getElementById("resetPasswordLink").addEventListener("click", async (e) => {{
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      if (!email) {{
+        showMessage("Indiquez votre email, puis cliquez de nouveau sur mot de passe oublié.", true);
+        return;
+      }}
+      try {{
+        await sendPasswordResetEmail(auth, email);
+        showMessage("Email de réinitialisation envoyé.");
+      }} catch (error) {{
+        showMessage(readableFirebaseError(error), true);
+      }}
+    }});
+
+    onAuthStateChanged(auth, (user) => {{
+      if (user) window.location.href = "tableau-de-bord.html";
+    }});
   </script>
 </body>
 </html>
