@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/11.10.0/firebas
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB3-8Un0FgBDrvikywmoTJFd5wIuRIyKhk",
+  apiKey: "AIzaSyB3-8Un0FgBDrwikyymQTJFd5wIuRIyKhk",
   authDomain: "axe-compta.firebaseapp.com",
   projectId: "axe-compta",
   storageBucket: "axe-compta.firebasestorage.app",
