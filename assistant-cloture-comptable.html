@@ -1,354 +1,143 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Assistant clôture comptable IA | Axe Compta</title>
-  <meta name="description" content="Assistant IA de préparation de clôture comptable : importez votre balance et votre grand livre, répondez aux questions guidées et obtenez des écritures de clôture à vérifier." />
-  <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://compta.axe-dossier.fr/assistant-cloture-comptable.html" />
-
-  <meta property="og:title" content="Assistant clôture comptable IA | Axe Compta" />
-  <meta property="og:description" content="Préparez votre clôture comptable avec une analyse guidée : balance, grand livre, contrôles, écritures proposées et exports." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://compta.axe-dossier.fr/assistant-cloture-comptable.html" />
-
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Assistant clôture comptable IA | Axe Compta" />
-  <meta name="twitter:description" content="Un assistant de préparation de clôture comptable pour limiter les oublis et structurer les écritures d’inventaire." />
-
-  <style>
-    :root{
-      --bg:#0b1f3a;--bg2:#123057;--card:#173b66;--card2:#1d4b7c;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);
-      --primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55}
-    a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}
-    header{position:sticky;top:0;z-index:20;backdrop-filter:blur(18px);background:rgba(11,31,58,.82);border-bottom:1px solid var(--line)}
-    .nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{display:flex;align-items:center;gap:12px;font-weight:850;letter-spacing:-.03em}.logoImg{height:52px;width:auto;display:block}
-    .navlinks{display:flex;gap:18px;align-items:center;color:var(--muted);font-size:14px}.navlinks a:hover{color:var(--text)}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:800;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease;font-size:14px}
-    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}
-    .hero{padding:86px 0 54px}.heroGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(114,224,197,.28);background:rgba(114,224,197,.10);color:#dffcf6;font-weight:750;font-size:13px;margin-bottom:18px}
-    h1{font-size:clamp(40px,5.6vw,72px);line-height:.95;letter-spacing:-.065em;margin:0 0 22px}.hero p{color:var(--muted);font-size:19px;max-width:680px;margin:0 0 28px}
-    .heroActions{display:flex;flex-wrap:wrap;gap:12px;margin:26px 0}.miniProof{display:flex;flex-wrap:wrap;gap:10px;color:#d7e3f2;font-size:13px;margin-top:22px}.miniProof span{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 11px}
-    .heroPanel{background:linear-gradient(180deg,rgba(35,83,137,.78),rgba(18,52,93,.72));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;overflow:hidden}
-    .panelTop{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:20px}.panelTop h2{margin:0;font-size:22px;letter-spacing:-.03em}.pill{color:#06121e;font-weight:900;background:var(--primary);border-radius:999px;padding:8px 11px;font-size:12px;white-space:nowrap}
-    .heroRows{display:grid;gap:12px}.heroRow{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);background:rgba(19,52,91,.58);border-radius:18px}.heroRow b{display:block}.heroRow span{display:block;color:var(--muted);font-size:13px}
-    .round{width:46px;height:46px;display:grid;place-items:center;border-radius:16px;background:rgba(114,224,197,.13);color:var(--primary);font-weight:950}.status{font-weight:850;font-size:12px;color:var(--ok)}
-    section{padding:58px 0}.sectionTitle{font-size:clamp(30px,3.8vw,48px);line-height:1.02;letter-spacing:-.055em;margin:0 0 14px}.sectionLead{color:var(--muted);max-width:780px;font-size:17px;margin:0 0 28px}
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card,.box,.price,.faqItem{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid rgba(255,255,255,.13);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
-    .card{padding:24px}.icon{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;font-weight:950;margin-bottom:16px}.card h3,.price h3,.faqItem h3{margin:0 0 8px;font-size:20px;letter-spacing:-.03em}.card p,.price p,.faqItem p{margin:0;color:var(--muted)}
-    .app{display:grid;grid-template-columns:.92fr 1.08fr;gap:22px;align-items:start}.box{padding:24px}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.035em}
-    label{display:block;margin:14px 0 7px;color:#dbe6f4;font-size:13px;font-weight:800}input,select{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(13,41,75,.82);color:var(--text);padding:13px 14px;font:inherit;outline:none}input[type="file"]{padding:12px;color:var(--muted)}
-    .inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:12px;margin-top:6px}
-    .question{padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(19,52,91,.58);margin:12px 0}.question strong{display:block;margin-bottom:6px;letter-spacing:-.02em}.question span{display:block;color:var(--muted);font-size:14px}
-    .qBtns{display:flex;gap:8px;margin-top:12px}.qBtns button{border:1px solid var(--line);border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.06);color:var(--text);font-weight:850;cursor:pointer}.qBtns button.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;border-color:transparent}
-    .resultActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.resultHeader{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.muted{color:var(--muted)}
-    .score{min-width:118px;border:1px solid rgba(114,224,197,.25);background:rgba(114,224,197,.08);border-radius:18px;padding:14px;text-align:center}.score b{display:block;color:var(--primary);font-size:34px;line-height:1}.score span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
-    .summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.metric{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(18,48,87,.55)}.metric b{display:block;font-size:24px;color:#fff}.metric span{display:block;color:var(--muted);font-size:12px}
-    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);margin-top:12px;font-size:14px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}td{color:#edf3fb}tr:last-child td{border-bottom:none}
-    .warning{color:var(--warning);font-weight:850}.confidence{color:var(--ok);font-weight:850}
-    .paywall{border:1px solid rgba(114,224,197,.28);background:linear-gradient(135deg,rgba(114,224,197,.10),rgba(74,163,255,.08));border-radius:20px;padding:18px;margin-top:18px}.paywall h3{margin:0 0 8px;font-size:20px}.blurred{filter:blur(3px);user-select:none;pointer-events:none;opacity:.72}
-    .notice{margin-top:18px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
-    .pricing{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;align-items:stretch}.price{padding:26px;position:relative}.price.featured{border-color:rgba(114,224,197,.38);background:linear-gradient(180deg,rgba(114,224,197,.13),rgba(35,83,137,.70))}
-    .amount{margin:18px 0;font-size:42px;font-weight:950;letter-spacing:-.055em}.amount small{font-size:14px;color:var(--muted);letter-spacing:0;font-weight:750}ul{padding-left:18px;margin:18px 0 0;color:#dce8f6}li{margin:8px 0}.faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}.faqItem{padding:22px}
-    footer{padding:34px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
-    @media (max-width:960px){.heroGrid,.app,.pricing,.cards,.faq{grid-template-columns:1fr}.summaryGrid{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}}
-    @media (max-width:560px){.wrap{width:min(100% - 24px,1180px)}.hero{padding:58px 0 34px}.inline,.summaryGrid{grid-template-columns:1fr}.resultHeader{flex-direction:column}table{display:block;overflow-x:auto;white-space:nowrap}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistant clôture comptable IA | Axe Compta</title>
+<meta name="description" content="Assistant IA de préparation de clôture comptable : test gratuit, questions guidées, résumé puis création d'espace client.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://compta.axe-dossier.fr/assistant-cloture-comptable.html">
+<style>
+:root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--ok:#8df0b3;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:auto}
+header{position:sticky;top:0;z-index:20;backdrop-filter:blur(18px);background:rgba(11,31,58,.82);border-bottom:1px solid var(--line)}
+.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:22px}.logoImg{height:52px;width:auto;display:block}.navlinks{display:flex;gap:18px;color:var(--muted);font-size:14px}.navlinks a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}
+.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}
+.hero{padding:86px 0 54px}.heroGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}
+.badge{display:inline-flex;padding:8px 12px;border-radius:999px;border:1px solid rgba(114,224,197,.28);background:rgba(114,224,197,.10);color:#dffcf6;font-weight:800;font-size:13px;margin-bottom:18px}
+h1{font-size:clamp(40px,5.6vw,72px);line-height:.95;letter-spacing:-.065em;margin:0 0 22px}.hero p,.muted{color:var(--muted)}
+.hero p{font-size:19px;max-width:680px;margin:0 0 28px}.heroActions,.resultActions,.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.miniProof{display:flex;flex-wrap:wrap;gap:10px;color:#d7e3f2;font-size:13px;margin-top:22px}.miniProof span{border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 11px}
+.panel,.box,.card,.price,.faqItem{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid rgba(255,255,255,.13);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
+.panel{padding:24px}.panelTop{display:flex;justify-content:space-between;gap:18px;margin-bottom:20px}.panelTop h2{margin:0;font-size:22px}.pill{color:#06121e;font-weight:900;background:var(--primary);border-radius:999px;padding:8px 11px;font-size:12px;white-space:nowrap}
+.heroRows{display:grid;gap:12px}.heroRow{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);background:rgba(19,52,91,.58);border-radius:18px}.heroRow b{display:block}.heroRow span{color:var(--muted);font-size:13px}.round{width:46px;height:46px;display:grid;place-items:center;border-radius:16px;background:rgba(114,224,197,.13);color:var(--primary);font-weight:950}.status{font-weight:850;font-size:12px;color:var(--ok)}
+section{padding:58px 0}.sectionTitle{font-size:clamp(30px,3.8vw,48px);line-height:1.02;letter-spacing:-.055em;margin:0 0 14px}.sectionLead{color:var(--muted);max-width:780px;font-size:17px;margin:0 0 28px}
+.cards,.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.pricing{grid-template-columns:repeat(2,1fr)}.card,.box,.price,.faqItem{padding:24px}.icon{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;font-weight:950;margin-bottom:16px}
+.app{display:grid;grid-template-columns:.92fr 1.08fr;gap:22px;align-items:start}label{display:block;margin:14px 0 7px;color:#dbe6f4;font-size:13px;font-weight:800}input,select{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(13,41,75,.82);color:var(--text);padding:13px 14px;font:inherit;outline:none}.inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:12px;margin-top:6px}
+.question{padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(19,52,91,.58);margin:12px 0}.question strong{display:block;margin-bottom:6px}.question span{display:block;color:var(--muted);font-size:14px}.qBtns{display:flex;gap:8px;margin-top:12px}.qBtns button{border:1px solid var(--line);border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.06);color:var(--text);font-weight:850;cursor:pointer}.qBtns button.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;border-color:transparent}
+.resultHeader{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.score{min-width:118px;border:1px solid rgba(114,224,197,.25);background:rgba(114,224,197,.08);border-radius:18px;padding:14px;text-align:center}.score b{display:block;color:var(--primary);font-size:34px;line-height:1}.score span{display:block;color:var(--muted);font-size:12px;margin-top:5px}
+.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.metric{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(18,48,87,.55)}.metric b{display:block;font-size:24px;color:#fff}.metric span{display:block;color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);margin-top:12px;font-size:14px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}td{color:#edf3fb}.warning{color:var(--warning);font-weight:850}.confidence{color:var(--ok);font-weight:850}
+.paywall{border:1px solid rgba(114,224,197,.28);background:linear-gradient(135deg,rgba(114,224,197,.10),rgba(74,163,255,.08));border-radius:20px;padding:18px;margin-top:18px}.blurred{filter:blur(3px);user-select:none;pointer-events:none;opacity:.72}.notice{margin-top:18px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
+.amount{margin:18px 0;font-size:42px;font-weight:950;letter-spacing:-.055em}.amount small{font-size:14px;color:var(--muted);letter-spacing:0;font-weight:750}.price.featured{border-color:rgba(114,224,197,.38);background:linear-gradient(180deg,rgba(114,224,197,.13),rgba(35,83,137,.70))}ul{padding-left:18px;margin:18px 0 0;color:#dce8f6}li{margin:8px 0}.faq{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+footer{padding:34px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+@media(max-width:960px){.heroGrid,.app,.pricing,.cards,.faq{grid-template-columns:1fr}.summaryGrid{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}}
+@media(max-width:560px){.wrap{width:min(100% - 24px,1180px)}.inline,.summaryGrid{grid-template-columns:1fr}.resultHeader{flex-direction:column}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
 </head>
-
 <body>
-  <header>
-    <div class="wrap nav">
-      <a class="brand" href="/">
-        <img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg">
-      </a>
-      <nav class="navlinks">
-        <a href="#fonctionnement">Fonctionnement</a>
-        <a href="#demo">Tester</a>
-        <a href="#tarifs">Tarifs</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-      <a class="btn primary" href="#demo">Tester l’assistant</a>
-    </div>
-  </header>
+<header><div class="wrap nav"><a class="brand" href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><nav class="navlinks"><a href="#fonctionnement">Fonctionnement</a><a href="#demo">Tester</a><a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a></nav><a class="btn primary" href="#demo">Tester l’assistant</a></div></header>
 
-  <main>
-    <section class="hero">
-      <div class="wrap heroGrid">
-        <div>
-          <div class="badge">Assistant de préparation de clôture comptable</div>
-          <h1>Préparez votre clôture sans oublier les écritures essentielles.</h1>
-          <p>Importez votre balance et votre grand livre, répondez aux questions guidées et obtenez un résumé clair des cycles à contrôler avant validation.</p>
-          <div class="heroActions">
-            <a class="btn primary" href="#demo">Lancer le test gratuit</a>
-            <a class="btn" href="#tarifs">Voir les tarifs</a>
-          </div>
-          <div class="miniProof">
-            <span>Balance générale</span><span>Grand livre</span><span>Questions guidées</span><span>Écritures proposées</span><span>Exports comptables</span>
-          </div>
-        </div>
+<main>
+<section class="hero"><div class="wrap heroGrid"><div><div class="badge">Assistant de préparation de clôture comptable</div><h1>Préparez votre clôture sans oublier les écritures essentielles.</h1><p>Importez votre balance et votre grand livre, répondez aux questions guidées et obtenez un résumé clair des cycles à contrôler avant validation.</p><div class="heroActions"><a class="btn primary" href="#demo">Lancer le test gratuit</a><a class="btn" href="#tarifs">Voir les tarifs</a></div><div class="miniProof"><span>Balance générale</span><span>Grand livre</span><span>Questions guidées</span><span>Écritures proposées</span><span>Exports comptables</span></div></div><div class="panel"><div class="panelTop"><div><h2>Contrôles de clôture</h2><p class="muted">Exemple de cycles analysés</p></div><span class="pill">Résumé gratuit</span></div><div class="heroRows"><div class="heroRow"><div class="round">01</div><div><b>Factures non reçues</b><span>Charges rattachées au bon exercice</span></div><div class="status">À vérifier</div></div><div class="heroRow"><div class="round">02</div><div><b>Charges constatées d’avance</b><span>Assurances, loyers, abonnements, maintenance</span></div><div class="status">Détectable</div></div><div class="heroRow"><div class="round">03</div><div><b>Clients et produits à recevoir</b><span>Prestations réalisées mais non facturées</span></div><div class="status">À traiter</div></div><div class="heroRow"><div class="round">04</div><div><b>Immobilisations et emprunts</b><span>Amortissements, sorties, intérêts courus</span></div><div class="status">Contrôle</div></div></div></div></div></section>
 
-        <div class="heroPanel">
-          <div class="panelTop"><div><h2>Contrôles de clôture</h2><p class="muted">Exemple de cycles analysés</p></div><span class="pill">Résumé gratuit</span></div>
-          <div class="heroRows">
-            <div class="heroRow"><div class="round">01</div><div><b>Factures non reçues</b><span>Charges rattachées au bon exercice</span></div><div class="status">À vérifier</div></div>
-            <div class="heroRow"><div class="round">02</div><div><b>Charges constatées d’avance</b><span>Assurances, loyers, abonnements, maintenance</span></div><div class="status">Détectable</div></div>
-            <div class="heroRow"><div class="round">03</div><div><b>Clients et produits à recevoir</b><span>Prestations réalisées mais non facturées</span></div><div class="status">À traiter</div></div>
-            <div class="heroRow"><div class="round">04</div><div><b>Immobilisations et emprunts</b><span>Amortissements, sorties, intérêts courus</span></div><div class="status">Contrôle</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
+<section id="fonctionnement"><div class="wrap"><h2 class="sectionTitle">Votre balance et votre grand livre deviennent un parcours de contrôle.</h2><p class="sectionLead">L’assistant analyse les comptes, repère les zones sensibles et vous guide avec des questions simples avant de proposer les écritures de clôture à vérifier.</p><div class="cards"><div class="card"><div class="icon">1</div><h3>Analyse des comptes</h3><p>L’assistant identifie les cycles à contrôler : fournisseurs, clients, charges constatées d’avance, immobilisations, emprunts, paie, TVA, stocks et provisions.</p></div><div class="card"><div class="icon">2</div><h3>Questions guidées</h3><p>Vous répondez à des questions concrètes pour confirmer les écritures nécessaires.</p></div><div class="card"><div class="icon">3</div><h3>Écritures proposées</h3><p>L’assistant prépare une proposition avec comptes, débit/crédit, montant et justification.</p></div></div></div></section>
 
-    <section id="fonctionnement">
-      <div class="wrap">
-        <h2 class="sectionTitle">Votre balance et votre grand livre deviennent un parcours de contrôle.</h2>
-        <p class="sectionLead">L’assistant analyse les comptes, repère les zones sensibles et vous guide avec des questions simples avant de proposer les écritures de clôture à vérifier.</p>
-        <div class="cards">
-          <div class="card"><div class="icon">1</div><h3>Analyse des comptes</h3><p>L’assistant identifie les cycles à contrôler : fournisseurs, clients, charges constatées d’avance, immobilisations, emprunts, paie, TVA, stocks et provisions.</p></div>
-          <div class="card"><div class="icon">2</div><h3>Questions guidées</h3><p>Vous répondez à des questions concrètes, formulées en langage clair, pour confirmer les écritures réellement nécessaires.</p></div>
-          <div class="card"><div class="icon">3</div><h3>Écritures proposées</h3><p>Pour chaque point détecté, l’assistant prépare une proposition d’écriture avec les comptes, le sens débit/crédit, le montant et la justification.</p></div>
-        </div>
-      </div>
-    </section>
+<section id="demo"><div class="wrap"><h2 class="sectionTitle">Testez votre parcours de clôture.</h2><p class="sectionLead">Répondez aux questions de contrôle et obtenez un premier résumé des cycles à traiter.</p><div class="app"><div class="box"><h2>1. Paramètres de clôture</h2><div class="inline"><div><label>Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div><div><label>Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div></div><label>Activité</label><select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select><label>Régime TVA</label><select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select><h2 style="margin-top:24px">2. Importer les fichiers</h2><label>Balance générale</label><input type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Format conseillé : Excel ou CSV exporté depuis votre logiciel comptable.</div><label>Grand livre</label><input type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Le grand livre permet d’analyser les dates, libellés, mouvements et comptes à contrôler.</div><h2 style="margin-top:24px">3. Questions guidées</h2><div id="questions"></div><div class="resultActions"><button class="btn primary" type="button" onclick="runDemo()">Générer mon résumé gratuit</button></div></div><div class="box"><div class="resultHeader"><div><h2>Résumé gratuit</h2><p class="muted" id="periodLabel"></p></div><div class="score"><b id="score">0</b><span>points détectés</span></div></div><div class="summaryGrid"><div class="metric"><b id="mCycles">0</b><span>cycles concernés</span></div><div class="metric"><b id="mEntries">0</b><span>écritures possibles</span></div><div class="metric"><b id="mQuestions">8</b><span>questions guidées</span></div><div class="metric"><b id="mRisk">—</b><span>niveau de vigilance</span></div></div><table><thead><tr><th>Cycle</th><th>Point de contrôle</th><th>Statut</th><th>Détail</th></tr></thead><tbody id="summaryRows"><tr><td>Analyse</td><td>Répondez aux questions pour obtenir un résumé.</td><td class="warning">En attente</td><td>Test gratuit</td></tr></tbody></table><div class="paywall" id="paywall" style="display:none"><h3>Votre résumé est prêt</h3><p class="muted">Pour lancer une vraie clôture, créer votre espace, importer vos fichiers et obtenir les écritures détaillées, connectez-vous.</p><div class="resultActions"><a class="btn primary" href="connexion.html">Débloquer ma clôture</a><a class="btn" href="#tarifs">Voir les tarifs</a></div></div><div id="lockedEntries" style="display:none"><h3 style="margin-top:22px">Aperçu des écritures préparées</h3><table class="blurred"><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody><tr><td>Facture non reçue</td><td>Compte de charge</td><td>408100</td><td>Montant HT</td></tr><tr><td>Charge constatée d’avance</td><td>486000</td><td>Compte de charge</td><td>Montant HT</td></tr><tr><td>Dotation aux amortissements</td><td>681120</td><td>28xxxx</td><td>Montant calculé</td></tr></tbody></table></div><div class="notice">Les écritures proposées doivent toujours être vérifiées avec les pièces justificatives.</div></div></div></div></section>
 
-    <section id="demo">
-      <div class="wrap">
-        <h2 class="sectionTitle">Testez votre parcours de clôture.</h2>
-        <p class="sectionLead">Importez vos éléments comptables, répondez aux questions de contrôle et obtenez un premier résumé des cycles à traiter.</p>
+<section id="tarifs"><div class="wrap"><h2 class="sectionTitle">Tarifs simples et lisibles.</h2><p class="sectionLead">Une formule ponctuelle pour traiter une clôture. Une formule mensuelle pour les utilisateurs réguliers ou multi-dossiers.</p><div class="pricing"><div class="price featured"><h3>Clôture ponctuelle</h3><p class="muted">Pour une entreprise, un exercice, une analyse complète.</p><div class="amount">39 € <small>TTC / clôture</small></div><a class="btn primary" href="connexion.html">Créer mon espace</a><ul><li>Analyse balance + grand livre</li><li>Questions guidées par cycle</li><li>Écritures détaillées après activation</li><li>Justifications comptables</li><li>Export journal OD / Excel / CSV</li></ul></div><div class="price"><h3>Multi-dossiers</h3><p class="muted">Pour cabinets, indépendants ou utilisateurs réguliers.</p><div class="amount">149 € <small>TTC / mois</small></div><a class="btn" href="connexion.html">Créer mon espace</a><ul><li>Clôtures illimitées</li><li>Tableau de bord multi-sociétés</li><li>Historique des analyses</li><li>Exports complets</li><li>Sans engagement mensuel</li></ul></div></div></div></section>
 
-        <div class="app">
-          <div class="box">
-            <h2>1. Paramètres de clôture</h2>
-            <div class="inline">
-              <div><label for="startDate">Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div>
-              <div><label for="endDate">Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div>
-            </div>
+<section id="prudence"><div class="wrap"><div class="box"><h2>Un assistant de préparation, pas une validation automatique du bilan.</h2><p class="muted">Axe Compta IA aide à repérer les écritures potentielles, structurer les contrôles de clôture et préparer un dossier plus propre. Il ne remplace pas l’analyse professionnelle, la validation comptable ni les pièces justificatives.</p><div class="notice">Objectif : gagner du temps, limiter les oublis et préparer des écritures cohérentes avant validation.</div></div></div></section>
+<section id="faq"><div class="wrap"><h2 class="sectionTitle">Questions fréquentes</h2><div class="faq"><div class="faqItem"><h3>L’assistant fait-il le bilan à ma place ?</h3><p>Non. Il prépare les contrôles et propose des écritures à vérifier.</p></div><div class="faqItem"><h3>Quels fichiers faut-il importer ?</h3><p>La balance générale et le grand livre sont les deux fichiers principaux.</p></div><div class="faqItem"><h3>Quelles écritures sont concernées ?</h3><p>FNP, FAE, CCA, PCA, amortissements, provisions, stocks, emprunts, paie et TVA.</p></div><div class="faqItem"><h3>À qui s’adresse l’outil ?</h3><p>Aux indépendants, petites entreprises, étudiants, comptables débutants et professionnels.</p></div></div></div></section>
+</main>
+<footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+<script>
+const answers = {};
+const qList = [
+["fournisseurs","Fournisseurs / factures non reçues","qFnp"],
+["cca","Charges payées d’avance","qCca"],
+["clients","Clients / factures à établir","qFae"],
+["stocks","Stocks","qStock"],
+["immo","Immobilisations","qImmo"],
+["emprunts","Emprunts","qLoan"],
+["paie","Paie / congés payés","qPayroll"],
+["provisions","Litiges / provisions","qProv"]
+];
 
-            <label for="activity">Activité</label>
-            <select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select>
+function formatDateFr(v){if(!v)return "";const [y,m,d]=v.split("-");return `${d}/${m}/${y}`;}
+function nextYearFromEnd(){return Number(endDate.value.slice(0,4))+1;}
+function exerciseYear(){return endDate.value.slice(0,4);}
 
-            <label for="vat">Régime TVA</label>
-            <select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select>
-
-            <h2 style="margin-top:24px">2. Importer les fichiers</h2>
-            <label>Balance générale</label><input type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Format conseillé : Excel ou CSV exporté depuis votre logiciel comptable.</div>
-            <label>Grand livre</label><input type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Le grand livre permet d’analyser les dates, libellés, mouvements et comptes à contrôler.</div>
-
-            <h2 style="margin-top:24px">3. Questions guidées</h2>
-            <div class="question" data-cycle="fournisseurs"><strong>Fournisseurs / factures non reçues</strong><span id="qFnp"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="cca"><strong>Charges payées d’avance</strong><span id="qCca"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="clients"><strong>Clients / factures à établir</strong><span id="qFae"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="stocks"><strong>Stocks</strong><span id="qStock"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="immo"><strong>Immobilisations</strong><span id="qImmo"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="emprunts"><strong>Emprunts</strong><span id="qLoan"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="paie"><strong>Paie / congés payés</strong><span id="qPayroll"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-            <div class="question" data-cycle="provisions"><strong>Litiges / provisions</strong><span id="qProv"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>
-
-            <div class="resultActions">
-              <button class="btn primary" type="button" onclick="runDemo()">Générer mon résumé gratuit</button>
-            </div>
-          </div>
-
-          <div class="box" id="resultBox">
-            <div class="resultHeader">
-              <div><h2>Résumé gratuit</h2><p class="muted" id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</p></div>
-              <div class="score"><div><b id="score">0</b><span>points détectés</span></div></div>
-            </div>
-
-            <div class="summaryGrid">
-              <div class="metric"><b id="mCycles">0</b><span>cycles concernés</span></div>
-              <div class="metric"><b id="mEntries">0</b><span>écritures possibles</span></div>
-              <div class="metric"><b id="mQuestions">8</b><span>questions guidées</span></div>
-              <div class="metric"><b id="mRisk">—</b><span>niveau de vigilance</span></div>
-            </div>
-
-            <table>
-              <thead><tr><th>Cycle</th><th>Point de contrôle</th><th>Statut</th><th>Détail</th></tr></thead>
-              <tbody id="summaryRows">
-                <tr><td>Fournisseurs</td><td>Factures non reçues à vérifier après clôture.</td><td class="warning">Question requise</td><td>Répondez aux questions à gauche.</td></tr>
-                <tr><td>Clients</td><td>Prestations réalisées mais non encore facturées.</td><td class="warning">Question requise</td><td>Répondez aux questions à gauche.</td></tr>
-                <tr><td>Immobilisations</td><td>Amortissements, acquisitions ou sorties à contrôler.</td><td class="warning">Question requise</td><td>Répondez aux questions à gauche.</td></tr>
-              </tbody>
-            </table>
-
-            <div class="paywall" id="paywall" style="display:none">
-              <h3>Votre résumé est prêt</h3>
-              <p class="muted">Le test gratuit identifie les cycles concernés. Pour lancer une vraie clôture, créer votre espace, importer vos fichiers et obtenir les écritures détaillées, connectez-vous.</p>
-              <div class="resultActions">
-                <a class="btn primary" href="connexion.html">Débloquer ma clôture</a>
-                <a class="btn" href="#tarifs">Voir les tarifs</a>
-              </div>
-            </div>
-
-            <div id="lockedEntries" style="display:none">
-              <h3 style="margin-top:22px">Aperçu des écritures préparées</h3>
-              <table class="blurred">
-                <thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
-                <tbody>
-                  <tr><td>Facture non reçue</td><td>Compte de charge</td><td>408100</td><td>Montant HT</td></tr>
-                  <tr><td>Charge constatée d’avance</td><td>486000</td><td>Compte de charge</td><td>Montant HT</td></tr>
-                  <tr><td>Dotation aux amortissements</td><td>681120</td><td>28xxxx</td><td>Montant calculé</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="notice">L’assistant aide à préparer les contrôles de clôture. Les écritures proposées doivent toujours être vérifiées avec les pièces justificatives et validées avant comptabilisation.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="tarifs">
-      <div class="wrap">
-        <h2 class="sectionTitle">Tarifs simples et lisibles.</h2>
-        <p class="sectionLead">Une formule ponctuelle pour traiter une clôture. Une formule mensuelle pour les utilisateurs réguliers ou multi-dossiers.</p>
-
-        <div class="pricing">
-          <div class="price featured">
-            <h3>Clôture ponctuelle</h3>
-            <p class="muted">Pour une entreprise, un exercice, une analyse complète.</p>
-            <div class="amount">39 € <small>TTC / clôture</small></div>
-            <a class="btn primary" href="connexion.html">Créer mon espace</a>
-            <ul><li>Analyse balance + grand livre</li><li>Questions guidées par cycle</li><li>Écritures détaillées après activation</li><li>Justifications comptables</li><li>Export journal OD / Excel / CSV</li></ul>
-          </div>
-
-          <div class="price">
-            <h3>Multi-dossiers</h3>
-            <p class="muted">Pour cabinets, indépendants ou utilisateurs réguliers.</p>
-            <div class="amount">149 € <small>TTC / mois</small></div>
-            <a class="btn" href="connexion.html">Créer mon espace</a>
-            <ul><li>Clôtures illimitées</li><li>Tableau de bord multi-sociétés</li><li>Historique des analyses</li><li>Exports complets</li><li>Sans engagement mensuel</li></ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="prudence">
-      <div class="wrap"><div class="box"><h2>Un assistant de préparation, pas une validation automatique du bilan.</h2><p class="muted">Axe Compta IA vous aide à repérer les écritures potentielles, structurer les contrôles de clôture et préparer un dossier plus propre. Il ne remplace pas l’analyse professionnelle, la validation comptable ni les pièces justificatives.</p><div class="notice">Objectif : gagner du temps, limiter les oublis et préparer des écritures cohérentes avant validation.</div></div></div>
-    </section>
-
-    <section id="faq">
-      <div class="wrap">
-        <h2 class="sectionTitle">Questions fréquentes</h2>
-        <p class="sectionLead">Les points essentiels avant d’utiliser l’assistant de clôture comptable.</p>
-        <div class="faq">
-          <div class="faqItem"><h3>L’assistant fait-il le bilan à ma place ?</h3><p>Non. Il prépare les contrôles et propose des écritures à vérifier. La validation finale reste indispensable.</p></div>
-          <div class="faqItem"><h3>Quels fichiers faut-il importer ?</h3><p>La balance générale et le grand livre sont les deux fichiers principaux. Ils permettent d’identifier les cycles sensibles et les écritures potentielles.</p></div>
-          <div class="faqItem"><h3>Quelles écritures sont concernées ?</h3><p>FNP, FAE, CCA, PCA, amortissements, provisions, stocks, emprunts, paie, TVA et autres écritures d’inventaire selon les données transmises.</p></div>
-          <div class="faqItem"><h3>À qui s’adresse l’outil ?</h3><p>Aux indépendants, petites entreprises, étudiants, comptables débutants et professionnels qui veulent structurer une première revue de clôture.</p></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
-
-  <script>
-    const answers = {};
-
-    document.querySelectorAll('.qBtns button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const q = btn.closest('.question');
-        answers[q.dataset.cycle] = btn.dataset.answer;
-        q.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
+function renderQuestions(){
+  questions.innerHTML = qList.map(q => `<div class="question" data-cycle="${q[0]}"><strong>${q[1]}</strong><span id="${q[2]}"></span><div class="qBtns"><button type="button" data-answer="yes">Oui</button><button type="button" data-answer="no">Non</button></div></div>`).join("");
+  document.querySelectorAll(".qBtns button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const q = btn.closest(".question");
+      answers[q.dataset.cycle] = btn.dataset.answer;
+      q.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
     });
+  });
+  updateQuestions();
+}
 
-    function formatDateFr(v) {
-      if (!v) return '';
-      const [y, m, d] = v.split('-');
-      return `${d}/${m}/${y}`;
-    }
+function updateQuestions(){
+  const start = formatDateFr(startDate.value);
+  const end = formatDateFr(endDate.value);
+  const year = exerciseYear();
+  const next = nextYearFromEnd();
+  periodLabel.textContent = `Exercice analysé : ${start} → ${end}`;
+  qFnp.textContent = `Avez-vous reçu en ${next} une facture concernant une prestation ou une consommation réalisée avant le ${end} ?`;
+  qCca.textContent = `Certaines dépenses payées en ${year} couvrent-elles aussi une période après le ${end} ? Assurance, abonnement, loyer, maintenance...`;
+  qFae.textContent = `Avez-vous réalisé une prestation avant le ${end} mais envoyé la facture seulement en ${next} ?`;
+  qStock.textContent = `Disposez-vous d’un inventaire physique au ${end} ?`;
+  qImmo.textContent = `Avez-vous acheté, vendu ou mis au rebut du matériel pendant l’exercice ${year} ?`;
+  qLoan.textContent = `Avez-vous un emprunt bancaire en cours au ${end} ?`;
+  qPayroll.textContent = `Existe-t-il des salaires, primes, congés payés ou charges sociales rattachés à ${year} mais non comptabilisés au ${end} ?`;
+  qProv.textContent = `Existe-t-il un litige, un risque financier ou un client douteux susceptible d’avoir un impact sur les comptes au ${end} ?`;
+}
 
-    function nextYearFromEnd() {
-      const end = document.getElementById('endDate').value;
-      const y = Number(end.slice(0, 4));
-      return y + 1;
-    }
+startDate.addEventListener("change", updateQuestions);
+endDate.addEventListener("change", updateQuestions);
 
-    function exerciseYear() {
-      return document.getElementById('endDate').value.slice(0, 4);
-    }
+function runDemo(){
+  updateQuestions();
+  const yes = Object.values(answers).filter(v => v === "yes").length;
+  const no = Object.values(answers).filter(v => v === "no").length;
+  const unanswered = 8 - yes - no;
+  const cycles = Math.max(3, yes + 2);
+  const entries = Math.max(2, yes + 3);
+  score.textContent = yes + unanswered + 4;
+  mCycles.textContent = cycles;
+  mEntries.textContent = entries;
+  mQuestions.textContent = unanswered === 0 ? "OK" : unanswered;
+  mRisk.textContent = unanswered > 2 ? "Moyen" : "Faible";
 
-    function updateQuestions() {
-      const start = formatDateFr(document.getElementById('startDate').value);
-      const end = formatDateFr(document.getElementById('endDate').value);
-      const year = exerciseYear();
-      const next = nextYearFromEnd();
-
-      document.getElementById('periodLabel').textContent = `Exercice analysé : ${start} → ${end}`;
-      document.getElementById('qFnp').textContent = `Avez-vous reçu en ${next} une facture concernant une prestation ou une consommation réalisée avant le ${end} ?`;
-      document.getElementById('qCca').textContent = `Certaines dépenses payées en ${year} couvrent-elles aussi une période après le ${end} ? Assurance, abonnement, loyer, maintenance...`;
-      document.getElementById('qFae').textContent = `Avez-vous réalisé une prestation avant le ${end} mais envoyé la facture seulement en ${next} ?`;
-      document.getElementById('qStock').textContent = `Disposez-vous d’un inventaire physique au ${end} ?`;
-      document.getElementById('qImmo').textContent = `Avez-vous acheté, vendu ou mis au rebut du matériel pendant l’exercice ${year} ?`;
-      document.getElementById('qLoan').textContent = `Avez-vous un emprunt bancaire en cours au ${end} ?`;
-      document.getElementById('qPayroll').textContent = `Existe-t-il des salaires, primes, congés payés ou charges sociales rattachés à ${year} mais non comptabilisés au ${end} ?`;
-      document.getElementById('qProv').textContent = `Existe-t-il un litige, un risque financier ou un client douteux susceptible d’avoir un impact sur les comptes au ${end} ?`;
-    }
-
-    document.getElementById('startDate').addEventListener('change', updateQuestions);
-    document.getElementById('endDate').addEventListener('change', updateQuestions);
-
-    function runDemo() {
-      updateQuestions();
-
-      const yes = Object.values(answers).filter(v => v === 'yes').length;
-      const no = Object.values(answers).filter(v => v === 'no').length;
-      const unanswered = 8 - yes - no;
-
-      const cycles = Math.max(3, yes + 2);
-      const entries = Math.max(2, yes + 3);
-
-      document.getElementById('score').textContent = yes + unanswered + 4;
-      document.getElementById('mCycles').textContent = cycles;
-      document.getElementById('mEntries').textContent = entries;
-      document.getElementById('mQuestions').textContent = unanswered === 0 ? 'OK' : unanswered;
-      document.getElementById('mRisk').textContent = unanswered > 2 ? 'Moyen' : 'Faible';
-
-      const rows = [];
-      const map = {
-        fournisseurs: ['Fournisseurs', 'Factures non reçues possibles après clôture.', 'FNP potentielle'],
-        cca: ['Charges payées d’avance', 'Dépenses couvrant une période postérieure à la clôture.', 'CCA potentielle'],
-        clients: ['Clients', 'Prestation réalisée avant clôture mais facturée après.', 'FAE potentielle'],
-        stocks: ['Stocks', 'Inventaire physique à rattacher à la clôture.', 'Variation à vérifier'],
-        immo: ['Immobilisations', 'Acquisition, sortie ou dotation à contrôler.', 'OD possible'],
-        emprunts: ['Emprunts', 'Intérêts courus et capital restant dû à vérifier.', 'ICNE possible'],
-        paie: ['Paie', 'Charges sociales, primes ou congés payés à rattacher.', 'OD sociale possible'],
-        provisions: ['Provisions', 'Risque, litige ou client douteux à documenter.', 'Provision à justifier']
-      };
-
-      Object.keys(map).forEach(k => {
-        const item = map[k];
-
-        if (answers[k] === 'yes') {
-          rows.push(`<tr><td>${item[0]}</td><td>${item[1]}</td><td class="confidence">${item[2]}</td><td>Détail accessible après création de l’espace</td></tr>`);
-        }
-
-        if (answers[k] === 'no') {
-          rows.push(`<tr><td>${item[0]}</td><td>Aucun élément déclaré par l’utilisateur.</td><td>Pas d’écriture signalée</td><td>Contrôle conservé</td></tr>`);
-        }
-      });
-
-      if (rows.length === 0) {
-        rows.push(`<tr><td>Analyse</td><td>Répondez aux questions pour obtenir un résumé plus précis.</td><td class="warning">En attente</td><td>Test gratuit</td></tr>`);
-      }
-
-      document.getElementById('summaryRows').innerHTML = rows.join('');
-      document.getElementById('paywall').style.display = 'block';
-      document.getElementById('lockedEntries').style.display = 'block';
-    }
-
-    updateQuestions();
-  </script>
+  const map = {
+    fournisseurs:["Fournisseurs","Factures non reçues possibles après clôture.","FNP potentielle"],
+    cca:["Charges payées d’avance","Dépenses couvrant une période postérieure à la clôture.","CCA potentielle"],
+    clients:["Clients","Prestation réalisée avant clôture mais facturée après.","FAE potentielle"],
+    stocks:["Stocks","Inventaire physique à rattacher à la clôture.","Variation à vérifier"],
+    immo:["Immobilisations","Acquisition, sortie ou dotation à contrôler.","OD possible"],
+    emprunts:["Emprunts","Intérêts courus et capital restant dû à vérifier.","ICNE possible"],
+    paie:["Paie","Charges sociales, primes ou congés payés à rattacher.","OD sociale possible"],
+    provisions:["Provisions","Risque, litige ou client douteux à documenter.","Provision à justifier"]
+  };
+  let rows = "";
+  Object.keys(map).forEach(k => {
+    const item = map[k];
+    if(answers[k] === "yes") rows += `<tr><td>${item[0]}</td><td>${item[1]}</td><td class="confidence">${item[2]}</td><td>Détail accessible après création de l’espace</td></tr>`;
+    if(answers[k] === "no") rows += `<tr><td>${item[0]}</td><td>Aucun élément déclaré.</td><td>Pas d’écriture signalée</td><td>Contrôle conservé</td></tr>`;
+  });
+  if(!rows) rows = `<tr><td>Analyse</td><td>Répondez aux questions pour obtenir un résumé plus précis.</td><td class="warning">En attente</td><td>Test gratuit</td></tr>`;
+  summaryRows.innerHTML = rows;
+  paywall.style.display = "block";
+  lockedEntries.style.display = "block";
+}
+renderQuestions();
+</script>
 </body>
 </html>
