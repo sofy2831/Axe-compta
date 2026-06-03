@@ -6,18 +6,153 @@
   <title>Tableau de bord | Axe Compta IA</title>
   <meta name="description" content="Tableau de bord client Axe Compta IA." />
   <meta name="robots" content="noindex,nofollow" />
-  <style>
-    :root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--ok:#8df0b3;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}main{padding:42px 0 72px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}.metric,.box{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px}.layout{display:grid;grid-template-columns:1fr .42fr;gap:18px}.box h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.actions{display:flex;gap:8px;flex-wrap:wrap}.small{padding:8px 12px;font-size:13px}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.sideList{display:grid;gap:12px}.sideItem{border:1px solid var(--line);border-radius:16px;background:rgba(19,52,91,.58);padding:14px}.sideItem b{display:block}.sideItem span{color:var(--muted);font-size:14px}footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}@media(max-width:960px){.grid,.layout{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary){display:none}}@media(max-width:640px){table{display:block;overflow-x:auto;white-space:nowrap}.grid{grid-template-columns:1fr 1fr}.nav{height:76px}.logoImg{height:44px}}
-  </style>
+  <style>{base_css}</style>
 </head>
 <body>
-  <header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a></div></div></header>
-  <main><div class="wrap">
-    <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p></div><a class="btn primary" href="nouvelle-cloture.html">Créer une clôture</a></div>
-    <div class="grid"><div class="metric"><b>1</b><span>clôture active</span></div><div class="metric"><b>0</b><span>export disponible</span></div><div class="metric"><b>39 €</b><span>formule ponctuelle</span></div><div class="metric"><b>Actif</b><span>statut du compte</span></div></div>
-    <div class="layout"><div class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Dernière action</th><th></th></tr></thead><tbody><tr><td>Société exemple</td><td>01/01/2022 → 31/12/2022</td><td><span class="pill warn">À compléter</span></td><td>Questions guidées en attente</td><td><div class="actions"><a class="btn small primary" href="nouvelle-cloture.html">Continuer</a></div></td></tr><tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>Créer un dossier</td><td><div class="actions"><a class="btn small" href="nouvelle-cloture.html">Créer</a></div></td></tr></tbody></table><div class="notice">Après branchement Firebase, cette liste sera alimentée automatiquement par les clôtures du compte connecté.</div></div>
-    <aside class="box"><h2>Accès</h2><div class="sideList"><div class="sideItem"><b>Formule active</b><span>Clôture ponctuelle ou abonnement mensuel.</span></div><div class="sideItem"><b>Étapes restantes</b><span>Créer le dossier, importer les fichiers, répondre aux questions.</span></div><div class="sideItem"><b>Exports</b><span>Disponibles après analyse complète.</span></div></div></aside></div>
-  </div></main>
+  <header>
+    <div class="wrap nav">
+      <a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a>
+      <div class="navRight">
+        <a class="btn" href="assistant-cloture-comptable.html">Site</a>
+        <a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a>
+        <button class="btn danger" type="button" id="logoutBtn">Déconnexion</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>Tableau de bord</h1>
+          <p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p>
+          <p class="muted" id="userEmail">Chargement du compte...</p>
+        </div>
+        <a class="btn primary" href="nouvelle-cloture.html">Créer une clôture</a>
+      </div>
+
+      <div class="grid">
+        <div class="metric"><b id="activeClosures">0</b><span>clôture active</span></div>
+        <div class="metric"><b id="exportsCount">0</b><span>export disponible</span></div>
+        <div class="metric"><b id="planLabel">—</b><span>formule</span></div>
+        <div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div>
+      </div>
+
+      <div class="layout">
+        <div class="box">
+          <h2>Mes clôtures</h2>
+          <table>
+            <thead>
+              <tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Dernière action</th><th></th></tr>
+            </thead>
+            <tbody id="closuresRows">
+              <tr>
+                <td colspan="5" class="muted">Chargement de vos clôtures...</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="notice">Vos clôtures seront enregistrées dans votre espace client. Une clôture ponctuelle donne accès à un dossier actif ; l’abonnement permet de gérer plusieurs dossiers.</div>
+        </div>
+
+        <aside class="box">
+          <h2>Accès</h2>
+          <div class="sideList">
+            <div class="sideItem"><b>Formule active</b><span id="sidePlan">Vérification du compte en cours.</span></div>
+            <div class="sideItem"><b>Étapes restantes</b><span>Créer le dossier, importer les fichiers, répondre aux questions.</span></div>
+            <div class="sideItem"><b>Exports</b><span>Disponibles après analyse complète.</span></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
   <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+
+  <script type="module">
+    import {{ auth, db }} from "./firebase-config.js";
+    import {{ onAuthStateChanged, signOut }} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+    import {{ doc, getDoc, collection, query, orderBy, limit, getDocs }} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+    const rows = document.getElementById("closuresRows");
+
+    function renderEmpty() {{
+      rows.innerHTML = `
+        <tr>
+          <td>Nouvelle clôture</td>
+          <td>—</td>
+          <td><span class="pill">Disponible</span></td>
+          <td>Créer un dossier</td>
+          <td><div class="actions"><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></div></td>
+        </tr>`;
+    }}
+
+    async function loadDashboard(user) {{
+      document.getElementById("userEmail").textContent = user.email;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      let plan = "Clôture ponctuelle";
+      let active = true;
+
+      if (userSnap.exists()) {{
+        const data = userSnap.data();
+        plan = data.plan === "monthly" ? "149 €/mois" : data.plan === "one-shot" ? "39 €" : "À activer";
+        active = data.active !== false;
+      }}
+
+      document.getElementById("planLabel").textContent = plan;
+      document.getElementById("sidePlan").textContent = active ? plan : "Accès à activer.";
+      document.getElementById("accountStatus").textContent = active ? "Actif" : "À activer";
+
+      try {{
+        const q = query(collection(db, "users", user.uid, "closures"), orderBy("createdAt", "desc"), limit(20));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {{
+          document.getElementById("activeClosures").textContent = "0";
+          renderEmpty();
+          return;
+        }}
+
+        document.getElementById("activeClosures").textContent = snap.size;
+
+        rows.innerHTML = "";
+        snap.forEach(docSnap => {{
+          const c = docSnap.data();
+          const start = c.startDate || "—";
+          const end = c.endDate || "—";
+          const company = c.companyName || "Société sans nom";
+          const status = c.status || "draft";
+          const label = status === "completed" ? "Terminée" : status === "analysed" ? "Analysée" : "À compléter";
+          const cls = status === "completed" ? "pill" : "pill warn";
+          rows.innerHTML += `
+            <tr>
+              <td>${{company}}</td>
+              <td>${{start}} → ${{end}}</td>
+              <td><span class="${{cls}}">${{label}}</span></td>
+              <td>${{status === "draft" ? "Questions guidées en attente" : "Analyse disponible"}}</td>
+              <td><div class="actions"><a class="btn small primary" href="cloture-analyse.html?id=${{docSnap.id}}">Continuer</a></div></td>
+            </tr>`;
+        }});
+      }} catch (err) {{
+        console.error(err);
+        renderEmpty();
+      }}
+    }}
+
+    onAuthStateChanged(auth, (user) => {{
+      if (!user) {{
+        window.location.href = "connexion.html";
+        return;
+      }}
+      loadDashboard(user);
+    }});
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {{
+      await signOut(auth);
+      window.location.href = "connexion.html";
+    }});
+  </script>
 </body>
 </html>
