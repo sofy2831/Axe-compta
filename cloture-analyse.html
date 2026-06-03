@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyse de clôture | Axe Compta IA</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root{--bg:#0b1f3a;--bg2:#123057;--card:#173b66;--card2:#1d4b7c;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55}a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}header{position:sticky;top:0;z-index:20;backdrop-filter:blur(18px);background:rgba(11,31,58,.82);border-bottom:1px solid var(--line)}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{display:flex;align-items:center;gap:12px}.logoImg{height:52px;width:auto;display:block}.navlinks{display:flex;gap:18px;align-items:center;color:var(--muted);font-size:14px}.navlinks a:hover{color:var(--text)}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:800;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease;font-size:14px}.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}section{padding:58px 0}.sectionTitle{font-size:clamp(30px,3.8vw,48px);line-height:1.02;letter-spacing:-.055em;margin:0 0 14px}.sectionLead{color:var(--muted);max-width:780px;font-size:17px;margin:0 0 28px}.box,.card{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid rgba(255,255,255,.13);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.box{padding:24px}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.035em}.layout{display:grid;grid-template-columns:.78fr 1.22fr;gap:22px;align-items:start}.muted{color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(114,224,197,.28);background:rgba(114,224,197,.10);color:#dffcf6;font-weight:750;font-size:13px;margin-bottom:18px}.progress{display:grid;gap:12px}.step{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--line);background:rgba(19,52,91,.58);border-radius:18px}.round{width:38px;height:38px;display:grid;place-items:center;border-radius:14px;background:rgba(114,224,197,.13);color:var(--primary);font-weight:950;flex:none}.step b{display:block}.step span{color:var(--muted);font-size:13px}.activeStep{border-color:rgba(114,224,197,.42);background:rgba(114,224,197,.10)}.question{padding:16px;border:1px solid var(--line);border-radius:18px;background:rgba(19,52,91,.58);margin:12px 0}.question strong{display:block;margin-bottom:6px;letter-spacing:-.02em}.question p{margin:0 0 12px;color:var(--muted);font-size:14px}.qBtns{display:flex;gap:8px;flex-wrap:wrap}.qBtns button{border:1px solid var(--line);border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.06);color:var(--text);font-weight:850;cursor:pointer}.qBtns button.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;border-color:transparent}label{display:block;margin:14px 0 7px;color:#dbe6f4;font-size:13px;font-weight:800}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(13,41,75,.82);color:var(--text);padding:13px 14px;font:inherit;outline:none}textarea{min-height:88px;resize:vertical}.inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}.notice{margin-top:18px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.summaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.metric{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(18,48,87,.55)}.metric b{display:block;font-size:24px}.metric span{display:block;color:var(--muted);font-size:12px}table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);margin-top:12px;font-size:14px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}td{color:#edf3fb}tr:last-child td{border-bottom:none}.warning{color:var(--warning);font-weight:850}.confidence{color:var(--ok);font-weight:850}footer{padding:34px 0;border-top:1px solid var(--line);color:var(--muted);font-size:14px}@media(max-width:960px){.layout,.summaryGrid{grid-template-columns:1fr}.navlinks{display:none}}@media(max-width:560px){.wrap{width:min(100% - 24px,1180px)}.inline{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
+  </style>
+</head>
+<body>
+  <header><div class="wrap nav"><a class="brand" href="assistant-cloture-comptable.html"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><nav class="navlinks"><a href="tableau-de-bord.html">Tableau de bord</a><a href="nouvelle-cloture.html">Nouvelle clôture</a><a href="cloture-resultat.html">Résultat</a></nav><a class="btn primary" href="tableau-de-bord.html">Mon espace</a></div></header>
+  <main>
+    <section>
+      <div class="wrap">
+        <div class="badge">Analyse de clôture</div>
+        <h1 class="sectionTitle">Contrôlez les cycles sensibles avant génération des écritures.</h1>
+        <p class="sectionLead">Répondez aux questions complémentaires. L’assistant affine ensuite les propositions d’écritures à vérifier.</p>
+        <div class="layout">
+          <aside class="box">
+            <h2>Avancement</h2>
+            <div class="progress">
+              <div class="step"><div class="round">1</div><div><b>Fichiers importés</b><span>Balance et grand livre reçus.</span></div></div>
+              <div class="step activeStep"><div class="round">2</div><div><b>Questions de clôture</b><span>Cycles fournisseurs, clients, charges, stocks, paie.</span></div></div>
+              <div class="step"><div class="round">3</div><div><b>Analyse en cours</b><span>Repérage des ajustements possibles.</span></div></div>
+              <div class="step"><div class="round">4</div><div><b>Résultat</b><span>Écritures et exports après validation.</span></div></div>
+            </div>
+            <div class="notice">Les réponses servent à éviter les écritures automatiques hors contexte. Une écriture doit toujours être justifiée par une pièce ou une information fiable.</div>
+          </aside>
+          <div class="box">
+            <h2>Questions complémentaires</h2>
+            <div class="inline">
+              <div><label>Entreprise</label><input type="text" value="Entreprise exemple"></div>
+              <div><label>Exercice</label><input type="text" value="01/01/2022 → 31/12/2022"></div>
+            </div>
+            <div class="question"><strong>Factures non reçues</strong><p>Avez-vous reçu après la clôture une facture concernant une dépense réalisée avant le 31/12/2022 ?</p><div class="qBtns"><button>Oui</button><button>Non</button><button>À vérifier</button></div><label>Précision éventuelle</label><textarea placeholder="Exemple : facture électricité de décembre reçue en janvier, montant estimé..."></textarea></div>
+            <div class="question"><strong>Charges payées d’avance</strong><p>Des assurances, loyers, abonnements ou maintenances payés en 2022 couvrent-ils aussi 2023 ?</p><div class="qBtns"><button>Oui</button><button>Non</button><button>À vérifier</button></div></div>
+            <div class="question"><strong>Factures à établir</strong><p>Une prestation réalisée avant le 31/12/2022 a-t-elle été facturée seulement après la clôture ?</p><div class="qBtns"><button>Oui</button><button>Non</button><button>À vérifier</button></div></div>
+            <div class="question"><strong>Stocks</strong><p>Disposez-vous d’un inventaire de stock au 31/12/2022 ?</p><div class="qBtns"><button>Oui</button><button>Non</button><button>Non concerné</button></div></div>
+            <div class="question"><strong>Immobilisations et emprunts</strong><p>Y a-t-il eu achat, sortie d’immobilisation ou emprunt à contrôler sur l’exercice ?</p><div class="qBtns"><button>Oui</button><button>Non</button><button>À vérifier</button></div></div>
+            <div class="summaryGrid">
+              <div class="metric"><b>8</b><span>cycles contrôlés</span></div><div class="metric"><b>5</b><span>réponses attendues</span></div><div class="metric"><b>3</b><span>écritures possibles</span></div>
+            </div>
+            <table><thead><tr><th>Cycle</th><th>Statut</th><th>Suite</th></tr></thead><tbody><tr><td>Fournisseurs</td><td class="warning">À compléter</td><td>Préciser les factures reçues après clôture.</td></tr><tr><td>Charges d’avance</td><td class="confidence">Contrôle disponible</td><td>Calculer la part rattachée à l’exercice suivant.</td></tr><tr><td>Immobilisations</td><td class="warning">Pièces utiles</td><td>Ajouter tableau d’amortissement si disponible.</td></tr></tbody></table>
+            <div class="resultActions"><a class="btn" href="nouvelle-cloture.html">Retour</a><a class="btn primary" href="cloture-resultat.html">Voir le résultat</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+  <script>document.querySelectorAll('.qBtns button').forEach(btn=>btn.addEventListener('click',()=>{btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}));</script>
+</body>
+</html>
