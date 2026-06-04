@@ -2,6 +2,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
+const XLSX = require("xlsx");
 
 admin.initializeApp();
 
@@ -163,6 +164,125 @@ exports.stripeWebhook = onRequest(
     } catch (error) {
       console.error("Webhook processing error:", error);
       res.status(500).send("Webhook processing error");
+    }
+  }
+);
+exports.parseClosureFiles = onRequest(
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    try {
+      const { uid, closureId } = req.body || {};
+
+      if (!uid || !closureId) {
+        res.status(400).json({ error: "uid ou closureId manquant." });
+        return;
+      }
+
+      const db = admin.firestore();
+      const bucket = admin.storage().bucket();
+
+      const closureRef = db
+        .collection("users")
+        .doc(uid)
+        .collection("closures")
+        .doc(closureId);
+
+      const closureSnap = await closureRef.get();
+
+      if (!closureSnap.exists) {
+        res.status(404).json({ error: "Clôture introuvable." });
+        return;
+      }
+
+      const closure = closureSnap.data();
+      const balancePath = closure.files?.balance?.storagePath;
+      const grandLivrePath = closure.files?.grandLivre?.storagePath;
+
+      async function parseFile(storagePath) {
+        if (!storagePath) return [];
+
+        const [buffer] = await bucket.file(storagePath).download();
+        const workbook = XLSX.read(buffer, { type: "buffer" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+        return rows.slice(0, 2000);
+      }
+
+      const balanceRows = await parseFile(balancePath);
+      const grandLivreRows = await parseFile(grandLivrePath);
+
+      const controls = [];
+      const anomalies = [];
+
+      if (balanceRows.length) {
+        controls.push({
+          type: "balance_loaded",
+          label: "Balance chargée",
+          count: balanceRows.length
+        });
+      } else {
+        anomalies.push({
+          type: "missing_balance",
+          label: "Balance absente ou non exploitable",
+          level: "warning"
+        });
+      }
+
+      if (grandLivreRows.length) {
+        controls.push({
+          type: "grand_livre_loaded",
+          label: "Grand livre chargé",
+          count: grandLivreRows.length
+        });
+      } else {
+        anomalies.push({
+          type: "missing_grand_livre",
+          label: "Grand livre absent ou non exploitable",
+          level: "warning"
+        });
+      }
+
+      await closureRef.set(
+        {
+          balance: balanceRows,
+          grandLivre: grandLivreRows,
+          controls,
+          anomalies,
+          aiAnalysis: {
+            status: "parsed",
+            model: null,
+            generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            summary: "Fichiers lus et convertis en données exploitables.",
+            warnings: anomalies
+          },
+          status: "parsed",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      res.json({
+        ok: true,
+        balanceRows: balanceRows.length,
+        grandLivreRows: grandLivreRows.length
+      });
+    } catch (error) {
+      console.error("parseClosureFiles error:", error);
+      res.status(500).json({ error: "Erreur parsing fichiers." });
     }
   }
 );
