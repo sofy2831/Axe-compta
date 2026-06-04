@@ -29,24 +29,42 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <div class="layout"><div class="box"><h2>1. Informations du dossier</h2><label>Nom de l’entreprise</label><input id="companyName" type="text" placeholder="Ex : SARL Exemple" required><div class="inline"><div><label>Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div><div><label>Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div></div><label>Activité</label><select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select><label>Régime TVA</label><select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select>
 <h2 style="margin-top:24px">2. Fichiers comptables</h2><label>Balance générale</label><input id="balanceFile" type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Excel ou CSV conseillé.</div><label>Grand livre</label><input id="ledgerFile" type="file" accept=".csv,.xlsx,.xls,.ods,.txt,.pdf"><div class="hint">Permet d’analyser les dates, libellés, mouvements et comptes.</div><label>Informations utiles</label><textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
 <div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="notice" id="saveMsg" style="display:none"></div></div>
-<aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import balance + grand livre</b><span>Les fichiers seront rattachés au dossier.</span></div><div class="step"><b>Questions guidées</b><span>Étape suivante après enregistrement.</span></div></div><div class="notice">Les fichiers seront exploités ensuite par l’analyse IA côté serveur.</div></aside></div>
+<aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import balance + grand livre</b><span>Les fichiers sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div><div class="notice">La structure Firestore est prête pour l’analyse IA : balance, grandLivre, entries, controls, anomalies et aiAnalysis.</div></aside></div>
 </div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <script type="module">
 import { auth, db, storage } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 let currentUser=null;
 function formatDateFr(v){if(!v)return"";const [y,m,d]=v.split("-");return `${d}/${m}/${y}`;}
 function updatePeriod(){document.getElementById("periodLabel").textContent=`Exercice analysé : ${formatDateFr(startDate.value)} → ${formatDateFr(endDate.value)}`;}
+function cleanFileName(name){return String(name||"fichier").replace(/[^\w.\-]+/g,"_");}
+function fileInfo(file,path){if(!file)return null;return {name:file.name,size:file.size,type:file.type||"",storagePath:path,uploadedAt:new Date().toISOString()};}
 startDate.addEventListener("change",updatePeriod);endDate.addEventListener("change",updatePeriod);updatePeriod();
 onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;});
 document.getElementById("logoutBtn").addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
-document.getElementById("saveBtn").addEventListener("click",async()=>{const msg=document.getElementById("saveMsg");msg.style.display="block";if(!currentUser)return;const companyName=document.getElementById("companyName").value.trim();if(!companyName){msg.textContent="Indiquez le nom de l’entreprise.";return;}
-try{const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{companyName,startDate:startDate.value,endDate:endDate.value,activity:activity.value,vatRegime:vat.value,notes:notes.value,status:"draft",createdAt:serverTimestamp()});
-const balance=balanceFile.files[0];const ledger=ledgerFile.files[0];
-if(balance) await uploadBytes(ref(storage,`closures/${currentUser.uid}/${docRef.id}/balance-${balance.name}`),balance);
-if(ledger) await uploadBytes(ref(storage,`closures/${currentUser.uid}/${docRef.id}/grand-livre-${ledger.name}`),ledger);
+document.getElementById("saveBtn").addEventListener("click",async()=>{
+const msg=document.getElementById("saveMsg");const btn=document.getElementById("saveBtn");msg.style.display="block";msg.textContent="";
+if(!currentUser)return;
+const companyName=document.getElementById("companyName").value.trim();
+if(!companyName){msg.textContent="Indiquez le nom de l’entreprise.";return;}
+btn.disabled=true;btn.textContent="Enregistrement...";
+try{
+const balance=balanceFile.files[0]||null;const ledger=ledgerFile.files[0]||null;
+const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
+companyName,startDate:startDate.value,endDate:endDate.value,activity:activity.value,vatRegime:vat.value,notes:notes.value,
+status:"draft",paid:false,paymentMode:null,
+files:{balance:null,grandLivre:null},
+balance:[],grandLivre:[],entries:[],controls:[],anomalies:[],
+aiAnalysis:{status:"not_started",model:null,generatedAt:null,summary:"",warnings:[]},
+createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+});
+const updates={};
+if(balance){const balancePath=`closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;await uploadBytes(ref(storage,balancePath),balance);updates["files.balance"]=fileInfo(balance,balancePath);}
+if(ledger){const ledgerPath=`closures/${currentUser.uid}/${docRef.id}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;await uploadBytes(ref(storage,ledgerPath),ledger);updates["files.grandLivre"]=fileInfo(ledger,ledgerPath);}
+if(Object.keys(updates).length){updates.updatedAt=serverTimestamp();await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);}
 window.location.href=`cloture-analyse.html?id=${docRef.id}`;
-}catch(e){console.error(e);msg.textContent="Erreur lors de l’enregistrement du dossier.";}});
+}catch(e){console.error(e);msg.textContent="Erreur lors de l’enregistrement du dossier.";btn.disabled=false;btn.textContent="Enregistrer et continuer";}
+});
 </script></body></html>
