@@ -8,20 +8,15 @@ header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdro
 .btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}
 .btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}
 main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}.muted{color:var(--muted)}
-.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-.metric,.box,.card{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
-.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}
-.box{padding:24px}.layout{display:grid;grid-template-columns:1fr .42fr;gap:18px}.box h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.metric,.box,.card{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
+.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px}.box h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}
 table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}
-.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.pill.danger{background:rgba(255,139,139,.10);color:#ffd6d6;border-color:rgba(255,139,139,.25)}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.small{padding:8px 12px;font-size:13px}
-.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
+.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
 .paywall{margin-top:18px;border:1px solid rgba(114,224,197,.35);background:linear-gradient(135deg,rgba(114,224,197,.14),rgba(74,163,255,.10));border-radius:22px;padding:22px}.paywall h3{font-size:23px;margin:0 0 8px}
-.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
-.blur{filter:blur(4px);pointer-events:none;user-select:none;opacity:.55}
-.sideList{display:grid;gap:12px}.sideItem{border:1px solid var(--line);border-radius:16px;background:rgba(19,52,91,.58);padding:14px}.sideItem b{display:block}.sideItem span{color:var(--muted);font-size:14px}
+.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}.blur{filter:blur(4px);pointer-events:none;user-select:none;opacity:.55}
 footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
-@media(max-width:960px){.grid,.layout,.summaryGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}
+@media(max-width:960px){.summaryGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}
 @media(max-width:640px){table{display:block;overflow-x:auto;white-space:nowrap}.nav{height:76px}.logoImg{height:44px}}
 </style></head><body>
 <header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
@@ -30,37 +25,81 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <div class="box">
 <h2>Écritures proposées et contrôles à valider</h2>
 <div class="summaryGrid"><div class="metric"><b id="cyclesCount">0</b><span>cycles contrôlés</span></div><div class="metric"><b id="entriesCount">0</b><span>écritures possibles</span></div><div class="metric"><b id="docsCount">0</b><span>points à documenter</span></div><div class="metric"><b id="accessStatus">Verrouillé</b><span>accès</span></div></div>
+
 <div id="paymentBlock" class="paywall" style="display:none">
 <h3>Débloquer les écritures détaillées</h3>
 <p class="muted">Votre analyse est prête. Pour accéder aux comptes débit/crédit, aux justifications et aux exports, activez ce dossier.</p>
 <div class="actions">
-<a class="btn primary" href="https://buy.stripe.com/test_4gMdRbgKR5SffkXaAS6g800">Débloquer cette clôture — 39 €</a>
-<a class="btn" href="https://buy.stripe.com/test_fZu9AVfGN5Sf7Sv7oG6g801">Passer en multi-dossiers — 149 €/mois</a>
+<button class="btn primary" type="button" id="payOneShotBtn">Débloquer cette clôture — 39 €</button>
+<button class="btn" type="button" id="payMonthlyBtn">Passer en multi-dossiers — 149 €/mois</button>
 </div>
-<div class="notice">Après paiement, le webhook Stripe activera automatiquement votre accès. En phase test, l’activation peut aussi être faite manuellement dans Firestore.</div>
+<div class="notice">Après paiement, votre dossier sera activé automatiquement.</div>
 </div>
+
 <div id="entriesWrapper">
 <table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table>
 <div class="notice">Avant comptabilisation, chaque écriture doit être rapprochée des factures, contrats, tableaux ou justificatifs disponibles.</div>
 <div class="actions"><button class="btn primary" type="button" onclick="window.print()">Exporter / imprimer</button><a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a></div>
 </div></div></div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-const id=new URLSearchParams(location.search).get("id");
+
+const CREATE_CHECKOUT_URL = "https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
+const id = new URLSearchParams(location.search).get("id");
+let currentUser = null;
+
 function row(label,debit,credit,amount,justif){return `<tr><td>${label}</td><td>${debit}</td><td>${credit}</td><td>${amount}</td><td>${justif}</td><td><span class="pill warn">À valider</span></td></tr>`;}
 function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push(row("Facture non reçue","6xxxxx","408100","Montant HT","Dépense réalisée avant clôture, facture reçue après."));if(answers.cca==="yes")rows.push(row("Charge constatée d’avance","486000","6xxxxx","Part postérieure","Dépense payée avant clôture couvrant une période après clôture."));if(answers.clients==="yes")rows.push(row("Facture à établir","418100","7xxxxx","Montant HT","Prestation réalisée avant clôture, facture émise après."));if(answers.stocks==="yes")rows.push(row("Variation de stock","3xxxxx","603/713","À calculer","Inventaire physique déclaré à la clôture."));if(answers.immo==="yes")rows.push(row("Dotation / sortie immobilisation","681120","28xxxx","À calculer","Immobilisation ou emprunt à contrôler."));if(answers.paie==="yes")rows.push(row("Charges sociales / congés à rattacher","641/645","428/438","À calculer","Élément de paie rattaché à l’exercice."));if(answers.provisions==="yes")rows.push(row("Provision à justifier","6815xx","15xxxx","À documenter","Risque ou litige déclaré."));return rows;}
 function lockResult(){paymentBlock.style.display="block";entriesWrapper.classList.add("blur");accessStatus.textContent="Verrouillé";}
 function unlockResult(){paymentBlock.style.display="none";entriesWrapper.classList.remove("blur");accessStatus.textContent="Actif";}
-onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return;}if(!id){window.location.href="tableau-de-bord.html";return;}
-const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));const userSnap=await getDoc(doc(db,"users",user.uid));
-if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}
-const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};
-closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;backLink.href=`cloture-analyse.html?id=${id}`;
-const entries=buildEntries(c.answers||{});cyclesCount.textContent=Object.keys(c.answers||{}).length;entriesCount.textContent=entries.length;docsCount.textContent=Math.max(0,entries.length-1);
-entriesRows.innerHTML=entries.length?entries.join(""):`<tr><td colspan="6" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
-const hasAccess=c.paid===true || u.plan==="monthly";hasAccess?unlockResult():lockResult();
+
+async function startCheckout(plan){
+  if(!currentUser){window.location.href="connexion.html";return;}
+  if(!id){alert("Dossier introuvable.");return;}
+  try{
+    const btn = plan === "monthly" ? payMonthlyBtn : payOneShotBtn;
+    btn.disabled = true;
+    btn.textContent = "Redirection Stripe...";
+    const response = await fetch(CREATE_CHECKOUT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})
+    });
+    const data = await response.json();
+    if(!response.ok || !data.url) throw new Error(data.error || "Impossible de créer la session Stripe.");
+    window.location.href = data.url;
+  }catch(error){
+    alert(error.message || "Erreur Stripe.");
+    payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;
+    payOneShotBtn.textContent="Débloquer cette clôture — 39 €";
+    payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";
+  }
+}
+
+payOneShotBtn.addEventListener("click",()=>startCheckout("one-shot"));
+payMonthlyBtn.addEventListener("click",()=>startCheckout("monthly"));
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href="connexion.html";return;}
+  currentUser=user;
+  if(!id){window.location.href="tableau-de-bord.html";return;}
+  const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+  if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}
+  const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};
+  closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;
+  backLink.href=`cloture-analyse.html?id=${id}`;
+  const entries=buildEntries(c.answers||{});
+  cyclesCount.textContent=Object.keys(c.answers||{}).length;
+  entriesCount.textContent=entries.length;
+  docsCount.textContent=Math.max(0,entries.length-1);
+  entriesRows.innerHTML=entries.length?entries.join(""):`<tr><td colspan="6" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
+  const hasAccess=c.paid===true || u.plan==="monthly";
+  hasAccess?unlockResult():lockResult();
 });
+
 logoutBtn.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script></body></html>
