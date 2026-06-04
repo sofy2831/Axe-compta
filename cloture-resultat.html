@@ -1,4 +1,11 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Résultat de clôture | Axe Compta IA</title><meta name="robots" content="noindex,nofollow"/><style>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Résultat de clôture | Axe Compta IA</title>
+<meta name="robots" content="noindex,nofollow"/>
+<style>
 :root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--shadow:0 28px 80px rgba(7,23,45,.34);--radius:22px}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}
@@ -18,30 +25,27 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 @media(max-width:960px){.summaryGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}
 @media(max-width:640px){table{display:block;overflow-x:auto;white-space:nowrap}.nav{height:76px}.logoImg{height:44px}}
-</style></head><body>
+@media print{header,.top a,.actions,#paymentBlock,footer{display:none!important}body{background:#fff!important;color:#111!important}main{padding:0!important}.wrap{width:100%!important;margin:0!important}.box,.metric{box-shadow:none!important;background:#fff!important;color:#111!important;border:1px solid #ddd!important}.muted,.metric span,td,th{color:#111!important}th{background:#f2f4f7!important;color:#111!important}.summaryGrid{grid-template-columns:repeat(4,1fr)!important}}
+</style>
+</head>
+<body>
 <header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
 <div class="top"><div><h1>Résultat de clôture</h1><p class="muted" id="closureInfo">Chargement du dossier...</p></div><a class="btn" id="backLink" href="cloture-analyse.html">Modifier les réponses</a></div>
 <div class="box">
 <h2>Écritures proposées et contrôles à valider</h2>
 <div class="summaryGrid"><div class="metric"><b id="cyclesCount">0</b><span>cycles contrôlés</span></div><div class="metric"><b id="entriesCount">0</b><span>écritures possibles</span></div><div class="metric"><b id="docsCount">0</b><span>points à documenter</span></div><div class="metric"><b id="accessStatus">Verrouillé</b><span>accès</span></div></div>
-
 <div id="paymentBlock" class="paywall" style="display:none">
 <h3>Débloquer les écritures détaillées</h3>
 <p class="muted">Votre analyse est prête. Pour accéder aux comptes débit/crédit, aux justifications et aux exports, activez ce dossier.</p>
-<div class="actions">
-<button class="btn primary" type="button" id="payOneShotBtn">Débloquer cette clôture — 39 €</button>
-<button class="btn" type="button" id="payMonthlyBtn">Passer en multi-dossiers — 149 €/mois</button>
-</div>
+<div class="actions"><button class="btn primary" type="button" id="payOneShotBtn">Débloquer cette clôture — 39 €</button><button class="btn" type="button" id="payMonthlyBtn">Passer en multi-dossiers — 149 €/mois</button></div>
 <div class="notice">Après paiement, votre dossier sera activé automatiquement.</div>
 </div>
-
 <div id="entriesWrapper">
-<table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table>
+<table id="entriesTable"><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table>
 <div class="notice">Avant comptabilisation, chaque écriture doit être rapprochée des factures, contrats, tableaux ou justificatifs disponibles.</div>
-<div class="actions"><button class="btn primary" type="button" onclick="window.print()">Exporter / imprimer</button><a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a></div>
+<div class="actions"><button class="btn primary" type="button" id="exportPdfBtn">Exporter PDF</button><button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button><button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button><a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a></div>
 </div></div></div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
-
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
@@ -50,56 +54,29 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase
 const CREATE_CHECKOUT_URL = "https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const id = new URLSearchParams(location.search).get("id");
 let currentUser = null;
+let currentClosure = null;
+let currentEntries = [];
 
-function row(label,debit,credit,amount,justif){return `<tr><td>${label}</td><td>${debit}</td><td>${credit}</td><td>${amount}</td><td>${justif}</td><td><span class="pill warn">À valider</span></td></tr>`;}
-function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push(row("Facture non reçue","6xxxxx","408100","Montant HT","Dépense réalisée avant clôture, facture reçue après."));if(answers.cca==="yes")rows.push(row("Charge constatée d’avance","486000","6xxxxx","Part postérieure","Dépense payée avant clôture couvrant une période après clôture."));if(answers.clients==="yes")rows.push(row("Facture à établir","418100","7xxxxx","Montant HT","Prestation réalisée avant clôture, facture émise après."));if(answers.stocks==="yes")rows.push(row("Variation de stock","3xxxxx","603/713","À calculer","Inventaire physique déclaré à la clôture."));if(answers.immo==="yes")rows.push(row("Dotation / sortie immobilisation","681120","28xxxx","À calculer","Immobilisation ou emprunt à contrôler."));if(answers.paie==="yes")rows.push(row("Charges sociales / congés à rattacher","641/645","428/438","À calculer","Élément de paie rattaché à l’exercice."));if(answers.provisions==="yes")rows.push(row("Provision à justifier","6815xx","15xxxx","À documenter","Risque ou litige déclaré."));return rows;}
+function rowHtml(e){return `<tr><td>${e.label}</td><td>${e.debit}</td><td>${e.credit}</td><td>${e.amount}</td><td>${e.justification}</td><td><span class="pill warn">${e.status || "À valider"}</span></td></tr>`;}
+function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push({label:"Facture non reçue",debit:"6xxxxx",credit:"408100",amount:"Montant HT",justification:"Dépense réalisée avant clôture, facture reçue après.",status:"À valider"});if(answers.cca==="yes")rows.push({label:"Charge constatée d’avance",debit:"486000",credit:"6xxxxx",amount:"Part postérieure",justification:"Dépense payée avant clôture couvrant une période après clôture.",status:"À valider"});if(answers.clients==="yes")rows.push({label:"Facture à établir",debit:"418100",credit:"7xxxxx",amount:"Montant HT",justification:"Prestation réalisée avant clôture, facture émise après.",status:"À valider"});if(answers.stocks==="yes")rows.push({label:"Variation de stock",debit:"3xxxxx",credit:"603/713",amount:"À calculer",justification:"Inventaire physique déclaré à la clôture.",status:"À valider"});if(answers.immo==="yes")rows.push({label:"Dotation / sortie immobilisation",debit:"681120",credit:"28xxxx",amount:"À calculer",justification:"Immobilisation ou emprunt à contrôler.",status:"À valider"});if(answers.paie==="yes")rows.push({label:"Charges sociales / congés à rattacher",debit:"641/645",credit:"428/438",amount:"À calculer",justification:"Élément de paie rattaché à l’exercice.",status:"À valider"});if(answers.provisions==="yes")rows.push({label:"Provision à justifier",debit:"6815xx",credit:"15xxxx",amount:"À documenter",justification:"Risque ou litige déclaré.",status:"À valider"});return rows;}
 function lockResult(){paymentBlock.style.display="block";entriesWrapper.classList.add("blur");accessStatus.textContent="Verrouillé";}
 function unlockResult(){paymentBlock.style.display="none";entriesWrapper.classList.remove("blur");accessStatus.textContent="Actif";}
 
-async function startCheckout(plan){
-  if(!currentUser){window.location.href="connexion.html";return;}
-  if(!id){alert("Dossier introuvable.");return;}
-  try{
-    const btn = plan === "monthly" ? payMonthlyBtn : payOneShotBtn;
-    btn.disabled = true;
-    btn.textContent = "Redirection Stripe...";
-    const response = await fetch(CREATE_CHECKOUT_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})
-    });
-    const data = await response.json();
-    if(!response.ok || !data.url) throw new Error(data.error || "Impossible de créer la session Stripe.");
-    window.location.href = data.url;
-  }catch(error){
-    alert(error.message || "Erreur Stripe.");
-    payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;
-    payOneShotBtn.textContent="Débloquer cette clôture — 39 €";
-    payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";
-  }
-}
+function fileBaseName(){const company=(currentClosure?.companyName||"cloture").replace(/[^\w\-]+/g,"_");const end=(currentClosure?.endDate||"").replaceAll("-","");return `axe-compta-${company}-${end||"resultat"}`;}
+function downloadBlob(content,mime,filename){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`;}
+function exportCsv(){const headers=["Libellé","Débit","Crédit","Montant","Justification","Statut"];const lines=[headers.map(csvEscape).join(";")];currentEntries.forEach(e=>lines.push([e.label,e.debit,e.credit,e.amount,e.justification,e.status||"À valider"].map(csvEscape).join(";")));downloadBlob("\ufeff"+lines.join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv");}
+function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${e.label}</td><td>${e.debit}</td><td>${e.credit}</td><td>${e.amount}</td><td>${e.justification}</td><td>${e.status||"À valider"}</td></tr>`).join("");const file=`<html><head><meta charset="UTF-8"></head><body><h1>Résultat de clôture</h1><p>${currentClosure?.companyName||""} — ${currentClosure?.startDate||""} → ${currentClosure?.endDate||""}</p><table border="1"><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody>${body}</tbody></table></body></html>`;downloadBlob(file,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls");}
+function exportPdf(){window.print();}
+
+async function startCheckout(plan){if(!currentUser){window.location.href="connexion.html";return;}if(!id){alert("Dossier introuvable.");return;}try{const btn=plan==="monthly"?payMonthlyBtn:payOneShotBtn;btn.disabled=true;btn.textContent="Redirection Stripe...";const response=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});const data=await response.json();if(!response.ok||!data.url)throw new Error(data.error||"Impossible de créer la session Stripe.");window.location.href=data.url;}catch(error){alert(error.message||"Erreur Stripe.");payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;payOneShotBtn.textContent="Débloquer cette clôture — 39 €";payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";}}
 
 payOneShotBtn.addEventListener("click",()=>startCheckout("one-shot"));
 payMonthlyBtn.addEventListener("click",()=>startCheckout("monthly"));
+exportPdfBtn.addEventListener("click",exportPdf);
+exportExcelBtn.addEventListener("click",exportExcel);
+exportCsvBtn.addEventListener("click",exportCsv);
 
-onAuthStateChanged(auth,async user=>{
-  if(!user){window.location.href="connexion.html";return;}
-  currentUser=user;
-  if(!id){window.location.href="tableau-de-bord.html";return;}
-  const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));
-  const userSnap=await getDoc(doc(db,"users",user.uid));
-  if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}
-  const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};
-  closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;
-  backLink.href=`cloture-analyse.html?id=${id}`;
-  const entries=buildEntries(c.answers||{});
-  cyclesCount.textContent=Object.keys(c.answers||{}).length;
-  entriesCount.textContent=entries.length;
-  docsCount.textContent=Math.max(0,entries.length-1);
-  entriesRows.innerHTML=entries.length?entries.join(""):`<tr><td colspan="6" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
-  const hasAccess=c.paid===true || u.plan==="monthly";
-  hasAccess?unlockResult():lockResult();
-});
-
+onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;if(!id){window.location.href="tableau-de-bord.html";return;}const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));const userSnap=await getDoc(doc(db,"users",user.uid));if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};currentClosure=c;closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;backLink.href=`cloture-analyse.html?id=${id}`;currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});cyclesCount.textContent=Object.keys(c.answers||{}).length;entriesCount.textContent=currentEntries.length;docsCount.textContent=Math.max(0,currentEntries.length-1);entriesRows.innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="6" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;const hasAccess=c.paid===true||u.plan==="monthly";hasAccess?unlockResult():lockResult();});
 logoutBtn.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script></body></html>
