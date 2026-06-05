@@ -353,6 +353,20 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
+  if (hasAccount(["44551"])) {
+  entries.push({
+    label: "TVA à décaisser à contrôler",
+    debit: "445710",
+    credit: "445510",
+    amount: getBalanceAmount(["44551"]) || "À contrôler",
+    justification: "Compte 445510 détecté : TVA à décaisser au réel normal.",
+    confidence: 0.85,
+    source: "balance",
+    status: "À valider"
+  });
+}
+  
+
   if (hasAccount(["164", "661"]) && answers.immo === "yes") {
     entries.push({
       label: "Intérêts d’emprunt à contrôler",
