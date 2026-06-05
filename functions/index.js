@@ -362,9 +362,10 @@ entries = detected.entries;
       await closureRef.set(
         {
           balance: balanceRows,
-          grandLivre: grandLivreRows,
-          controls,
-          anomalies,
+grandLivre: grandLivreRows,
+controls,
+anomalies,
+entries,
           aiAnalysis: {
             status: "parsed",
             model: null,
