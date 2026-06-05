@@ -467,7 +467,7 @@ let entries = [];
         });
       }
 
-      const detected = detectLmnpEntries(balanceRows, grandLivreRows);
+      const detected = detectAccountingEntries(balanceRows, grandLivreRows, closure);
 
 controls = [...controls, ...detected.controls];
 anomalies = [...anomalies, ...detected.anomalies];
