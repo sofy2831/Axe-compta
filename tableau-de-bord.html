@@ -30,11 +30,32 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const rows=document.getElementById("closuresRows");
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;}
 async function loadDashboard(user){userEmail.textContent=user.email;const userSnap=await getDoc(doc(db,"users",user.uid));let plan="À activer",active=true;if(userSnap.exists()){const data=userSnap.data();plan=data.plan==="monthly"?"149 €/mois":data.plan==="one-shot"?"39 €":"À activer";active=data.active!==false;}planLabel.textContent=plan;sidePlan.textContent=active?plan:"Accès à activer.";accountStatus.textContent=active?"Actif":"À activer";
-try{const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(20)));if(snap.empty){activeClosures.textContent="0";renderEmpty();return;}activeClosures.textContent=snap.size;rows.innerHTML="";let exports=0;snap.forEach(docSnap=>{const c=docSnap.data();const paid=c.paid===true||plan==="149 €/mois";if(paid)exports++;const status=c.status==="completed"?"Terminée":c.status==="analysed"?"Analysée":"À compléter";const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';rows.innerHTML+=`<tr><td>${c.companyName||"Société sans nom"}</td><td>${c.startDate||"—"} → ${c.endDate||"—"}</td><td>${status}</td><td>${payment}</td><td><a class="btn small primary" href="cloture-resultat.html?id=${docSnap.id}">Ouvrir</a></td></tr>`;});exportsCount.textContent=exports;}catch(e){console.error(e);renderEmpty();}}
+try{const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(20)));if(snap.empty){activeClosures.textContent="0";renderEmpty();return;}activeClosures.textContent=snap.size;rows.innerHTML="";let exports=0;snap.forEach(docSnap=>{const c=docSnap.data();const paid=c.paid===true||plan==="149 €/mois";if(paid)exports++;const status=c.status==="completed"?"Terminée":c.status==="analysed"?"Analysée":"À compléter";const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';const archived = c.archived === true;
+const archiveLabel = archived ? "Désarchiver" : "Archiver";
+
+rows.innerHTML += `
+<tr>
+  <td>${c.companyName||"Société sans nom"}</td>
+  <td>${c.startDate||"—"} → ${c.endDate||"—"}</td>
+  <td>${archived ? "Archivée" : status}</td>
+  <td>${payment}</td>
+  <td>
+    <div class="actions">
+      <a class="btn small primary" href="cloture-resultat.html?id=${docSnap.id}">Ouvrir</a>
+      <button class="btn small" type="button"
+              data-archive="${docSnap.id}"
+              data-state="${archived}">
+        ${archiveLabel}
+      </button>
+    </div>
+  </td>
+</tr>`;});
+    
+    exportsCount.textContent=exports;}catch(e){console.error(e);renderEmpty();}}
 onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}loadDashboard(user);});
 logoutBtn.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script></body></html>
