@@ -179,11 +179,27 @@ function getRowText(row) {
 }
 
 function getAmount(row) {
-  const values = Object.values(row);
+  const keys = Object.keys(row);
 
-  for (const value of values) {
-    const n = Number(String(value).replace(",", ".").replace(/\s/g, ""));
-    if (!Number.isNaN(n) && n !== 0) return Math.abs(n);
+  const preferredKeys = keys.filter(k =>
+    normalizeText(k).includes("montant") ||
+    normalizeText(k).includes("solde") ||
+    normalizeText(k).includes("debit") ||
+    normalizeText(k).includes("credit")
+  );
+
+  const searchKeys = preferredKeys.length ? preferredKeys : keys;
+
+  for (const key of searchKeys) {
+    const raw = String(row[key] ?? "")
+      .replace(",", ".")
+      .replace(/\s/g, "");
+
+    const n = Number(raw);
+
+    if (!Number.isNaN(n) && n !== 0 && Math.abs(n) > 100) {
+      return Math.abs(n);
+    }
   }
 
   return 0;
