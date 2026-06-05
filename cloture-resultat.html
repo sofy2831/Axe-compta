@@ -18,9 +18,7 @@ main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.metric,.box,.card{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
 .metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px}.box h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}
 table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}
-.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}
-.pill.warn,.statusBtn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}
-.statusBtn{display:inline-flex;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:850;border:1px solid rgba(255,209,102,.25);cursor:pointer}
+.statusBtn{display:inline-flex;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:850;border:1px solid rgba(255,209,102,.25);cursor:pointer;background:rgba(255,209,102,.10);color:var(--warning)}
 .statusBtn.done{background:rgba(114,224,197,.12);color:var(--ok);border-color:rgba(114,224,197,.32)}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
 .paywall{margin-top:18px;border:1px solid rgba(114,224,197,.35);background:linear-gradient(135deg,rgba(114,224,197,.14),rgba(74,163,255,.10));border-radius:22px;padding:22px}.paywall h3{font-size:23px;margin:0 0 8px}
@@ -63,36 +61,11 @@ let currentEntries = [];
 function safe(v){return String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function entryJournal(e){return e.journal || "OD";}
 function entryStatus(e){return e.status || "À valider";}
+function rowHtml(e,index){const s=entryStatus(e);const done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(e.label)}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${index}">${done?"Validée":"À valider"}</button></td></tr>`;}
 
-function rowHtml(e,index){
-  const status=entryStatus(e);
-  const done=status==="Validée";
-  return `<tr>
-    <td>${safe(entryJournal(e))}</td>
-    <td>${safe(e.label)}</td>
-    <td>${safe(e.debit)}</td>
-    <td>${safe(e.credit)}</td>
-    <td>${safe(e.amount)}</td>
-    <td>${safe(e.justification)}</td>
-    <td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${index}">${done?"Validée":"À valider"}</button></td>
-  </tr>`;
-}
-
-function buildEntries(answers){
-  const rows=[];
-  if(answers.fournisseurs==="yes")rows.push({journal:"OD",label:"Facture non reçue",debit:"6xxxxx",credit:"408100",amount:"Montant HT",justification:"Dépense réalisée avant clôture, facture reçue après.",status:"À valider"});
-  if(answers.cca==="yes")rows.push({journal:"OD",label:"Charge constatée d’avance",debit:"486000",credit:"6xxxxx",amount:"Part postérieure",justification:"Dépense payée avant clôture couvrant une période après clôture.",status:"À valider"});
-  if(answers.clients==="yes")rows.push({journal:"OD",label:"Facture à établir",debit:"418100",credit:"7xxxxx",amount:"Montant HT",justification:"Prestation réalisée avant clôture, facture émise après.",status:"À valider"});
-  if(answers.stocks==="yes")rows.push({journal:"OD",label:"Variation de stock",debit:"3xxxxx",credit:"603/713",amount:"À calculer",justification:"Inventaire physique déclaré à la clôture.",status:"À valider"});
-  if(answers.immo==="yes")rows.push({journal:"OD",label:"Dotation / sortie immobilisation",debit:"681120",credit:"28xxxx",amount:"À calculer",justification:"Immobilisation ou emprunt à contrôler.",status:"À valider"});
-  if(answers.paie==="yes")rows.push({journal:"OD",label:"Charges sociales / congés à rattacher",debit:"641/645",credit:"428/438",amount:"À calculer",justification:"Élément de paie rattaché à l’exercice.",status:"À valider"});
-  if(answers.provisions==="yes")rows.push({journal:"OD",label:"Provision à justifier",debit:"6815xx",credit:"15xxxx",amount:"À documenter",justification:"Risque ou litige déclaré.",status:"À valider"});
-  return rows;
-}
-
+function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push({journal:"OD",label:"Facture non reçue",debit:"6xxxxx",credit:"408100",amount:"Montant HT",justification:"Dépense réalisée avant clôture, facture reçue après.",status:"À valider"});if(answers.cca==="yes")rows.push({journal:"OD",label:"Charge constatée d’avance",debit:"486000",credit:"6xxxxx",amount:"Part postérieure",justification:"Dépense payée avant clôture couvrant une période après clôture.",status:"À valider"});if(answers.clients==="yes")rows.push({journal:"OD",label:"Facture à établir",debit:"418100",credit:"7xxxxx",amount:"Montant HT",justification:"Prestation réalisée avant clôture, facture émise après.",status:"À valider"});if(answers.stocks==="yes")rows.push({journal:"OD",label:"Variation de stock",debit:"3xxxxx",credit:"603/713",amount:"À calculer",justification:"Inventaire physique déclaré à la clôture.",status:"À valider"});if(answers.immo==="yes")rows.push({journal:"OD",label:"Dotation / sortie immobilisation",debit:"681120",credit:"28xxxx",amount:"À calculer",justification:"Immobilisation ou emprunt à contrôler.",status:"À valider"});if(answers.paie==="yes")rows.push({journal:"OD",label:"Charges sociales / congés à rattacher",debit:"641/645",credit:"428/438",amount:"À calculer",justification:"Élément de paie rattaché à l’exercice.",status:"À valider"});if(answers.provisions==="yes")rows.push({journal:"OD",label:"Provision à justifier",debit:"6815xx",credit:"15xxxx",amount:"À documenter",justification:"Risque ou litige déclaré.",status:"À valider"});return rows;}
 function lockResult(){paymentBlock.style.display="block";entriesWrapper.classList.add("blur");accessStatus.textContent="Verrouillé";}
 function unlockResult(){paymentBlock.style.display="none";entriesWrapper.classList.remove("blur");accessStatus.textContent="Actif";}
-
 function fileBaseName(){const company=(currentClosure?.companyName||"cloture").replace(/[^\w\-]+/g,"_");const end=(currentClosure?.endDate||"").replaceAll("-","");return `axe-compta-${company}-${end||"resultat"}`;}
 function downloadBlob(content,mime,filename){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`;}
@@ -100,57 +73,10 @@ function exportCsv(){const headers=["Journal","Libellé","Débit","Crédit","Mon
 function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(e.label)}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");const file=`<html><head><meta charset="UTF-8"></head><body><h1>Résultat de clôture</h1><p>${safe(currentClosure?.companyName||"")} — ${safe(currentClosure?.startDate||"")} → ${safe(currentClosure?.endDate||"")}</p><table border="1"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody>${body}</tbody></table></body></html>`;downloadBlob(file,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls");}
 function exportPdf(){window.print();}
 
-async function saveEntriesStatus(){
-  if(!currentUser||!id) return;
-  await updateDoc(doc(db,"users",currentUser.uid,"closures",id),{
-    entries: currentEntries,
-    updatedAt: serverTimestamp()
-  });
-}
+async function saveEntriesStatus(){if(!currentUser||!id)return;await updateDoc(doc(db,"users",currentUser.uid,"closures",id),{entries:currentEntries,updatedAt:serverTimestamp()});}
+function renderEntries(){entriesRows.innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;document.querySelectorAll("[data-entry-index]").forEach(btn=>{btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!Number.isInteger(i)||!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";btn.disabled=true;try{await saveEntriesStatus();renderEntries();}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.");btn.disabled=false;}});});}
 
-function bindStatusButtons(){
-  document.querySelectorAll("[data-entry-index]").forEach(btn=>{
-    btn.addEventListener("click",async()=>{
-      const index=Number(btn.dataset.entryIndex);
-      if(!Number.isInteger(index)||!currentEntries[index]) return;
-      const current=entryStatus(currentEntries[index]);
-      currentEntries[index].status=current==="Validée"?"À valider":"Validée";
-      btn.disabled=true;
-      try{
-        await saveEntriesStatus();
-        renderEntries();
-      }catch(e){
-        console.error(e);
-        alert("Impossible de mettre à jour le statut.");
-        btn.disabled=false;
-      }
-    });
-  });
-}
-
-function renderEntries(){
-  entriesRows.innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
-  bindStatusButtons();
-}
-
-async function startCheckout(plan){
-  if(!currentUser){window.location.href="connexion.html";return;}
-  if(!id){alert("Dossier introuvable.");return;}
-  try{
-    const btn=plan==="monthly"?payMonthlyBtn:payOneShotBtn;
-    btn.disabled=true;
-    btn.textContent="Redirection Stripe...";
-    const response=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});
-    const data=await response.json();
-    if(!response.ok||!data.url)throw new Error(data.error||"Impossible de créer la session Stripe.");
-    window.location.href=data.url;
-  }catch(error){
-    alert(error.message||"Erreur Stripe.");
-    payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;
-    payOneShotBtn.textContent="Débloquer cette clôture — 39 €";
-    payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";
-  }
-}
+async function startCheckout(plan){if(!currentUser){window.location.href="connexion.html";return;}if(!id){alert("Dossier introuvable.");return;}try{const btn=plan==="monthly"?payMonthlyBtn:payOneShotBtn;btn.disabled=true;btn.textContent="Redirection Stripe...";const response=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});const data=await response.json();if(!response.ok||!data.url)throw new Error(data.error||"Impossible de créer la session Stripe.");window.location.href=data.url;}catch(error){alert(error.message||"Erreur Stripe.");payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;payOneShotBtn.textContent="Débloquer cette clôture — 39 €";payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";}}
 
 payOneShotBtn.addEventListener("click",()=>startCheckout("one-shot"));
 payMonthlyBtn.addEventListener("click",()=>startCheckout("monthly"));
@@ -158,27 +84,6 @@ exportPdfBtn.addEventListener("click",exportPdf);
 exportExcelBtn.addEventListener("click",exportExcel);
 exportCsvBtn.addEventListener("click",exportCsv);
 
-onAuthStateChanged(auth,async user=>{
-  if(!user){window.location.href="connexion.html";return;}
-  currentUser=user;
-  if(!id){window.location.href="tableau-de-bord.html";return;}
-  const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));
-  const userSnap=await getDoc(doc(db,"users",user.uid));
-  if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}
-  const c=closureSnap.data();
-  const u=userSnap.exists()?userSnap.data():{};
-  currentClosure=c;
-  closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;
-  backLink.href=`cloture-analyse.html?id=${id}`;
-  currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});
-  currentEntries=currentEntries.map(e=>({journal:e.journal||"OD",...e,status:e.status||"À valider"}));
-  cyclesCount.textContent=Object.keys(c.answers||{}).length;
-  entriesCount.textContent=currentEntries.length;
-  docsCount.textContent=Math.max(0,currentEntries.filter(e=>entryStatus(e)!=="Validée").length);
-  renderEntries();
-  const hasAccess=c.paid===true||u.plan==="monthly";
-  hasAccess?unlockResult():lockResult();
-});
-
+onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;if(!id){window.location.href="tableau-de-bord.html";return;}const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));const userSnap=await getDoc(doc(db,"users",user.uid));if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};currentClosure=c;closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;backLink.href=`cloture-analyse.html?id=${id}`;currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});currentEntries=currentEntries.map(e=>({journal:e.journal||"OD",...e,status:e.status||"À valider"}));cyclesCount.textContent=Object.keys(c.answers||{}).length;entriesCount.textContent=currentEntries.length;docsCount.textContent=Math.max(0,currentEntries.filter(e=>entryStatus(e)!=="Validée").length);renderEntries();const hasAccess=c.paid===true||u.plan==="monthly";hasAccess?unlockResult():lockResult();});
 logoutBtn.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script></body></html>
