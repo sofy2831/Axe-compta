@@ -205,75 +205,172 @@ function getAmount(row) {
   return 0;
 }
 
-function detectLmnpEntries(balanceRows, grandLivreRows) {
+function accountStarts(row, prefixes) {
+  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
+  return prefixes.some(prefix => compte.startsWith(prefix));
+}
+
+function findBalanceRow(balanceRows, prefixes) {
+  return balanceRows.find(row => accountStarts(row, prefixes));
+}
+
+function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
   const anomalies = [];
 
-  const allRows = [...balanceRows, ...grandLivreRows];
-  const allText = normalizeText(allRows.map(getRowText).join(" "));
+  const answers = closure.answers || {};
+  const activity = normalizeText(closure.activity || "");
 
-  const hasImmeuble = allText.includes("213") || allText.includes("immeuble");
-  const hasAmort = allText.includes("2813") || allText.includes("amortissement");
-  const hasEmprunt = allText.includes("164") || allText.includes("emprunt");
-  const hasLoyers = allText.includes("706") || allText.includes("loyer");
+  const hasAccount = prefixes =>
+    [...balanceRows, ...grandLivreRows].some(row => accountStarts(row, prefixes));
 
-  if (hasImmeuble) {
+  const getBalanceAmount = prefixes => {
+    const row = findBalanceRow(balanceRows, prefixes);
+    return row ? getAmount(row) : 0;
+  };
+
+  if (hasAccount(["21", "28"])) {
     controls.push({
       type: "immobilisation_detected",
-      label: "Immobilisation détectée",
+      label: "Immobilisation ou amortissement détecté",
       level: "info"
     });
   }
 
-  if (hasEmprunt) {
+  if (hasAccount(["164", "661"])) {
     controls.push({
       type: "loan_detected",
-      label: "Emprunt détecté",
+      label: "Emprunt ou intérêts détectés",
       level: "info"
     });
   }
 
-  if (hasLoyers) {
+  if (hasAccount(["706", "707"])) {
     controls.push({
-      type: "rental_income_detected",
-      label: "Loyers détectés",
+      type: "revenue_detected",
+      label: "Chiffre d'affaires détecté",
       level: "info"
     });
   }
 
-  if (hasAmort) {
-    const amortRow = balanceRows.find(row => getRowText(row).includes("2813") || getRowText(row).includes("amortissement"));
+  if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
+    entries.push({
+      label: "Facture non reçue",
+      debit: "607000",
+      credit: "408100",
+      amount: getBalanceAmount(["408"]) || "À contrôler",
+      justification: "Compte 408 détecté : facture fournisseur non parvenue à vérifier.",
+      confidence: 0.9,
+      source: "balance",
+      status: "À valider"
+    });
+  }
+
+  if (hasAccount(["486"]) && answers.cca === "yes") {
+    entries.push({
+      label: "Charge constatée d’avance",
+      debit: "486000",
+      credit: "616000",
+      amount: getBalanceAmount(["486"]) || "À contrôler",
+      justification: "Compte 486 détecté : charge couvrant une période postérieure à la clôture.",
+      confidence: 0.9,
+      source: "balance",
+      status: "À valider"
+    });
+  }
+
+  if (hasAccount(["418"]) && answers.clients === "yes") {
+    entries.push({
+      label: "Facture à établir",
+      debit: "418100",
+      credit: "707000",
+      amount: getBalanceAmount(["418"]) || "À contrôler",
+      justification: "Compte 418 détecté : prestation ou vente réalisée avant clôture à facturer.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
+  }
+
+  if ((hasAccount(["37"]) || hasAccount(["603"])) && answers.stocks === "yes") {
+    entries.push({
+      label: "Variation de stock",
+      debit: "370000",
+      credit: "603700",
+      amount: getBalanceAmount(["603", "37"]) || "À contrôler",
+      justification: "Stock ou variation de stock détecté dans les comptes.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
+  }
+
+  if (hasAccount(["281", "681"]) && answers.immo === "yes") {
+    const amortRow =
+      findBalanceRow(balanceRows, ["681"]) ||
+      findBalanceRow(balanceRows, ["281"]);
+
     const amount = amortRow ? getAmount(amortRow) : 0;
+    const label = activity.includes("location meuble")
+      ? "Dotation amortissement immeuble"
+      : "Dotation amortissement";
+
+    const credit = activity.includes("location meuble")
+      ? "281300"
+      : "281830";
 
     entries.push({
-      label: "Dotation amortissement immeuble",
+      label,
       debit: "681120",
-      credit: "281300",
+      credit,
       amount: amount || "À contrôler",
-      justification: "Amortissement immeuble détecté dans la balance LMNP.",
+      justification: "Amortissement détecté dans la balance.",
       confidence: amount ? 0.9 : 0.65,
       source: "balance",
       status: "À valider"
     });
-  } else if (hasImmeuble) {
-    anomalies.push({
-      type: "missing_amortissement",
-      label: "Immeuble détecté mais aucun amortissement identifié",
-      level: "warning"
+  }
+
+  if (hasAccount(["428"]) && answers.paie === "yes") {
+    entries.push({
+      label: "Congés payés à payer",
+      debit: "641000",
+      credit: "428200",
+      amount: getBalanceAmount(["428"]) || "À contrôler",
+      justification: "Compte 428 détecté : charges de personnel à rattacher à l’exercice.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
     });
   }
 
-  if (hasEmprunt) {
+  if (hasAccount(["44551"])) {
+    controls.push({
+      type: "vat_due_detected",
+      label: "TVA à décaisser détectée",
+      level: "info"
+    });
+  }
+
+  if (hasAccount(["164", "661"]) && answers.immo === "yes") {
     entries.push({
       label: "Intérêts d’emprunt à contrôler",
       debit: "661100",
       credit: "512000",
-      amount: "À contrôler",
-      justification: "Emprunt détecté. Vérifier les intérêts courus ou charges financières de l’exercice.",
+      amount: getBalanceAmount(["661"]) || "À contrôler",
+      justification: "Emprunt ou intérêts détectés. Vérifier les intérêts courus ou charges financières.",
       confidence: 0.6,
       source: "balance/grandLivre",
       status: "À valider"
+    });
+  }
+
+  if (entries.length === 0) {
+    anomalies.push({
+      type: "no_entries_generated",
+      label: "Aucune écriture générée selon les réponses fournies",
+      level: "info"
     });
   }
 
