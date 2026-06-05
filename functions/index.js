@@ -167,6 +167,102 @@ exports.stripeWebhook = onRequest(
     }
   }
 );
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getRowText(row) {
+  return normalizeText(Object.values(row).join(" "));
+}
+
+function getAmount(row) {
+  const values = Object.values(row);
+
+  for (const value of values) {
+    const n = Number(String(value).replace(",", ".").replace(/\s/g, ""));
+    if (!Number.isNaN(n) && n !== 0) return Math.abs(n);
+  }
+
+  return 0;
+}
+
+function detectLmnpEntries(balanceRows, grandLivreRows) {
+  const entries = [];
+  const controls = [];
+  const anomalies = [];
+
+  const allRows = [...balanceRows, ...grandLivreRows];
+  const allText = normalizeText(allRows.map(getRowText).join(" "));
+
+  const hasImmeuble = allText.includes("213") || allText.includes("immeuble");
+  const hasAmort = allText.includes("2813") || allText.includes("amortissement");
+  const hasEmprunt = allText.includes("164") || allText.includes("emprunt");
+  const hasLoyers = allText.includes("706") || allText.includes("loyer");
+
+  if (hasImmeuble) {
+    controls.push({
+      type: "immobilisation_detected",
+      label: "Immobilisation détectée",
+      level: "info"
+    });
+  }
+
+  if (hasEmprunt) {
+    controls.push({
+      type: "loan_detected",
+      label: "Emprunt détecté",
+      level: "info"
+    });
+  }
+
+  if (hasLoyers) {
+    controls.push({
+      type: "rental_income_detected",
+      label: "Loyers détectés",
+      level: "info"
+    });
+  }
+
+  if (hasAmort) {
+    const amortRow = balanceRows.find(row => getRowText(row).includes("2813") || getRowText(row).includes("amortissement"));
+    const amount = amortRow ? getAmount(amortRow) : 0;
+
+    entries.push({
+      label: "Dotation amortissement immeuble",
+      debit: "681120",
+      credit: "281300",
+      amount: amount || "À contrôler",
+      justification: "Amortissement immeuble détecté dans la balance LMNP.",
+      confidence: amount ? 0.9 : 0.65,
+      source: "balance",
+      status: "À valider"
+    });
+  } else if (hasImmeuble) {
+    anomalies.push({
+      type: "missing_amortissement",
+      label: "Immeuble détecté mais aucun amortissement identifié",
+      level: "warning"
+    });
+  }
+
+  if (hasEmprunt) {
+    entries.push({
+      label: "Intérêts d’emprunt à contrôler",
+      debit: "661100",
+      credit: "512000",
+      amount: "À contrôler",
+      justification: "Emprunt détecté. Vérifier les intérêts courus ou charges financières de l’exercice.",
+      confidence: 0.6,
+      source: "balance/grandLivre",
+      status: "À valider"
+    });
+  }
+
+  return { entries, controls, anomalies };
+}
 exports.parseClosureFiles = onRequest(
   async (req, res) => {
     res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
