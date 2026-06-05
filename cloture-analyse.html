@@ -4,24 +4,27 @@
 </style></head><body><header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap"><h1>Analyse de clôture</h1><p class="muted" id="closureInfo">Chargement du dossier...</p><div class="layout"><div class="box">
 
-<h2>Analyse des fichiers</h2>
-<div class="parseBox">
-<p class="muted">Lancez la lecture de la balance et du grand livre pour transformer les fichiers en données exploitables.</p>
-<div class="actions"><button class="btn primary" type="button" id="parseFilesBtn">Analyser les fichiers comptables</button></div>
-<div class="parseGrid"><div class="parseMetric"><b id="balanceRows">0</b><span>lignes balance</span></div><div class="parseMetric"><b id="grandLivreRows">0</b><span>lignes grand livre</span></div><div class="parseMetric"><b id="anomaliesCount">0</b><span>anomalies</span></div></div>
-<div class="notice" id="parseMsg" style="display:none"></div>
-</div>
-
-<div id="questionsBlock" class="hidden">
+<div id="questionsBlock">
 <h2>Questions complémentaires</h2>
-<div class="notice">Les fichiers sont analysés. Répondez maintenant aux questions pour confirmer ou compléter les écritures proposées.</div>
+<div class="notice">Répondez d’abord aux questions de clôture. L’analyse des fichiers sera lancée ensuite avec vos réponses.</div>
 <div id="questionsArea"></div>
-<div class="actions"><button class="btn primary" id="saveAnswersBtn">Enregistrer les réponses</button><a class="btn" id="resultLink" href="cloture-resultat.html">Voir le résultat</a></div>
+<div class="actions"><button class="btn primary" id="saveAnswersBtn">Enregistrer les réponses</button></div>
 <div class="notice" id="msg" style="display:none"></div>
 </div>
 
+<div id="parseBlock" class="hidden">
+<h2>Analyse des fichiers</h2>
+<div class="parseBox">
+<p class="muted">Les réponses sont enregistrées. Lancez maintenant l’analyse de la balance et du grand livre pour générer les écritures proposées.</p>
+<div class="actions"><button class="btn primary" type="button" id="parseFilesBtn">Analyser les fichiers comptables</button></div>
+<div class="parseGrid"><div class="parseMetric"><b id="balanceRows">0</b><span>lignes balance</span></div><div class="parseMetric"><b id="grandLivreRows">0</b><span>lignes grand livre</span></div><div class="parseMetric"><b id="anomaliesCount">0</b><span>anomalies</span></div></div>
+<div class="notice" id="parseMsg" style="display:none"></div>
+<div class="actions"><a class="btn" id="resultLink" href="cloture-resultat.html">Voir le résultat</a></div>
 </div>
-<aside class="box"><h2>Avancement</h2><div class="steps"><div class="step"><b>Fichiers importés</b><span id="filesStatus">Vérification des fichiers...</span></div><div class="step"><b>Lecture des fichiers</b><span id="parseStatus">En attente.</span></div><div class="step"><b>Questions de clôture</b><span id="questionsStatus">En attente de l’analyse des fichiers.</span></div><div class="step"><b>Résultat</b><span>Écritures et exports après validation.</span></div></div><div class="notice">Les réponses servent à éviter les écritures automatiques hors contexte.</div></aside></div></div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+</div>
+
+</div>
+<aside class="box"><h2>Avancement</h2><div class="steps"><div class="step"><b>Fichiers importés</b><span id="filesStatus">Vérification des fichiers...</span></div><div class="step"><b>Questions de clôture</b><span id="questionsStatus">À compléter.</span></div><div class="step"><b>Lecture des fichiers</b><span id="parseStatus">En attente des réponses.</span></div><div class="step"><b>Résultat</b><span id="resultStatus">Après analyse des fichiers.</span></div></div><div class="notice">Les réponses servent à éviter les écritures automatiques hors contexte.</div></aside></div></div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 
 <script type="module">
 import { auth, db } from "./firebase-config.js";
@@ -36,9 +39,10 @@ const answers={};
 
 function formatDateFr(v){if(!v)return"";const[y,m,d]=v.split("-");return`${d}/${m}/${y}`;}
 function nextYear(endDate){return Number((endDate||"2022").slice(0,4))+1;}
-function isParsed(){return closure?.status==="parsed"||closure?.status==="analysed"||Array.isArray(closure?.balance)&&closure.balance.length>0||Array.isArray(closure?.grandLivre)&&closure.grandLivre.length>0;}
+function hasAnswers(){return closure?.answers&&Object.keys(closure.answers).length>0;}
+function isParsed(){return closure?.status==="parsed"||closure?.status==="analysed"||(Array.isArray(closure?.balance)&&closure.balance.length>0)||(Array.isArray(closure?.grandLivre)&&closure.grandLivre.length>0);}
 
-function refreshParseDisplay(){
+function refreshDisplay(){
   const b=Array.isArray(closure.balance)?closure.balance.length:0;
   const g=Array.isArray(closure.grandLivre)?closure.grandLivre.length:0;
   const a=Array.isArray(closure.anomalies)?closure.anomalies.length:0;
@@ -52,15 +56,17 @@ function refreshParseDisplay(){
 
   filesStatus.textContent=`${hasB?"Balance OK":"Balance absente"} / ${hasG?"Grand livre OK":"Grand livre absent"}`;
 
-  if(isParsed()){
-    parseStatus.textContent="Fichiers lus.";
-    questionsStatus.textContent="Questions disponibles.";
-    questionsBlock.classList.remove("hidden");
+  if(hasAnswers()){
+    questionsStatus.textContent="Réponses enregistrées.";
+    parseBlock.classList.remove("hidden");
+    parseStatus.textContent=isParsed()?"Fichiers lus.":"Prêt à analyser.";
   }else{
-    parseStatus.textContent="En attente.";
-    questionsStatus.textContent="En attente de l’analyse des fichiers.";
-    questionsBlock.classList.add("hidden");
+    questionsStatus.textContent="À compléter.";
+    parseBlock.classList.add("hidden");
+    parseStatus.textContent="En attente des réponses.";
   }
+
+  resultStatus.textContent=isParsed()?"Résultat disponible.":"Après analyse des fichiers.";
 }
 
 function renderQuestions(){
@@ -101,7 +107,7 @@ async function reloadClosure(){
   closure=snap.data();
   closureInfo.textContent=`${closure.companyName||"Société"} — ${closure.startDate||"—"} → ${closure.endDate||"—"}`;
   resultLink.href=`cloture-resultat.html?id=${id}`;
-  refreshParseDisplay();
+  refreshDisplay();
   renderQuestions();
 }
 
@@ -115,6 +121,28 @@ onAuthStateChanged(auth,async user=>{
 logoutBtn.addEventListener("click",async()=>{
   await signOut(auth);
   window.location.href="connexion.html";
+});
+
+saveAnswersBtn.addEventListener("click",async()=>{
+  const msg=document.getElementById("msg");
+  try{
+    const details={};
+    document.querySelectorAll("textarea[data-detail]").forEach(t=>details[t.dataset.detail]=t.value);
+    await setDoc(doc(db,"users",currentUser.uid,"closures",id),{
+      answers,
+      details,
+      status:"questions_saved",
+      updatedAt:serverTimestamp()
+    },{merge:true});
+
+    msg.textContent="Réponses enregistrées. Vous pouvez maintenant analyser les fichiers comptables.";
+    msg.style.display="block";
+    await reloadClosure();
+  }catch(e){
+    console.error(e);
+    msg.textContent="Erreur lors de l’enregistrement.";
+    msg.style.display="block";
+  }
 });
 
 parseFilesBtn.addEventListener("click",async()=>{
@@ -133,7 +161,7 @@ parseFilesBtn.addEventListener("click",async()=>{
 
     if(!response.ok||!data.ok)throw new Error(data.error||"Analyse impossible.");
 
-    parseMsg.textContent=`Analyse terminée : ${data.balanceRows} ligne(s) balance, ${data.grandLivreRows} ligne(s) grand livre. Les questions complémentaires sont maintenant disponibles.`;
+    parseMsg.textContent=`Analyse terminée : ${data.balanceRows} ligne(s) balance, ${data.grandLivreRows} ligne(s) grand livre. Vous pouvez consulter le résultat.`;
     await reloadClosure();
   }catch(e){
     console.error(e);
@@ -141,22 +169,6 @@ parseFilesBtn.addEventListener("click",async()=>{
   }finally{
     parseFilesBtn.disabled=false;
     parseFilesBtn.textContent="Analyser les fichiers comptables";
-  }
-});
-
-saveAnswersBtn.addEventListener("click",async()=>{
-  const msg=document.getElementById("msg");
-  try{
-    const details={};
-    document.querySelectorAll("textarea[data-detail]").forEach(t=>details[t.dataset.detail]=t.value);
-    await setDoc(doc(db,"users",currentUser.uid,"closures",id),{answers,details,status:"analysed",updatedAt:serverTimestamp()},{merge:true});
-    msg.textContent="Réponses enregistrées. Vous pouvez consulter le résultat.";
-    msg.style.display="block";
-    await reloadClosure();
-  }catch(e){
-    console.error(e);
-    msg.textContent="Erreur lors de l’enregistrement.";
-    msg.style.display="block";
   }
 });
 </script></body></html>
