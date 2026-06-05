@@ -369,15 +369,16 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   if (hasAccount(["164", "661"]) && answers.immo === "yes") {
     entries.push({
-      label: "Intérêts d’emprunt à contrôler",
-      debit: "661100",
-      credit: "512000",
-      amount: getBalanceAmount(["661"]) || "À contrôler",
-      justification: "Emprunt ou intérêts détectés. Vérifier les intérêts courus ou charges financières.",
-      confidence: 0.6,
-      source: "balance/grandLivre",
-      status: "À valider"
-    });
+  journal: "OD",
+  label: "Intérêts d’emprunt à contrôler",
+  debit: "661100",
+  credit: "168800",
+  amount: getBalanceAmount(["661"]) || "À contrôler",
+  justification: `Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l’exercice.`,
+  confidence: 0.6,
+  source: "balance/grandLivre",
+  status: "À valider"
+});
   }
 
   if (entries.length === 0) {
