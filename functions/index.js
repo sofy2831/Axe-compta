@@ -298,7 +298,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       label: "Variation de stock",
       debit: "370000",
       credit: "603700",
-      amount: getBalanceAmount(["603", "37"]) || "À contrôler",
+      amount: getBalanceAmount(["603"]) || getBalanceAmount(["37"]) || "À contrôler",
       justification: "Stock ou variation de stock détecté dans les comptes.",
       confidence: 0.85,
       source: "balance",
