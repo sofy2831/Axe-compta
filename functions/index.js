@@ -321,8 +321,10 @@ exports.parseClosureFiles = onRequest(
       const balanceRows = await parseFile(balancePath);
       const grandLivreRows = await parseFile(grandLivrePath);
 
-      const controls = [];
-      const anomalies = [];
+      let controls = [];
+let anomalies = [];
+let entries = [];
+      
 
       if (balanceRows.length) {
         controls.push({
