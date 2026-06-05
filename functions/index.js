@@ -354,6 +354,11 @@ let entries = [];
         });
       }
 
+      const detected = detectLmnpEntries(balanceRows, grandLivreRows);
+
+controls = [...controls, ...detected.controls];
+anomalies = [...anomalies, ...detected.anomalies];
+entries = detected.entries;
       await closureRef.set(
         {
           balance: balanceRows,
