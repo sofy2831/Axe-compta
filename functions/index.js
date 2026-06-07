@@ -253,6 +253,60 @@ function makeLedgerEntries(rows, config) {
   }));
 }
 
+function detectStockEntry(balanceRows) {
+  const stockConfigs = [
+    {
+      stockPrefixes: ["37"],
+      variationPrefixes: ["6037"],
+      label: "Variation de stock marchandises",
+      debit: "370000",
+      credit: "603700"
+    },
+    {
+      stockPrefixes: ["31"],
+      variationPrefixes: ["6031"],
+      label: "Variation de stock matières premières",
+      debit: "310000",
+      credit: "603100"
+    },
+    {
+      stockPrefixes: ["35"],
+      variationPrefixes: ["7135"],
+      label: "Production stockée produits finis",
+      debit: "350000",
+      credit: "713500"
+    },
+    {
+      stockPrefixes: ["33"],
+      variationPrefixes: ["7133"],
+      label: "Production stockée travaux en cours",
+      debit: "330000",
+      credit: "713300"
+    }
+  ];
+
+  for (const config of stockConfigs) {
+    const variationRow = findBalanceRow(balanceRows, config.variationPrefixes);
+    const stockRow = findBalanceRow(balanceRows, config.stockPrefixes);
+
+    if (variationRow || stockRow) {
+      return {
+        journal: "OD",
+        label: config.label,
+        debit: config.debit,
+        credit: config.credit,
+        amount: variationRow ? getAmount(variationRow) : getAmount(stockRow) || "À contrôler",
+        justification: "Stock ou variation de stock détecté dans les comptes.",
+        confidence: variationRow ? 0.9 : 0.7,
+        source: variationRow ? "balance variation" : "balance stock",
+        status: "À valider"
+      };
+    }
+  }
+
+  return null;
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
