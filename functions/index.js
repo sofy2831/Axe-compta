@@ -21,30 +21,15 @@ exports.createCheckoutSession = onRequest(
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).send("Method not allowed");
-      return;
-    }
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
       const { uid, closureId, plan, email } = req.body || {};
 
-      if (!uid || !plan || !email) {
-        res.status(400).json({ error: "Paramètres manquants." });
-        return;
-      }
-
-      if (plan === "one-shot" && !closureId) {
-        res.status(400).json({ error: "closureId manquant." });
-        return;
-      }
+      if (!uid || !plan || !email) return res.status(400).json({ error: "Paramètres manquants." });
+      if (plan === "one-shot" && !closureId) return res.status(400).json({ error: "closureId manquant." });
 
       const price = plan === "monthly" ? PRICE_MONTHLY : PRICE_ONE_SHOT;
 
@@ -55,11 +40,7 @@ exports.createCheckoutSession = onRequest(
         line_items: [{ price, quantity: 1 }],
         success_url: "https://compta.axe-dossier.fr/merci.html",
         cancel_url: `https://compta.axe-dossier.fr/cloture-resultat.html?id=${closureId || ""}`,
-        metadata: {
-          uid,
-          closureId: closureId || "",
-          plan,
-        },
+        metadata: { uid, closureId: closureId || "", plan },
       });
 
       res.json({ url: session.url });
@@ -79,11 +60,7 @@ exports.stripeWebhook = onRequest(
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        req.rawBody,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET
-      );
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (error) {
       console.error("Webhook signature error:", error.message);
       res.status(400).send(`Webhook Error: ${error.message}`);
@@ -93,39 +70,27 @@ exports.stripeWebhook = onRequest(
     try {
       if (event.type === "checkout.session.completed") {
         const session = event.data.object;
-
         const uid = session.metadata?.uid;
         const closureId = session.metadata?.closureId;
         const plan = session.metadata?.plan;
 
-        if (!uid || !plan) {
-          res.status(400).send("Missing metadata");
-          return;
-        }
+        if (!uid || !plan) return res.status(400).send("Missing metadata");
 
         const db = admin.firestore();
 
         if (plan === "one-shot") {
-          if (!closureId) {
-            res.status(400).send("Missing closureId");
-            return;
-          }
+          if (!closureId) return res.status(400).send("Missing closureId");
 
-          await db
-            .collection("users")
-            .doc(uid)
-            .collection("closures")
-            .doc(closureId)
-            .set(
-              {
-                paid: true,
-                status: "paid",
-                paidAt: admin.firestore.FieldValue.serverTimestamp(),
-                stripeSessionId: session.id,
-                paymentMode: "one-shot",
-              },
-              { merge: true }
-            );
+          await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
+            {
+              paid: true,
+              status: "paid",
+              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              stripeSessionId: session.id,
+              paymentMode: "one-shot",
+            },
+            { merge: true }
+          );
 
           await db.collection("users").doc(uid).set(
             {
@@ -192,15 +157,10 @@ function getAmount(row) {
   const searchKeys = preferredKeys.length ? preferredKeys : keys;
 
   for (const key of searchKeys) {
-    const raw = String(row[key] ?? "")
-      .replace(",", ".")
-      .replace(/\s/g, "");
-
+    const raw = String(row[key] ?? "").replace(",", ".").replace(/\s/g, "");
     const n = Number(raw);
 
-    if (!Number.isNaN(n) && n !== 0 && Math.abs(n) > 100) {
-      return Math.abs(n);
-    }
+    if (!Number.isNaN(n) && n !== 0 && Math.abs(n) > 100) return Math.abs(n);
   }
 
   return 0;
@@ -259,7 +219,9 @@ function makeEntryFromRow(row, config) {
 function makeLedgerEntries(rows, config) {
   return rows.map(row => makeEntryFromRow(row, config));
 }
+''')
 
+parts.append(r'''
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
@@ -277,27 +239,15 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   };
 
   if (hasAccount(["21", "28"])) {
-    controls.push({
-      type: "immobilisation_detected",
-      label: "Immobilisation ou amortissement détecté",
-      level: "info"
-    });
+    controls.push({ type: "immobilisation_detected", label: "Immobilisation ou amortissement détecté", level: "info" });
   }
 
   if (hasAccount(["164", "661"])) {
-    controls.push({
-      type: "loan_detected",
-      label: "Emprunt ou intérêts détectés",
-      level: "info"
-    });
+    controls.push({ type: "loan_detected", label: "Emprunt ou intérêts détectés", level: "info" });
   }
 
   if (hasAccount(["706", "707"])) {
-    controls.push({
-      type: "revenue_detected",
-      label: "Chiffre d'affaires détecté",
-      level: "info"
-    });
+    controls.push({ type: "revenue_detected", label: "Chiffre d'affaires détecté", level: "info" });
   }
 
   // FNP : factures non parvenues, lecture multi-lignes côté charges
@@ -306,13 +256,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("6") &&
-        (
-          text.includes("fnp") ||
-          text.includes("facture non parvenue") ||
-          text.includes("facture non recue")
-        )
+      return compte.startsWith("6") && (
+        text.includes("fnp") ||
+        text.includes("facture non parvenue") ||
+        text.includes("facture non recue")
       );
     });
 
@@ -345,15 +292,12 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("486") &&
-        (
-          text.includes("cca") ||
-          text.includes("charge constatee") ||
-          text.includes("charges constatees") ||
-          text.includes("periode suivante") ||
-          text.includes("periode 2023")
-        )
+      return compte.startsWith("486") && (
+        text.includes("cca") ||
+        text.includes("charge constatee") ||
+        text.includes("charges constatees") ||
+        text.includes("periode suivante") ||
+        text.includes("periode 2023")
       );
     });
 
@@ -386,12 +330,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("487") ||
+      return compte.startsWith("487") ||
         text.includes("pca") ||
         text.includes("produit constate") ||
-        text.includes("produits constates")
-      );
+        text.includes("produits constates");
     });
 
     if (pcaRows.length) {
@@ -427,12 +369,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("418") ||
+      return compte.startsWith("418") ||
         text.includes("fae") ||
         text.includes("facture a etablir") ||
-        text.includes("facture à établir")
-      );
+        text.includes("facture à établir");
     });
 
     if (faeRows.length) {
@@ -468,12 +408,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("4187") ||
+      return compte.startsWith("4187") ||
         compte.startsWith("4687") ||
         text.includes("produit a recevoir") ||
-        text.includes("produits a recevoir")
-      );
+        text.includes("produits a recevoir");
     });
 
     if (parRows.length) {
@@ -510,15 +448,13 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("428") ||
+      return compte.startsWith("428") ||
         compte.startsWith("438") ||
         compte.startsWith("448") ||
         compte.startsWith("4686") ||
         text.includes("cap") ||
         text.includes("charge a payer") ||
-        text.includes("charges a payer")
-      );
+        text.includes("charges a payer");
     });
 
     capRows.forEach(row => {
@@ -540,34 +476,16 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       }));
     });
   }
+''')
 
+parts.append(r'''
   // Stocks multi-lignes
   if (answers.stocks === "yes") {
     const stockConfigs = [
-      {
-        prefixes: ["6031"],
-        label: "Variation stock matières premières",
-        debit: "310000",
-        credit: "603100"
-      },
-      {
-        prefixes: ["6037"],
-        label: "Variation stock marchandises",
-        debit: "370000",
-        credit: "603700"
-      },
-      {
-        prefixes: ["7133"],
-        label: "Production stockée travaux en cours",
-        debit: "330000",
-        credit: "713300"
-      },
-      {
-        prefixes: ["7135"],
-        label: "Production stockée produits finis",
-        debit: "350000",
-        credit: "713500"
-      }
+      { prefixes: ["6031"], label: "Variation stock matières premières", debit: "310000", credit: "603100" },
+      { prefixes: ["6037"], label: "Variation stock marchandises", debit: "370000", credit: "603700" },
+      { prefixes: ["7133"], label: "Production stockée travaux en cours", debit: "330000", credit: "713300" },
+      { prefixes: ["7135"], label: "Production stockée produits finis", debit: "350000", credit: "713500" }
     ];
 
     let stockFound = false;
@@ -605,18 +523,12 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   // Amortissements
   if (hasAccount(["281", "681"]) && answers.immo === "yes") {
-    const amortRow =
-      findBalanceRow(balanceRows, ["681"]) ||
-      findBalanceRow(balanceRows, ["281"]);
-
+    const amortRow = findBalanceRow(balanceRows, ["681"]) || findBalanceRow(balanceRows, ["281"]);
     const amount = amortRow ? getAmount(amortRow) : 0;
     const label = activity.includes("location meuble")
       ? "Dotation amortissement immeuble"
       : "Dotation amortissement";
-
-    const credit = activity.includes("location meuble")
-      ? "281300"
-      : "281830";
+    const credit = activity.includes("location meuble") ? "281300" : "281830";
 
     entries.push({
       journal: "OD",
@@ -666,14 +578,12 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return (
-        compte.startsWith("15") ||
+      return compte.startsWith("15") ||
         compte.startsWith("6815") ||
         text.includes("provision") ||
         text.includes("litige") ||
         text.includes("risque") ||
-        text.includes("client douteux")
-      );
+        text.includes("client douteux");
     });
 
     if (provisionRows.length) {
@@ -705,11 +615,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   // TVA
   if (hasAccount(["44551"])) {
-    controls.push({
-      type: "vat_due_detected",
-      label: "TVA à décaisser détectée",
-      level: "info"
-    });
+    controls.push({ type: "vat_due_detected", label: "TVA à décaisser détectée", level: "info" });
 
     entries.push({
       journal: "OD",
@@ -756,15 +662,8 @@ exports.parseClosureFiles = onRequest(
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type");
 
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
     try {
       const { uid, closureId } = req.body || {};
@@ -777,12 +676,7 @@ exports.parseClosureFiles = onRequest(
       const db = admin.firestore();
       const bucket = admin.storage().bucket();
 
-      const closureRef = db
-        .collection("users")
-        .doc(uid)
-        .collection("closures")
-        .doc(closureId);
-
+      const closureRef = db.collection("users").doc(uid).collection("closures").doc(closureId);
       const closureSnap = await closureRef.get();
 
       if (!closureSnap.exists) {
@@ -813,31 +707,15 @@ exports.parseClosureFiles = onRequest(
       let entries = [];
 
       if (balanceRows.length) {
-        controls.push({
-          type: "balance_loaded",
-          label: "Balance chargée",
-          count: balanceRows.length
-        });
+        controls.push({ type: "balance_loaded", label: "Balance chargée", count: balanceRows.length });
       } else {
-        anomalies.push({
-          type: "missing_balance",
-          label: "Balance absente ou non exploitable",
-          level: "warning"
-        });
+        anomalies.push({ type: "missing_balance", label: "Balance absente ou non exploitable", level: "warning" });
       }
 
       if (grandLivreRows.length) {
-        controls.push({
-          type: "grand_livre_loaded",
-          label: "Grand livre chargé",
-          count: grandLivreRows.length
-        });
+        controls.push({ type: "grand_livre_loaded", label: "Grand livre chargé", count: grandLivreRows.length });
       } else {
-        anomalies.push({
-          type: "missing_grand_livre",
-          label: "Grand livre absent ou non exploitable",
-          level: "warning"
-        });
+        anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
       }
 
       const detected = detectAccountingEntries(balanceRows, grandLivreRows, closure);
