@@ -311,7 +311,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
     if (fnpRows.length) {
       entries.push(...makeLedgerEntries(fnpRows, {
-        label: "Facture non reçue",
+        label: "FNP",
         debit: "607000",
         credit: "408100",
         justification: "Facture fournisseur non parvenue détectée dans le grand livre.",
@@ -320,7 +320,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     } else {
       entries.push({
         journal: "OD",
-        label: "Facture non reçue",
+        label: "FNP",
         debit: "607000",
         credit: "408100",
         amount: getBalanceAmount(["408"]) || "À contrôler",
@@ -352,7 +352,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
     if (ccaRows.length) {
       entries.push(...makeLedgerEntries(ccaRows, {
-        label: "Charge constatée d’avance",
+        label: "CCA",
         debit: "486000",
         credit: "616000",
         justification: "Charge constatée d’avance détectée dans le grand livre.",
@@ -361,7 +361,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     } else {
       entries.push({
         journal: "OD",
-        label: "Charge constatée d’avance",
+        label: "CCA",
         debit: "486000",
         credit: "616000",
         amount: getBalanceAmount(["486"]) || "À contrôler",
