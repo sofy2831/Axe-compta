@@ -307,6 +307,52 @@ function detectStockEntry(balanceRows) {
   return null;
 }
 
+function getCompte(row) {
+  return String(row.Compte || row.compte || "").replace(/\s/g, "");
+}
+
+function getLibelle(row) {
+  return String(row.Libellé || row.libelle || row.Libelle || "ligne grand livre").trim();
+}
+
+function cleanEntryLabel(prefix, row) {
+  const raw = getLibelle(row);
+
+  let label = raw
+    .replace(/facture non parvenue/gi, "")
+    .replace(/facture non recue/gi, "")
+    .replace(/fnp/gi, "")
+    .replace(/facture à établir/gi, "")
+    .replace(/facture a etablir/gi, "")
+    .replace(/fae/gi, "")
+    .replace(/cca/gi, "")
+    .replace(/extourne/gi, "")
+    .replace(/période suivante/gi, "")
+    .replace(/periode suivante/gi, "")
+    .replace(/période 2023/gi, "")
+    .replace(/periode 2023/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!label) label = "ligne grand livre";
+
+  return `${prefix} - ${label}`;
+}
+
+function makeEntryFromRow(row, config) {
+  return {
+    journal: "OD",
+    label: cleanEntryLabel(config.label, row),
+    debit: config.debit,
+    credit: config.credit,
+    amount: getAmount(row) || "À contrôler",
+    justification: config.justification,
+    confidence: config.confidence || 0.9,
+    source: "grandLivre",
+    status: "À valider"
+  };
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
