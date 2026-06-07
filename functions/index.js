@@ -757,7 +757,7 @@ if (answers.provisions === "yes") {
     });
   }
 
-  return { entries, controls, anomalies };
+  return { entries: dedupeEntries(entries), controls, anomalies };
 }
 
 exports.parseClosureFiles = onRequest(
