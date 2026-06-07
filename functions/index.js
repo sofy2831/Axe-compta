@@ -219,9 +219,7 @@ function makeEntryFromRow(row, config) {
 function makeLedgerEntries(rows, config) {
   return rows.map(row => makeEntryFromRow(row, config));
 }
-''')
 
-parts.append(r'''
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
