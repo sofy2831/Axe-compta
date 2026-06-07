@@ -440,41 +440,52 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     }
   }
 
-  // CAP : charges à payer hors FNP fournisseurs
-  if (answers.fournisseurs === "yes") {
-    const capRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
+  // CAP : charges à payer hors FNP fournisseurs et hors paie
+if (answers.fournisseurs === "yes") {
+  const capRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
 
-      return compte.startsWith("428") ||
-        compte.startsWith("438") ||
-        compte.startsWith("448") ||
-        compte.startsWith("4686") ||
-        text.includes("cap") ||
-        text.includes("charge a payer") ||
-        text.includes("charges a payer");
-    });
+    return (
+      compte.startsWith("448") ||
+      compte.startsWith("4686") ||
+      text.includes("cap") ||
+      text.includes("charge a payer") ||
+      text.includes("charges a payer")
+    );
+  });
 
-    capRows.forEach(row => {
-      const compte = getCompte(row);
-      let debit = "6xxxxx";
-      let credit = compte || "468600";
+  capRows.forEach(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
 
-      if (compte.startsWith("428")) debit = "641000";
-      if (compte.startsWith("438")) debit = "645000";
-      if (compte.startsWith("448")) debit = "635000";
-      if (compte.startsWith("4686")) debit = "628000";
+    // Sécurité : on exclut les charges sociales / congés déjà traités dans le bloc paie
+    if (
+      compte.startsWith("428") ||
+      compte.startsWith("438") ||
+      text.includes("conges payes") ||
+      text.includes("congés payés") ||
+      text.includes("cotisations conges") ||
+      text.includes("cotisations congés")
+    ) {
+      return;
+    }
 
-      entries.push(makeEntryFromRow(row, {
-        label: "CAP",
-        debit,
-        credit,
-        justification: "Charge à payer détectée dans le grand livre.",
-        confidence: 0.85
-      }));
-    });
-  }
+    let debit = "6xxxxx";
+    let credit = compte || "468600";
 
+    if (compte.startsWith("448")) debit = "635000";
+    if (compte.startsWith("4686")) debit = "628000";
+
+    entries.push(makeEntryFromRow(row, {
+      label: "CAP",
+      debit,
+      credit,
+      justification: "Charge à payer détectée dans le grand livre.",
+      confidence: 0.85
+    }));
+  });
+}
   // Stocks multi-lignes
   if (answers.stocks === "yes") {
     const stockConfigs = [
