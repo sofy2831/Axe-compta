@@ -644,12 +644,10 @@ if (answers.provisions === "yes") {
     const compte = getCompte(row);
     const text = getRowText(row);
 
+    // On lit uniquement les comptes de dotation, pas les comptes crédit 491/397/29
     return (
       compte.startsWith("6816") ||
       compte.startsWith("6817") ||
-      compte.startsWith("491") ||
-      compte.startsWith("39") ||
-      compte.startsWith("29") ||
       text.includes("depreciation") ||
       text.includes("dépréciation") ||
       text.includes("client douteux") ||
@@ -663,32 +661,32 @@ if (answers.provisions === "yes") {
     const text = getRowText(row);
 
     let label = "Dépréciation à contrôler";
-    let debit = "681600";
+    let debit = compte || "681600";
     let credit = "491000";
 
-    if (compte.startsWith("491") || text.includes("client douteux")) {
+    if (compte.startsWith("68174") || text.includes("client douteux")) {
       label = "Dépréciation client douteux";
       debit = "681740";
       credit = "491000";
     }
 
-    if (compte.startsWith("39") || text.includes("stock obsolete") || text.includes("stock obsolète")) {
+    if (compte.startsWith("68173") || text.includes("stock obsolete") || text.includes("stock obsolète")) {
       label = "Dépréciation stock";
       debit = "681730";
       credit = "397000";
     }
 
-    if (compte.startsWith("29")) {
+    if (compte.startsWith("68162") || text.includes("immobilisation")) {
       label = "Dépréciation immobilisation";
       debit = "681620";
-      credit = compte || "290000";
+      credit = "290000";
     }
 
     entries.push(makeEntryFromRow(row, {
       label,
       debit,
       credit,
-      justification: "Dépréciation détectée dans le grand livre ou les comptes de clôture.",
+      justification: "Dépréciation détectée dans le grand livre.",
       confidence: 0.8
     }));
   });
