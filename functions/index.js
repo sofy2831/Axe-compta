@@ -488,14 +488,61 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   }
 
   if (answers.stocks === "yes") {
-  const stockEntry = detectStockEntry(balanceRows);
+  const stockConfigs = [
+    {
+      prefixes: ["6031"],
+      label: "Variation stock matières premières",
+      debit: "310000",
+      credit: "603100"
+    },
+    {
+      prefixes: ["6037"],
+      label: "Variation stock marchandises",
+      debit: "370000",
+      credit: "603700"
+    },
+    {
+      prefixes: ["7133"],
+      label: "Production stockée travaux en cours",
+      debit: "330000",
+      credit: "713300"
+    },
+    {
+      prefixes: ["7135"],
+      label: "Production stockée produits finis",
+      debit: "350000",
+      credit: "713500"
+    }
+  ];
 
-  if (stockEntry) {
-    entries.push(stockEntry);
-  } else {
+  let stockFound = false;
+
+  stockConfigs.forEach(config => {
+    const rows = grandLivreRows.filter(row => {
+      const compte = getCompte(row);
+      return config.prefixes.some(prefix => compte.startsWith(prefix));
+    });
+
+    rows.forEach(row => {
+      stockFound = true;
+      entries.push({
+        journal: "OD",
+        label: config.label,
+        debit: config.debit,
+        credit: config.credit,
+        amount: getAmount(row) || "À contrôler",
+        justification: "Variation de stock détectée dans le grand livre.",
+        confidence: 0.9,
+        source: "grandLivre",
+        status: "À valider"
+      });
+    });
+  });
+
+  if (!stockFound) {
     anomalies.push({
       type: "stock_not_found",
-      label: "Stock déclaré mais aucun compte de stock ou variation détecté",
+      label: "Stock déclaré mais aucune variation de stock exploitable détectée",
       level: "warning"
     });
   }
