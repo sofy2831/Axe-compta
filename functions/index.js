@@ -620,6 +620,62 @@ if (answers.fournisseurs === "yes") {
     }
   }
 
+// Dépréciations : clients, stocks, immobilisations
+if (answers.provisions === "yes") {
+  const depreciationRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("6816") ||
+      compte.startsWith("6817") ||
+      compte.startsWith("491") ||
+      compte.startsWith("39") ||
+      compte.startsWith("29") ||
+      text.includes("depreciation") ||
+      text.includes("dépréciation") ||
+      text.includes("client douteux") ||
+      text.includes("stock obsolete") ||
+      text.includes("stock obsolète")
+    );
+  });
+
+  depreciationRows.forEach(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    let label = "Dépréciation à contrôler";
+    let debit = "681600";
+    let credit = "491000";
+
+    if (compte.startsWith("491") || text.includes("client douteux")) {
+      label = "Dépréciation client douteux";
+      debit = "681740";
+      credit = "491000";
+    }
+
+    if (compte.startsWith("39") || text.includes("stock obsolete") || text.includes("stock obsolète")) {
+      label = "Dépréciation stock";
+      debit = "681730";
+      credit = "397000";
+    }
+
+    if (compte.startsWith("29")) {
+      label = "Dépréciation immobilisation";
+      debit = "681620";
+      credit = compte || "290000";
+    }
+
+    entries.push(makeEntryFromRow(row, {
+      label,
+      debit,
+      credit,
+      justification: "Dépréciation détectée dans le grand livre ou les comptes de clôture.",
+      confidence: 0.8
+    }));
+  });
+}
+  
   // TVA
   if (hasAccount(["44551"])) {
     controls.push({ type: "vat_due_detected", label: "TVA à décaisser détectée", level: "info" });
