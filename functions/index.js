@@ -474,9 +474,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       }));
     });
   }
-''')
 
-parts.append(r'''
   // Stocks multi-lignes
   if (answers.stocks === "yes") {
     const stockConfigs = [
