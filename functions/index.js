@@ -222,11 +222,27 @@ function findLedgerRows(grandLivreRows, prefixes, keywords = []) {
     return compteMatch || keywordMatch;
   });
 }
+function cleanEntryLabel(prefix, row) {
+  const raw = String(row.Libellé || row.libelle || "ligne grand livre");
 
+  let label = raw
+    .replace(/facture non parvenue/gi, "")
+    .replace(/fnp/gi, "")
+    .replace(/cca/gi, "")
+    .replace(/extourne/gi, "")
+    .replace(/période 2023/gi, "")
+    .replace(/periode 2023/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!label) label = "ligne grand livre";
+
+  return `${prefix} - ${label}`;
+}
 function makeLedgerEntries(rows, config) {
   return rows.map(row => ({
     journal: "OD",
-    label: `${config.label} - ${row.Libellé || row.libelle || "ligne grand livre"}`,
+    label: cleanEntryLabel(config.label, row),
     debit: config.debit,
     credit: config.credit,
     amount: getAmount(row) || "À contrôler",
