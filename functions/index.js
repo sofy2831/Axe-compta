@@ -220,6 +220,24 @@ function makeLedgerEntries(rows, config) {
   return rows.map(row => makeEntryFromRow(row, config));
 }
 
+function dedupeEntries(entries) {
+  const seen = new Set();
+
+  return entries.filter(e => {
+    const key = [
+      e.journal || "OD",
+      e.label || "",
+      e.debit || "",
+      e.credit || "",
+      e.amount || "",
+    ].join("|").toLowerCase();
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
