@@ -441,19 +441,19 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
-  if ((hasAccount(["37"]) || hasAccount(["603"])) && answers.stocks === "yes") {
-    entries.push({
-      journal: "OD",
-      label: "Variation de stock",
-      debit: "370000",
-      credit: "603700",
-      amount: getBalanceAmount(["603"]) || getBalanceAmount(["37"]) || "À contrôler",
-      justification: "Stock ou variation de stock détecté dans les comptes.",
-      confidence: 0.85,
-      source: "balance",
-      status: "À valider"
+  if (answers.stocks === "yes") {
+  const stockEntry = detectStockEntry(balanceRows);
+
+  if (stockEntry) {
+    entries.push(stockEntry);
+  } else {
+    anomalies.push({
+      type: "stock_not_found",
+      label: "Stock déclaré mais aucun compte de stock ou variation détecté",
+      level: "warning"
     });
   }
+}
 
   if (hasAccount(["281", "681"]) && answers.immo === "yes") {
     const amortRow =
