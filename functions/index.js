@@ -46,21 +46,13 @@ exports.createCheckoutSession = onRequest(
         return;
       }
 
-      const price =
-        plan === "monthly"
-          ? PRICE_MONTHLY
-          : PRICE_ONE_SHOT;
+      const price = plan === "monthly" ? PRICE_MONTHLY : PRICE_ONE_SHOT;
 
       const session = await stripe.checkout.sessions.create({
         mode: plan === "monthly" ? "subscription" : "payment",
         payment_method_types: ["card"],
         customer_email: email,
-        line_items: [
-          {
-            price,
-            quantity: 1,
-          },
-        ],
+        line_items: [{ price, quantity: 1 }],
         success_url: "https://compta.axe-dossier.fr/merci.html",
         cancel_url: `https://compta.axe-dossier.fr/cloture-resultat.html?id=${closureId || ""}`,
         metadata: {
@@ -167,6 +159,7 @@ exports.stripeWebhook = onRequest(
     }
   }
 );
+
 function normalizeText(value) {
   return String(value || "")
     .toLowerCase()
@@ -176,6 +169,14 @@ function normalizeText(value) {
 
 function getRowText(row) {
   return normalizeText(Object.values(row).join(" "));
+}
+
+function getCompte(row) {
+  return String(row.Compte || row.compte || "").replace(/\s/g, "");
+}
+
+function getLibelle(row) {
+  return String(row.Libellé || row.libelle || row.Libelle || "ligne grand livre").trim();
 }
 
 function getAmount(row) {
@@ -206,7 +207,7 @@ function getAmount(row) {
 }
 
 function accountStarts(row, prefixes) {
-  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
+  const compte = getCompte(row);
   return prefixes.some(prefix => compte.startsWith(prefix));
 }
 
@@ -214,22 +215,23 @@ function findBalanceRow(balanceRows, prefixes) {
   return balanceRows.find(row => accountStarts(row, prefixes));
 }
 
-function findLedgerRows(grandLivreRows, prefixes, keywords = []) {
-  return grandLivreRows.filter(row => {
-    const compteMatch = accountStarts(row, prefixes);
-    const text = getRowText(row);
-    const keywordMatch = keywords.some(k => text.includes(normalizeText(k)));
-    return compteMatch || keywordMatch;
-  });
-}
 function cleanEntryLabel(prefix, row) {
-  const raw = String(row.Libellé || row.libelle || "ligne grand livre");
+  const raw = getLibelle(row);
 
   let label = raw
     .replace(/facture non parvenue/gi, "")
+    .replace(/facture non recue/gi, "")
     .replace(/fnp/gi, "")
+    .replace(/facture à établir/gi, "")
+    .replace(/facture a etablir/gi, "")
+    .replace(/fae/gi, "")
     .replace(/cca/gi, "")
+    .replace(/pca/gi, "")
+    .replace(/par/gi, "")
+    .replace(/cap/gi, "")
     .replace(/extourne/gi, "")
+    .replace(/période suivante/gi, "")
+    .replace(/periode suivante/gi, "")
     .replace(/période 2023/gi, "")
     .replace(/periode 2023/gi, "")
     .replace(/\s+/g, " ")
@@ -238,81 +240,6 @@ function cleanEntryLabel(prefix, row) {
   if (!label) label = "ligne grand livre";
 
   return `${prefix} - ${label}`;
-}
-function makeLedgerEntries(rows, config) {
-  return rows.map(row => ({
-    journal: "OD",
-    label: cleanEntryLabel(config.label, row),
-    debit: config.debit,
-    credit: config.credit,
-    amount: getAmount(row) || "À contrôler",
-    justification: config.justification,
-    confidence: config.confidence || 0.9,
-    source: "grandLivre",
-    status: "À valider"
-  }));
-}
-
-function detectStockEntry(balanceRows) {
-  const stockConfigs = [
-    {
-      stockPrefixes: ["37"],
-      variationPrefixes: ["6037"],
-      label: "Variation de stock marchandises",
-      debit: "370000",
-      credit: "603700"
-    },
-    {
-      stockPrefixes: ["31"],
-      variationPrefixes: ["6031"],
-      label: "Variation de stock matières premières",
-      debit: "310000",
-      credit: "603100"
-    },
-    {
-      stockPrefixes: ["35"],
-      variationPrefixes: ["7135"],
-      label: "Production stockée produits finis",
-      debit: "350000",
-      credit: "713500"
-    },
-    {
-      stockPrefixes: ["33"],
-      variationPrefixes: ["7133"],
-      label: "Production stockée travaux en cours",
-      debit: "330000",
-      credit: "713300"
-    }
-  ];
-
-  for (const config of stockConfigs) {
-    const variationRow = findBalanceRow(balanceRows, config.variationPrefixes);
-    const stockRow = findBalanceRow(balanceRows, config.stockPrefixes);
-
-    if (variationRow || stockRow) {
-      return {
-        journal: "OD",
-        label: config.label,
-        debit: config.debit,
-        credit: config.credit,
-        amount: variationRow ? getAmount(variationRow) : getAmount(stockRow) || "À contrôler",
-        justification: "Stock ou variation de stock détecté dans les comptes.",
-        confidence: variationRow ? 0.9 : 0.7,
-        source: variationRow ? "balance variation" : "balance stock",
-        status: "À valider"
-      };
-    }
-  }
-
-  return null;
-}
-
-function getCompte(row) {
-  return String(row.Compte || row.compte || "").replace(/\s/g, "");
-}
-
-function getLibelle(row) {
-  return String(row.Libellé || row.libelle || row.Libelle || "ligne grand livre").trim();
 }
 
 function makeEntryFromRow(row, config) {
@@ -324,9 +251,13 @@ function makeEntryFromRow(row, config) {
     amount: getAmount(row) || "À contrôler",
     justification: config.justification,
     confidence: config.confidence || 0.9,
-    source: "grandLivre",
+    source: config.source || "grandLivre",
     status: "À valider"
   };
+}
+
+function makeLedgerEntries(rows, config) {
+  return rows.map(row => makeEntryFromRow(row, config));
 }
 
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
@@ -369,21 +300,21 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
-  // FNP : plusieurs lignes depuis le grand livre si possible
+  // FNP : factures non parvenues, lecture multi-lignes côté charges
   if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
     const fnpRows = grandLivreRows.filter(row => {
-  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
-  const text = getRowText(row);
+      const compte = getCompte(row);
+      const text = getRowText(row);
 
-  return (
-    compte.startsWith("6") &&
-    (
-      text.includes("fnp") ||
-      text.includes("facture non parvenue") ||
-      text.includes("facture non recue")
-    )
-  );
-});
+      return (
+        compte.startsWith("6") &&
+        (
+          text.includes("fnp") ||
+          text.includes("facture non parvenue") ||
+          text.includes("facture non recue")
+        )
+      );
+    });
 
     if (fnpRows.length) {
       entries.push(...makeLedgerEntries(fnpRows, {
@@ -408,30 +339,30 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     }
   }
 
-  // CCA : plusieurs lignes depuis le grand livre si possible
+  // CCA : charges constatées d'avance
   if (hasAccount(["486"]) && answers.cca === "yes") {
     const ccaRows = grandLivreRows.filter(row => {
-  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
-  const text = getRowText(row);
+      const compte = getCompte(row);
+      const text = getRowText(row);
 
-  return (
-    compte.startsWith("486") &&
-    (
-      text.includes("cca") ||
-      text.includes("charge constatee") ||
-      text.includes("charges constatees") ||
-      text.includes("periode suivante") ||
-      text.includes("periode 2023")
-    )
-  );
-});
+      return (
+        compte.startsWith("486") &&
+        (
+          text.includes("cca") ||
+          text.includes("charge constatee") ||
+          text.includes("charges constatees") ||
+          text.includes("periode suivante") ||
+          text.includes("periode 2023")
+        )
+      );
+    });
 
     if (ccaRows.length) {
       entries.push(...makeLedgerEntries(ccaRows, {
         label: "CCA",
         debit: "486000",
         credit: "616000",
-        justification: "Charge constatée d’avance détectée dans le grand livre.",
+        justification: "Charge constatée d'avance détectée dans le grand livre.",
         confidence: 0.9
       }));
     } else {
@@ -449,107 +380,230 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     }
   }
 
- if (hasAccount(["418"]) && answers.clients === "yes") {
-  const faeRows = grandLivreRows.filter(row => {
-    const compte = getCompte(row);
-    const text = getRowText(row);
-
-    return (
-      compte.startsWith("418") ||
-      text.includes("fae") ||
-      text.includes("facture a etablir") ||
-      text.includes("facture à établir")
-    );
-  });
-
-  if (faeRows.length) {
-    faeRows
-      .filter(row => getCompte(row).startsWith("418"))
-      .forEach(row => {
-        entries.push(makeEntryFromRow(row, {
-          label: "FAE",
-          debit: "418100",
-          credit: "706000",
-          justification: "Facture à établir détectée dans le grand livre.",
-          confidence: 0.9
-        }));
-      });
-  } else {
-    entries.push({
-      journal: "OD",
-      label: "Facture à établir",
-      debit: "418100",
-      credit: "706000",
-      amount: getBalanceAmount(["418"]) || "À contrôler",
-      justification: "Compte 418 détecté : prestation ou vente réalisée avant clôture à facturer.",
-      confidence: 0.85,
-      source: "balance",
-      status: "À valider"
-    });
-  }
-}
-
-  if (answers.stocks === "yes") {
-  const stockConfigs = [
-    {
-      prefixes: ["6031"],
-      label: "Variation stock matières premières",
-      debit: "310000",
-      credit: "603100"
-    },
-    {
-      prefixes: ["6037"],
-      label: "Variation stock marchandises",
-      debit: "370000",
-      credit: "603700"
-    },
-    {
-      prefixes: ["7133"],
-      label: "Production stockée travaux en cours",
-      debit: "330000",
-      credit: "713300"
-    },
-    {
-      prefixes: ["7135"],
-      label: "Production stockée produits finis",
-      debit: "350000",
-      credit: "713500"
-    }
-  ];
-
-  let stockFound = false;
-
-  stockConfigs.forEach(config => {
-    const rows = grandLivreRows.filter(row => {
+  // PCA : produits constatés d'avance
+  if (hasAccount(["487"]) && answers.cca === "yes") {
+    const pcaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
-      return config.prefixes.some(prefix => compte.startsWith(prefix));
+      const text = getRowText(row);
+
+      return (
+        compte.startsWith("487") ||
+        text.includes("pca") ||
+        text.includes("produit constate") ||
+        text.includes("produits constates")
+      );
     });
 
-    rows.forEach(row => {
-      stockFound = true;
+    if (pcaRows.length) {
+      pcaRows
+        .filter(row => getCompte(row).startsWith("487"))
+        .forEach(row => {
+          entries.push(makeEntryFromRow(row, {
+            label: "PCA",
+            debit: "706000",
+            credit: "487000",
+            justification: "Produit constaté d'avance détecté dans le grand livre.",
+            confidence: 0.9
+          }));
+        });
+    } else {
       entries.push({
         journal: "OD",
-        label: config.label,
-        debit: config.debit,
-        credit: config.credit,
-        amount: getAmount(row) || "À contrôler",
-        justification: "Variation de stock détectée dans le grand livre.",
-        confidence: 0.9,
-        source: "grandLivre",
+        label: "PCA",
+        debit: "706000",
+        credit: "487000",
+        amount: getBalanceAmount(["487"]) || "À contrôler",
+        justification: "Compte 487 détecté : produit rattaché à l'exercice suivant.",
+        confidence: 0.85,
+        source: "balance",
         status: "À valider"
       });
-    });
-  });
+    }
+  }
 
-  if (!stockFound) {
-    anomalies.push({
-      type: "stock_not_found",
-      label: "Stock déclaré mais aucune variation de stock exploitable détectée",
-      level: "warning"
+  // FAE : factures à établir
+  if (hasAccount(["418"]) && answers.clients === "yes") {
+    const faeRows = grandLivreRows.filter(row => {
+      const compte = getCompte(row);
+      const text = getRowText(row);
+
+      return (
+        compte.startsWith("418") ||
+        text.includes("fae") ||
+        text.includes("facture a etablir") ||
+        text.includes("facture à établir")
+      );
+    });
+
+    if (faeRows.length) {
+      faeRows
+        .filter(row => getCompte(row).startsWith("418"))
+        .forEach(row => {
+          entries.push(makeEntryFromRow(row, {
+            label: "FAE",
+            debit: "418100",
+            credit: "706000",
+            justification: "Facture à établir détectée dans le grand livre.",
+            confidence: 0.9
+          }));
+        });
+    } else {
+      entries.push({
+        journal: "OD",
+        label: "FAE",
+        debit: "418100",
+        credit: "706000",
+        amount: getBalanceAmount(["418"]) || "À contrôler",
+        justification: "Compte 418 détecté : prestation ou vente réalisée avant clôture à facturer.",
+        confidence: 0.85,
+        source: "balance",
+        status: "À valider"
+      });
+    }
+  }
+
+  // PAR : produits à recevoir
+  if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
+    const parRows = grandLivreRows.filter(row => {
+      const compte = getCompte(row);
+      const text = getRowText(row);
+
+      return (
+        compte.startsWith("4187") ||
+        compte.startsWith("4687") ||
+        text.includes("produit a recevoir") ||
+        text.includes("produits a recevoir")
+      );
+    });
+
+    if (parRows.length) {
+      parRows
+        .filter(row => getCompte(row).startsWith("4187") || getCompte(row).startsWith("4687"))
+        .forEach(row => {
+          const compte = getCompte(row);
+          entries.push(makeEntryFromRow(row, {
+            label: "PAR",
+            debit: compte.startsWith("4687") ? "468700" : "418700",
+            credit: "706000",
+            justification: "Produit à recevoir détecté dans le grand livre.",
+            confidence: 0.9
+          }));
+        });
+    } else {
+      entries.push({
+        journal: "OD",
+        label: "PAR",
+        debit: "418700",
+        credit: "706000",
+        amount: getBalanceAmount(["4187", "4687"]) || "À contrôler",
+        justification: "Produit à recevoir détecté dans la balance.",
+        confidence: 0.85,
+        source: "balance",
+        status: "À valider"
+      });
+    }
+  }
+
+  // CAP : charges à payer hors FNP fournisseurs
+  if (answers.fournisseurs === "yes") {
+    const capRows = grandLivreRows.filter(row => {
+      const compte = getCompte(row);
+      const text = getRowText(row);
+
+      return (
+        compte.startsWith("428") ||
+        compte.startsWith("438") ||
+        compte.startsWith("448") ||
+        compte.startsWith("4686") ||
+        text.includes("cap") ||
+        text.includes("charge a payer") ||
+        text.includes("charges a payer")
+      );
+    });
+
+    capRows.forEach(row => {
+      const compte = getCompte(row);
+      let debit = "6xxxxx";
+      let credit = compte || "468600";
+
+      if (compte.startsWith("428")) debit = "641000";
+      if (compte.startsWith("438")) debit = "645000";
+      if (compte.startsWith("448")) debit = "635000";
+      if (compte.startsWith("4686")) debit = "628000";
+
+      entries.push(makeEntryFromRow(row, {
+        label: "CAP",
+        debit,
+        credit,
+        justification: "Charge à payer détectée dans le grand livre.",
+        confidence: 0.85
+      }));
     });
   }
-}
 
+  // Stocks multi-lignes
+  if (answers.stocks === "yes") {
+    const stockConfigs = [
+      {
+        prefixes: ["6031"],
+        label: "Variation stock matières premières",
+        debit: "310000",
+        credit: "603100"
+      },
+      {
+        prefixes: ["6037"],
+        label: "Variation stock marchandises",
+        debit: "370000",
+        credit: "603700"
+      },
+      {
+        prefixes: ["7133"],
+        label: "Production stockée travaux en cours",
+        debit: "330000",
+        credit: "713300"
+      },
+      {
+        prefixes: ["7135"],
+        label: "Production stockée produits finis",
+        debit: "350000",
+        credit: "713500"
+      }
+    ];
+
+    let stockFound = false;
+
+    stockConfigs.forEach(config => {
+      const rows = grandLivreRows.filter(row => {
+        const compte = getCompte(row);
+        return config.prefixes.some(prefix => compte.startsWith(prefix));
+      });
+
+      rows.forEach(row => {
+        stockFound = true;
+        entries.push({
+          journal: "OD",
+          label: cleanEntryLabel(config.label, row),
+          debit: config.debit,
+          credit: config.credit,
+          amount: getAmount(row) || "À contrôler",
+          justification: "Variation de stock détectée dans le grand livre.",
+          confidence: 0.9,
+          source: "grandLivre",
+          status: "À valider"
+        });
+      });
+    });
+
+    if (!stockFound) {
+      anomalies.push({
+        type: "stock_not_found",
+        label: "Stock déclaré mais aucune variation de stock exploitable détectée",
+        level: "warning"
+      });
+    }
+  }
+
+  // Amortissements
   if (hasAccount(["281", "681"]) && answers.immo === "yes") {
     const amortRow =
       findBalanceRow(balanceRows, ["681"]) ||
@@ -577,75 +631,79 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
- if (hasAccount(["428"]) && answers.paie === "yes") {
-  const amount428 = getBalanceAmount(["428"]) || "À contrôler";
+  // Paie : congés payés + charges sociales associées
+  if (hasAccount(["428"]) && answers.paie === "yes") {
+    const amount428 = getBalanceAmount(["428"]) || "À contrôler";
 
-  entries.push({
-    journal: "OD",
-    label: "Congés payés à payer - charge salariale",
-    debit: "641000",
-    credit: "428200",
-    amount: amount428,
-    justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l’exercice.",
-    confidence: 0.85,
-    source: "balance",
-    status: "À valider"
-  });
-
-  entries.push({
-    journal: "OD",
-    label: "Charges sociales sur congés payés à contrôler",
-    debit: "645000",
-    credit: "438600",
-    amount: "À contrôler",
-    justification: "Charges sociales afférentes aux congés payés à estimer ou vérifier.",
-    confidence: 0.6,
-    source: "analyse",
-    status: "À valider"
-  });
-}
-if (answers.provisions === "yes") {
-  const provisionRows = grandLivreRows.filter(row => {
-    const compte = getCompte(row);
-    const text = getRowText(row);
-
-    return (
-      compte.startsWith("15") ||
-      compte.startsWith("6815") ||
-      text.includes("provision") ||
-      text.includes("litige") ||
-      text.includes("risque") ||
-      text.includes("client douteux")
-    );
-  });
-
-  if (provisionRows.length) {
-    provisionRows
-      .filter(row => getCompte(row).startsWith("6815"))
-      .forEach(row => {
-        entries.push(makeEntryFromRow(row, {
-          label: "Provision",
-          debit: "681500",
-          credit: "151000",
-          justification: "Provision ou risque détecté dans le grand livre.",
-          confidence: 0.8
-        }));
-      });
-  } else {
     entries.push({
       journal: "OD",
-      label: "Provision à documenter",
-      debit: "681500",
-      credit: "151000",
-      amount: "À documenter",
-      justification: "Provision déclarée par l’utilisateur, justificatif ou estimation à fournir.",
-      confidence: 0.5,
-      source: "questionnaire",
+      label: "Congés payés à payer - charge salariale",
+      debit: "641000",
+      credit: "428200",
+      amount: amount428,
+      justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
+
+    entries.push({
+      journal: "OD",
+      label: "Charges sociales sur congés payés à contrôler",
+      debit: "645000",
+      credit: "438600",
+      amount: "À contrôler",
+      justification: "Charges sociales afférentes aux congés payés à estimer ou vérifier.",
+      confidence: 0.6,
+      source: "analyse",
       status: "À valider"
     });
   }
-}
-  
+
+  // Provisions multi-lignes
+  if (answers.provisions === "yes") {
+    const provisionRows = grandLivreRows.filter(row => {
+      const compte = getCompte(row);
+      const text = getRowText(row);
+
+      return (
+        compte.startsWith("15") ||
+        compte.startsWith("6815") ||
+        text.includes("provision") ||
+        text.includes("litige") ||
+        text.includes("risque") ||
+        text.includes("client douteux")
+      );
+    });
+
+    if (provisionRows.length) {
+      provisionRows
+        .filter(row => getCompte(row).startsWith("6815"))
+        .forEach(row => {
+          entries.push(makeEntryFromRow(row, {
+            label: "Provision",
+            debit: "681500",
+            credit: "151000",
+            justification: "Provision ou risque détecté dans le grand livre.",
+            confidence: 0.8
+          }));
+        });
+    } else {
+      entries.push({
+        journal: "OD",
+        label: "Provision à documenter",
+        debit: "681500",
+        credit: "151000",
+        amount: "À documenter",
+        justification: "Provision déclarée par l'utilisateur, justificatif ou estimation à fournir.",
+        confidence: 0.5,
+        source: "questionnaire",
+        status: "À valider"
+      });
+    }
+  }
+
+  // TVA
   if (hasAccount(["44551"])) {
     controls.push({
       type: "vat_due_detected",
@@ -659,21 +717,22 @@ if (answers.provisions === "yes") {
       debit: "445710",
       credit: "445510",
       amount: getBalanceAmount(["44551"]) || "À contrôler",
-      justification: "Compte 445510 détecté : TVA à décaisser au réel normal.",
+      justification: "Compte 445510 détecté : TVA à décaisser.",
       confidence: 0.85,
       source: "balance",
       status: "À valider"
     });
   }
 
+  // Emprunts / intérêts courus
   if (hasAccount(["164", "661"]) && answers.immo === "yes") {
     entries.push({
       journal: "OD",
-      label: "Intérêts d’emprunt à contrôler",
+      label: "Intérêts d'emprunt à contrôler",
       debit: "661100",
       credit: "168800",
       amount: getBalanceAmount(["661"]) || "À contrôler",
-      justification: "Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l’exercice.",
+      justification: "Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l'exercice.",
       confidence: 0.6,
       source: "balance/grandLivre",
       status: "À valider"
@@ -690,6 +749,7 @@ if (answers.provisions === "yes") {
 
   return { entries, controls, anomalies };
 }
+
 exports.parseClosureFiles = onRequest(
   async (req, res) => {
     res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
@@ -749,9 +809,8 @@ exports.parseClosureFiles = onRequest(
       const grandLivreRows = await parseFile(grandLivrePath);
 
       let controls = [];
-let anomalies = [];
-let entries = [];
-      
+      let anomalies = [];
+      let entries = [];
 
       if (balanceRows.length) {
         controls.push({
@@ -783,16 +842,17 @@ let entries = [];
 
       const detected = detectAccountingEntries(balanceRows, grandLivreRows, closure);
 
-controls = [...controls, ...detected.controls];
-anomalies = [...anomalies, ...detected.anomalies];
-entries = detected.entries;
+      controls = [...controls, ...detected.controls];
+      anomalies = [...anomalies, ...detected.anomalies];
+      entries = detected.entries;
+
       await closureRef.set(
         {
           balance: balanceRows,
-grandLivre: grandLivreRows,
-controls,
-anomalies,
-entries,
+          grandLivre: grandLivreRows,
+          controls,
+          anomalies,
+          entries,
           aiAnalysis: {
             status: "parsed",
             model: null,
