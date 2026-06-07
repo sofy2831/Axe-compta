@@ -361,8 +361,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   if (hasAccount(["44551"])) {
   entries.push({
-    label: "TVA à décaisser à contrôler",
     journal: "OD",
+    label: "TVA à décaisser à contrôler",
     debit: "445710",
     credit: "445510",
     amount: getBalanceAmount(["44551"]) || "À contrôler",
