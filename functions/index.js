@@ -601,19 +601,33 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
-  if (hasAccount(["428"]) && answers.paie === "yes") {
-    entries.push({
-      journal: "OD",
-      label: "Congés payés à payer",
-      debit: "641000",
-      credit: "428200",
-      amount: getBalanceAmount(["428"]) || "À contrôler",
-      justification: "Compte 428 détecté : charges de personnel à rattacher à l’exercice.",
-      confidence: 0.85,
-      source: "balance",
-      status: "À valider"
-    });
-  }
+ if (hasAccount(["428"]) && answers.paie === "yes") {
+  const amount428 = getBalanceAmount(["428"]) || "À contrôler";
+
+  entries.push({
+    journal: "OD",
+    label: "Congés payés à payer - charge salariale",
+    debit: "641000",
+    credit: "428200",
+    amount: amount428,
+    justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l’exercice.",
+    confidence: 0.85,
+    source: "balance",
+    status: "À valider"
+  });
+
+  entries.push({
+    journal: "OD",
+    label: "Charges sociales sur congés payés à contrôler",
+    debit: "645000",
+    credit: "438600",
+    amount: "À contrôler",
+    justification: "Charges sociales afférentes aux congés payés à estimer ou vérifier.",
+    confidence: 0.6,
+    source: "analyse",
+    status: "À valider"
+  });
+}
 
   if (hasAccount(["44551"])) {
     controls.push({
