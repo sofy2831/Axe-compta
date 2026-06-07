@@ -214,6 +214,29 @@ function findBalanceRow(balanceRows, prefixes) {
   return balanceRows.find(row => accountStarts(row, prefixes));
 }
 
+function findLedgerRows(grandLivreRows, prefixes, keywords = []) {
+  return grandLivreRows.filter(row => {
+    const compteMatch = accountStarts(row, prefixes);
+    const text = getRowText(row);
+    const keywordMatch = keywords.some(k => text.includes(normalizeText(k)));
+    return compteMatch || keywordMatch;
+  });
+}
+
+function makeLedgerEntries(rows, config) {
+  return rows.map(row => ({
+    journal: "OD",
+    label: `${config.label} - ${row.Libellé || row.libelle || "ligne grand livre"}`,
+    debit: config.debit,
+    credit: config.credit,
+    amount: getAmount(row) || "À contrôler",
+    justification: config.justification,
+    confidence: config.confidence || 0.9,
+    source: "grandLivre",
+    status: "À valider"
+  }));
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
   const controls = [];
@@ -254,38 +277,64 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     });
   }
 
+  // FNP : plusieurs lignes depuis le grand livre si possible
   if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
-    entries.push({
-      label: "Facture non reçue",
-      entries.push(
-      debit: "607000",
-      credit: "408100",
-      amount: getBalanceAmount(["408"]) || "À contrôler",
-      justification: "Compte 408 détecté : facture fournisseur non parvenue à vérifier.",
-      confidence: 0.9,
-      source: "balance",
-      status: "À valider"
-    });
+    const fnpRows = findLedgerRows(grandLivreRows, ["408"], ["fnp", "facture non parvenue", "facture non recue"]);
+
+    if (fnpRows.length) {
+      entries.push(...makeLedgerEntries(fnpRows, {
+        label: "Facture non reçue",
+        debit: "607000",
+        credit: "408100",
+        justification: "Facture fournisseur non parvenue détectée dans le grand livre.",
+        confidence: 0.9
+      }));
+    } else {
+      entries.push({
+        journal: "OD",
+        label: "Facture non reçue",
+        debit: "607000",
+        credit: "408100",
+        amount: getBalanceAmount(["408"]) || "À contrôler",
+        justification: "Compte 408 détecté : facture fournisseur non parvenue à vérifier.",
+        confidence: 0.85,
+        source: "balance",
+        status: "À valider"
+      });
+    }
   }
 
+  // CCA : plusieurs lignes depuis le grand livre si possible
   if (hasAccount(["486"]) && answers.cca === "yes") {
-    entries.push({
-      label: "Charge constatée d’avance",
-      journal: "OD",
-      debit: "486000",
-      credit: "616000",
-      amount: getBalanceAmount(["486"]) || "À contrôler",
-      justification: "Compte 486 détecté : charge couvrant une période postérieure à la clôture.",
-      confidence: 0.9,
-      source: "balance",
-      status: "À valider"
-    });
+    const ccaRows = findLedgerRows(grandLivreRows, ["486"], ["cca", "charge constatee", "charges constatees", "periode suivante", "periode 2023"]);
+
+    if (ccaRows.length) {
+      entries.push(...makeLedgerEntries(ccaRows, {
+        label: "Charge constatée d’avance",
+        debit: "486000",
+        credit: "616000",
+        justification: "Charge constatée d’avance détectée dans le grand livre.",
+        confidence: 0.9
+      }));
+    } else {
+      entries.push({
+        journal: "OD",
+        label: "Charge constatée d’avance",
+        debit: "486000",
+        credit: "616000",
+        amount: getBalanceAmount(["486"]) || "À contrôler",
+        justification: "Compte 486 détecté : charge couvrant une période postérieure à la clôture.",
+        confidence: 0.85,
+        source: "balance",
+        status: "À valider"
+      });
+    }
   }
 
   if (hasAccount(["418"]) && answers.clients === "yes") {
     entries.push({
-      label: "Facture à établir",
       journal: "OD",
+      label: "Facture à établir",
       debit: "418100",
       credit: "707000",
       amount: getBalanceAmount(["418"]) || "À contrôler",
@@ -298,8 +347,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   if ((hasAccount(["37"]) || hasAccount(["603"])) && answers.stocks === "yes") {
     entries.push({
-      label: "Variation de stock",
       journal: "OD",
+      label: "Variation de stock",
       debit: "370000",
       credit: "603700",
       amount: getBalanceAmount(["603"]) || getBalanceAmount(["37"]) || "À contrôler",
@@ -325,8 +374,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       : "281830";
 
     entries.push({
-      label,
       journal: "OD",
+      label,
       debit: "681120",
       credit,
       amount: amount || "À contrôler",
@@ -339,8 +388,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   if (hasAccount(["428"]) && answers.paie === "yes") {
     entries.push({
-      label: "Congés payés à payer",
       journal: "OD",
+      label: "Congés payés à payer",
       debit: "641000",
       credit: "428200",
       amount: getBalanceAmount(["428"]) || "À contrôler",
@@ -357,35 +406,32 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       label: "TVA à décaisser détectée",
       level: "info"
     });
-  }
 
-  if (hasAccount(["44551"])) {
-  entries.push({
-    journal: "OD",
-    label: "TVA à décaisser à contrôler",
-    debit: "445710",
-    credit: "445510",
-    amount: getBalanceAmount(["44551"]) || "À contrôler",
-    justification: "Compte 445510 détecté : TVA à décaisser au réel normal.",
-    confidence: 0.85,
-    source: "balance",
-    status: "À valider"
-  });
-}
-  
+    entries.push({
+      journal: "OD",
+      label: "TVA à décaisser à contrôler",
+      debit: "445710",
+      credit: "445510",
+      amount: getBalanceAmount(["44551"]) || "À contrôler",
+      justification: "Compte 445510 détecté : TVA à décaisser au réel normal.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
+  }
 
   if (hasAccount(["164", "661"]) && answers.immo === "yes") {
     entries.push({
-  journal: "OD",
-  label: "Intérêts d’emprunt à contrôler",
-  debit: "661100",
-  credit: "168800",
-  amount: getBalanceAmount(["661"]) || "À contrôler",
-  justification: `Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l’exercice.`,
-  confidence: 0.6,
-  source: "balance/grandLivre",
-  status: "À valider"
-});
+      journal: "OD",
+      label: "Intérêts d’emprunt à contrôler",
+      debit: "661100",
+      credit: "168800",
+      amount: getBalanceAmount(["661"]) || "À contrôler",
+      justification: "Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l’exercice.",
+      confidence: 0.6,
+      source: "balance/grandLivre",
+      status: "À valider"
+    });
   }
 
   if (entries.length === 0) {
