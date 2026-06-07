@@ -473,12 +473,37 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     }
   }
 
-  if (hasAccount(["418"]) && answers.clients === "yes") {
+ if (hasAccount(["418"]) && answers.clients === "yes") {
+  const faeRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("418") ||
+      text.includes("fae") ||
+      text.includes("facture a etablir") ||
+      text.includes("facture à établir")
+    );
+  });
+
+  if (faeRows.length) {
+    faeRows
+      .filter(row => getCompte(row).startsWith("418"))
+      .forEach(row => {
+        entries.push(makeEntryFromRow(row, {
+          label: "FAE",
+          debit: "418100",
+          credit: "706000",
+          justification: "Facture à établir détectée dans le grand livre.",
+          confidence: 0.9
+        }));
+      });
+  } else {
     entries.push({
       journal: "OD",
       label: "Facture à établir",
       debit: "418100",
-      credit: "707000",
+      credit: "706000",
       amount: getBalanceAmount(["418"]) || "À contrôler",
       justification: "Compte 418 détecté : prestation ou vente réalisée avant clôture à facturer.",
       confidence: 0.85,
@@ -486,6 +511,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
       status: "À valider"
     });
   }
+}
 
   if (answers.stocks === "yes") {
   const stockConfigs = [
