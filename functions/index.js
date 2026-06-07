@@ -318,7 +318,21 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   // CCA : plusieurs lignes depuis le grand livre si possible
   if (hasAccount(["486"]) && answers.cca === "yes") {
-    const ccaRows = findLedgerRows(grandLivreRows, ["486"], ["cca", "charge constatee", "charges constatees", "periode suivante", "periode 2023"]);
+    const ccaRows = grandLivreRows.filter(row => {
+  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
+  const text = getRowText(row);
+
+  return (
+    compte.startsWith("486") &&
+    (
+      text.includes("cca") ||
+      text.includes("charge constatee") ||
+      text.includes("charges constatees") ||
+      text.includes("periode suivante") ||
+      text.includes("periode 2023")
+    )
+  );
+});
 
     if (ccaRows.length) {
       entries.push(...makeLedgerEntries(ccaRows, {
