@@ -628,7 +628,48 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
     status: "À valider"
   });
 }
+if (answers.provisions === "yes") {
+  const provisionRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
 
+    return (
+      compte.startsWith("15") ||
+      compte.startsWith("6815") ||
+      text.includes("provision") ||
+      text.includes("litige") ||
+      text.includes("risque") ||
+      text.includes("client douteux")
+    );
+  });
+
+  if (provisionRows.length) {
+    provisionRows
+      .filter(row => getCompte(row).startsWith("6815"))
+      .forEach(row => {
+        entries.push(makeEntryFromRow(row, {
+          label: "Provision",
+          debit: "681500",
+          credit: "151000",
+          justification: "Provision ou risque détecté dans le grand livre.",
+          confidence: 0.8
+        }));
+      });
+  } else {
+    entries.push({
+      journal: "OD",
+      label: "Provision à documenter",
+      debit: "681500",
+      credit: "151000",
+      amount: "À documenter",
+      justification: "Provision déclarée par l’utilisateur, justificatif ou estimation à fournir.",
+      confidence: 0.5,
+      source: "questionnaire",
+      status: "À valider"
+    });
+  }
+}
+  
   if (hasAccount(["44551"])) {
     controls.push({
       type: "vat_due_detected",
