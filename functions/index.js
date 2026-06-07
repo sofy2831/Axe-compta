@@ -257,6 +257,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
     entries.push({
       label: "Facture non reçue",
+      entries.push(
       debit: "607000",
       credit: "408100",
       amount: getBalanceAmount(["408"]) || "À contrôler",
@@ -270,6 +271,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if (hasAccount(["486"]) && answers.cca === "yes") {
     entries.push({
       label: "Charge constatée d’avance",
+      journal: "OD",
       debit: "486000",
       credit: "616000",
       amount: getBalanceAmount(["486"]) || "À contrôler",
@@ -283,6 +285,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if (hasAccount(["418"]) && answers.clients === "yes") {
     entries.push({
       label: "Facture à établir",
+      journal: "OD",
       debit: "418100",
       credit: "707000",
       amount: getBalanceAmount(["418"]) || "À contrôler",
@@ -296,6 +299,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if ((hasAccount(["37"]) || hasAccount(["603"])) && answers.stocks === "yes") {
     entries.push({
       label: "Variation de stock",
+      journal: "OD",
       debit: "370000",
       credit: "603700",
       amount: getBalanceAmount(["603"]) || getBalanceAmount(["37"]) || "À contrôler",
@@ -322,6 +326,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
     entries.push({
       label,
+      journal: "OD",
       debit: "681120",
       credit,
       amount: amount || "À contrôler",
@@ -335,6 +340,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if (hasAccount(["428"]) && answers.paie === "yes") {
     entries.push({
       label: "Congés payés à payer",
+      journal: "OD",
       debit: "641000",
       credit: "428200",
       amount: getBalanceAmount(["428"]) || "À contrôler",
@@ -356,6 +362,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   if (hasAccount(["44551"])) {
   entries.push({
     label: "TVA à décaisser à contrôler",
+    journal: "OD",
     debit: "445710",
     credit: "445510",
     amount: getBalanceAmount(["44551"]) || "À contrôler",
