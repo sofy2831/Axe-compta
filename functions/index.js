@@ -547,17 +547,42 @@ if (answers.fournisseurs === "yes") {
   }
 
   // Amortissements
-  if (hasAccount(["281", "681"]) && answers.immo === "yes") {
+if (hasAccount(["281", "681"]) && answers.immo === "yes") {
+  const amortRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("6811") ||
+      compte.startsWith("68112") ||
+      text.includes("dotation amortissement") ||
+      text.includes("amortissement")
+    );
+  });
+
+  if (amortRows.length) {
+    amortRows
+      .filter(row => getCompte(row).startsWith("681"))
+      .forEach(row => {
+        const text = getRowText(row);
+        const credit = activity.includes("location meuble") ? "281300" : "281830";
+
+        entries.push(makeEntryFromRow(row, {
+          label: "Dotation amortissement",
+          debit: "681120",
+          credit,
+          justification: "Dotation amortissement détectée dans le grand livre.",
+          confidence: 0.9
+        }));
+      });
+  } else {
     const amortRow = findBalanceRow(balanceRows, ["681"]) || findBalanceRow(balanceRows, ["281"]);
     const amount = amortRow ? getAmount(amortRow) : 0;
-    const label = activity.includes("location meuble")
-      ? "Dotation amortissement immeuble"
-      : "Dotation amortissement";
     const credit = activity.includes("location meuble") ? "281300" : "281830";
 
     entries.push({
       journal: "OD",
-      label,
+      label: "Dotation amortissement",
       debit: "681120",
       credit,
       amount: amount || "À contrôler",
@@ -567,7 +592,7 @@ if (answers.fournisseurs === "yes") {
       status: "À valider"
     });
   }
-
+}
   // Paie : congés payés + charges sociales associées
   if (hasAccount(["428"]) && answers.paie === "yes") {
     const amount428 = getBalanceAmount(["428"]) || "À contrôler";
