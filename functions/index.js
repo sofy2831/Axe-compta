@@ -279,7 +279,19 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
 
   // FNP : plusieurs lignes depuis le grand livre si possible
   if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
-    const fnpRows = findLedgerRows(grandLivreRows, ["408"], ["fnp", "facture non parvenue", "facture non recue"]);
+    const fnpRows = grandLivreRows.filter(row => {
+  const compte = String(row.Compte || row.compte || "").replace(/\s/g, "");
+  const text = getRowText(row);
+
+  return (
+    compte.startsWith("6") &&
+    (
+      text.includes("fnp") ||
+      text.includes("facture non parvenue") ||
+      text.includes("facture non recue")
+    )
+  );
+});
 
     if (fnpRows.length) {
       entries.push(...makeLedgerEntries(fnpRows, {
