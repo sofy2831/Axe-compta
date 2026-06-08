@@ -986,7 +986,8 @@ exports.parseClosureFiles = onRequest(
 
       const closure = closureSnap.data();
       const balancePath = closure.files?.balance?.storagePath;
-      const grandLivrePath = closure.files?.grandLivre?.storagePath;
+const grandLivrePath = closure.files?.grandLivre?.storagePath;
+const amortissementsPath = closure.files?.amortissements?.storagePath;
 
       async function parseFile(storagePath) {
         if (!storagePath) return [];
@@ -1000,7 +1001,8 @@ exports.parseClosureFiles = onRequest(
       }
 
       const balanceRows = await parseFile(balancePath);
-      const grandLivreRows = await parseFile(grandLivrePath);
+const grandLivreRows = await parseFile(grandLivrePath);
+const amortissementRows = await parseFile(amortissementsPath);
 
       let controls = [];
       let anomalies = [];
@@ -1018,7 +1020,7 @@ exports.parseClosureFiles = onRequest(
         anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
       }
 
-      const detected = detectAccountingEntries(balanceRows, grandLivreRows, closure);
+      const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, closure);
 
       controls = [...controls, ...detected.controls];
       anomalies = [...anomalies, ...detected.anomalies];
@@ -1028,6 +1030,7 @@ exports.parseClosureFiles = onRequest(
         {
           balance: balanceRows,
           grandLivre: grandLivreRows,
+          amortissements: amortissementRows,
           controls,
           anomalies,
           entries,
@@ -1048,6 +1051,7 @@ exports.parseClosureFiles = onRequest(
         ok: true,
         balanceRows: balanceRows.length,
         grandLivreRows: grandLivreRows.length
+        amortissementRows: amortissementRows.length
       });
     } catch (error) {
       console.error("parseClosureFiles error:", error);
