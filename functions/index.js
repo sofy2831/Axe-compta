@@ -467,7 +467,7 @@ if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
   }
 }
 
-  // CAP : charges à payer hors FNP et hors paie
+ // CAP : charges à payer hors FNP et hors paie
 if (answers.fournisseurs === "yes") {
   const capRows = grandLivreRows.filter(row => {
     const compte = getCompte(row);
@@ -502,12 +502,11 @@ if (answers.fournisseurs === "yes") {
     let debit = "628000";
     let credit = compte || "468600";
 
-    if (compte.startsWith("448")) debit = "635000";
     if (text.includes("honoraire") || text.includes("avocat") || text.includes("comptable")) debit = "622600";
     if (text.includes("assurance")) debit = "616000";
     if (text.includes("edf") || text.includes("electricite") || text.includes("électricité")) debit = "606100";
     if (text.includes("urssaf") || text.includes("social")) debit = "645000";
-    if (text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
+    if (compte.startsWith("448") || text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
 
     entries.push(makeEntryFromRow(row, {
       label: "CAP",
