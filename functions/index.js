@@ -793,19 +793,6 @@ entries.push({
   status: "À valider"
 });
 
-entries.push({
-  journal: "ANALYSE",
-  label: diff !== null
-    ? `${resultLabel} - ${assetName}`
-    : `Analyse cession - ${assetName}`,
-  debit: "—",
-  credit: "—",
-  amount: resultAmount,
-  justification: analyseText,
-  confidence: diff !== null ? 0.95 : 0.55,
-  source: "analyse",
-  status: "À valider"
-});
 
 controls.push({
   type: "fixed_asset_disposal_detected",
