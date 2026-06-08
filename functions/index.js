@@ -295,7 +295,7 @@ function getAssetNameFromText(row) {
   return label || "immobilisation à identifier";
 }
 
-function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
+function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows = [], closure = {}) {
   const entries = [];
   const controls = [];
   const anomalies = [];
