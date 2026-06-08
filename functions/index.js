@@ -750,19 +750,27 @@ if (answers.provisions === "yes") {
   }
 
   // Emprunts / intérêts courus
-  if (hasAccount(["164", "661"]) && answers.immo === "yes") {
-    entries.push({
-      journal: "OD",
-      label: "Intérêts d'emprunt à contrôler",
-      debit: "661100",
-      credit: "168800",
-      amount: getBalanceAmount(["661"]) || "À contrôler",
-      justification: "Emprunt détecté. Vérifier les intérêts courus non comptabilisés ou les charges financières de l'exercice.",
-      confidence: 0.6,
-      source: "balance/grandLivre",
-      status: "À valider"
-    });
-  }
+if (hasAccount(["164", "661"]) && answers.immo === "yes") {
+  const interestRow =
+    findBalanceRow(balanceRows, ["661"]) ||
+    grandLivreRows.find(row => accountStarts(row, ["661"]));
+
+  const amount = interestRow ? getAmount(interestRow) : 0;
+
+  entries.push({
+    journal: "OD",
+    label: "Intérêts d'emprunt à contrôler",
+    debit: "661100",
+    credit: "168800",
+    amount: amount || "À contrôler",
+    justification: amount
+      ? "Compte 661 détecté : vérifier les intérêts courus et le tableau d'emprunt."
+      : "Emprunt détecté sans compte 661 exploitable : importer ou vérifier le tableau d'emprunt.",
+    confidence: amount ? 0.75 : 0.55,
+    source: amount ? "balance/grandLivre" : "analyse",
+    status: "À valider"
+  });
+}
 
   if (entries.length === 0) {
     anomalies.push({
