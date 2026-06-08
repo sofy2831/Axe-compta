@@ -763,18 +763,18 @@ if (answers.immo === "yes") {
     });
 
     entries.push({
-      journal: "OD",
-      label: `Sortie immobilisation - Sortie valeur brute - ${assetName}`,
-      debit: "675000",
-      credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
-      amount: bruteAmount || "À contrôler",
-      justification: assetRow
-        ? "Valeur brute issue du tableau des immobilisations."
-        : "Valeur brute à vérifier avec le tableau des immobilisations.",
-      confidence: bruteAmount ? 0.8 : 0.55,
-      source: assetRow ? "tableau amortissements" : "balance",
-      status: "À valider"
-    });
+  journal: "OD",
+  label: `Sortie immobilisation - VNC - ${assetName}`,
+  debit: "675000",
+  credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
+  amount: retainedVnc,
+  justification: calculatedVnc
+    ? `VNC calculée : valeur brute ${bruteAmount} - amortissements ${amortAmount} = ${calculatedVnc}.`
+    : "VNC à vérifier avec le tableau des immobilisations.",
+  confidence: retainedVnc !== "À contrôler" ? 0.8 : 0.55,
+  source: assetRow ? "tableau amortissements" : "balance/grandLivre",
+  status: "À valider"
+});
 
     entries.push({
       journal: "ANALYSE",
