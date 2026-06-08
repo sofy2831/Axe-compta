@@ -786,13 +786,11 @@ entries.push({
 
 entries.push({
   journal: "ANALYSE",
-  label: analyseText,
-  debit: "",
-  credit: "",
-  amount: "",
-  justification: diff !== null
-    ? `Calcul automatique : prix de cession ${cessionAmount} € - VNC ${retainedVnc} € = ${diff} €.`
-    : "Plus ou moins-value à contrôler avec le prix de cession et la VNC.",
+  label: `Analyse cession - ${assetName}`,
+  debit: "—",
+  credit: "—",
+  amount: resultAmount,
+  justification: analyseText,
   confidence: diff !== null ? 0.95 : 0.55,
   source: "analyse",
   status: "À valider"
