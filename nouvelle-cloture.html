@@ -100,6 +100,11 @@ createdAt:serverTimestamp(),updatedAt:serverTimestamp()
 const updates={};
 if(balance){const balancePath=`closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;await uploadBytes(ref(storage,balancePath),balance);updates["files.balance"]=fileInfo(balance,balancePath);}
 if(ledger){const ledgerPath=`closures/${currentUser.uid}/${docRef.id}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;await uploadBytes(ref(storage,ledgerPath),ledger);updates["files.grandLivre"]=fileInfo(ledger,ledgerPath);}
+  if(amort){
+  const amortPath=`closures/${currentUser.uid}/${docRef.id}/amortissements-${Date.now()}-${cleanFileName(amort.name)}`;
+  await uploadBytes(ref(storage,amortPath),amort);
+  updates["files.amortissements"]=fileInfo(amort,amortPath);
+}
 if(Object.keys(updates).length){updates.updatedAt=serverTimestamp();await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);}
 window.location.href=`cloture-analyse.html?id=${docRef.id}`;
 }catch(e){console.error(e);msg.textContent="Erreur lors de l’enregistrement du dossier.";btn.disabled=false;btn.textContent="Enregistrer et continuer";}
