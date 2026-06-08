@@ -523,33 +523,7 @@ if (answers.fournisseurs === "yes") {
   });
 }
 
-    // Sécurité : on exclut les charges sociales / congés déjà traités dans le bloc paie
-    if (
-      compte.startsWith("428") ||
-      compte.startsWith("438") ||
-      text.includes("conges payes") ||
-      text.includes("congés payés") ||
-      text.includes("cotisations conges") ||
-      text.includes("cotisations congés")
-    ) {
-      return;
-    }
-
-    let debit = "6xxxxx";
-    let credit = compte || "468600";
-
-    if (compte.startsWith("448")) debit = "635000";
-    if (compte.startsWith("4686")) debit = "628000";
-
-    entries.push(makeEntryFromRow(row, {
-      label: "CAP",
-      debit,
-      credit,
-      justification: "Charge à payer détectée dans le grand livre.",
-      confidence: 0.85
-    }));
-  });
-}
+   
   // Stocks multi-lignes
   if (answers.stocks === "yes") {
     const stockConfigs = [
