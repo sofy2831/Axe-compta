@@ -803,7 +803,8 @@ controls.push({
   label: "Sortie d'immobilisation détectée",
   level: "warning"
 });
-  
+  });
+}
  // Paie : congés payés + charges sociales associées
 if (hasAccount(["428"]) && answers.paie === "yes") {
   const amount428 = getBalanceAmount(["428"]) || 0;
