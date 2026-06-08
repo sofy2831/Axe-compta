@@ -1073,6 +1073,7 @@ const amortissementsPath = closure.files?.amortissements?.storagePath;
       const balanceRows = await parseFile(balancePath);
 const grandLivreRows = await parseFile(grandLivrePath);
 const amortissementRows = await parseFile(amortissementsPath);
+  const empruntRows = await parseFile(empruntPath);    
 
       let controls = [];
       let anomalies = [];
