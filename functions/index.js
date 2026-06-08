@@ -179,6 +179,12 @@ function cleanEntryLabel(prefix, row) {
   const raw = getLibelle(row);
 
   let label = raw
+    .replace(/\bfnp\b/gi, "")
+    .replace(/\bcca\b/gi, "")
+    .replace(/\bpca\b/gi, "")
+    .replace(/\bfae\b/gi, "")
+    .replace(/\bpar\b/gi, "")
+    .replace(/\bcap\b/gi, "")
     .replace(/facture non parvenue/gi, "")
     .replace(/facture non recue/gi, "")
     .replace(/facture à établir/gi, "")
