@@ -1081,7 +1081,7 @@ const amortissementRows = await parseFile(amortissementsPath);
       res.json({
         ok: true,
         balanceRows: balanceRows.length,
-        grandLivreRows: grandLivreRows.length
+        grandLivreRows: grandLivreRows.length,
         amortissementRows: amortissementRows.length
       });
     } catch (error) {
