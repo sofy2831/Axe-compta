@@ -105,12 +105,6 @@ function renderEntries(){entriesRows.innerHTML=currentEntries.length?currentEntr
 
 async function startCheckout(plan){if(!currentUser){window.location.href="connexion.html";return;}if(!id){alert("Dossier introuvable.");return;}try{const btn=plan==="monthly"?payMonthlyBtn:payOneShotBtn;btn.disabled=true;btn.textContent="Redirection Stripe...";const response=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});const data=await response.json();if(!response.ok||!data.url)throw new Error(data.error||"Impossible de créer la session Stripe.");window.location.href=data.url;}catch(error){alert(error.message||"Erreur Stripe.");payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;payOneShotBtn.textContent="Débloquer cette clôture — 39 €";payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";}}
 
-payOneShotBtn.addEventListener("click",()=>startCheckout("one-shot"));
-payMonthlyBtn.addEventListener("click",()=>startCheckout("monthly"));
-exportPdfBtn.addEventListener("click",exportPdf);
-exportExcelBtn.addEventListener("click",exportExcel);
-exportCsvBtn.addEventListener("click",exportCsv);
-
 onAuthStateChanged(auth, async user => {
   try {
     if (!user) {
