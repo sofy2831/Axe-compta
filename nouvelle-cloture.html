@@ -78,8 +78,10 @@ const companyName=document.getElementById("companyName").value.trim();
 if(!companyName){msg.textContent="Indiquez le nom de l’entreprise.";return;}
 const balance = balanceFile.files[0] || null;
 const ledger = ledgerFile.files[0] || null;
+const amort = amortFile.files[0] || null;
+    
 
-if(!isAllowedFile(balance) || !isAllowedFile(ledger)){
+if(!isAllowedFile(balance) || !isAllowedFile(ledger) || !isAllowedFile(amort)){
   msg.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
   return;
 }
