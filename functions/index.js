@@ -274,6 +274,26 @@ function dedupeEntries(entries) {
     return true;
   });
 }
+function findLedgerRowsByPrefixes(rows, prefixes) {
+  return rows.filter(row => accountStarts(row, prefixes));
+}
+
+function getAssetNameFromText(row) {
+  const raw = getLibelle(row);
+
+  let label = raw
+    .replace(/cession immobilisation/gi, "")
+    .replace(/vente immobilisation/gi, "")
+    .replace(/sortie immobilisation/gi, "")
+    .replace(/vnc sortie immobilisation/gi, "")
+    .replace(/vnc/gi, "")
+    .replace(/mise au rebut/gi, "")
+    .replace(/^[-–—:\s]+/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return label || "immobilisation à identifier";
+}
 
 function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   const entries = [];
@@ -638,55 +658,119 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
   }
 }
 
-// Sorties d'immobilisations : cession ou mise au rebut
+// Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
-  const sortieRows = grandLivreRows.filter(row => {
-    const compte = getCompte(row);
-    const text = getRowText(row);
+  const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
+  const vncRows = findLedgerRowsByPrefixes(grandLivreRows, ["675"]);
 
-    return (
-      compte.startsWith("675") ||
-      compte.startsWith("775") ||
-      text.includes("sortie immo") ||
-      text.includes("sortie immobilisation") ||
-      text.includes("cession immobilisation") ||
-      text.includes("vente immobilisation") ||
-      text.includes("mise au rebut")
-    );
-  });
+  cessionRows.forEach(cessionRow => {
+    const assetName = getAssetNameFromText(cessionRow);
+    const cessionAmount = getAmount(cessionRow);
 
-  sortieRows.forEach(row => {
-    const compte = getCompte(row);
-    const text = getRowText(row);
+    const relatedVncRow = vncRows.find(row =>
+      getRowText(row).includes(normalizeText(assetName))
+    ) || vncRows[0];
 
-    if (compte.startsWith("775") || text.includes("vente") || text.includes("cession")) {
-      entries.push(makeEntryFromRow(row, {
-        label: "Sortie immobilisation - prix de cession",
-        debit: "462000",
-        credit: "775000",
-        justification: "Prix de cession d'immobilisation détecté dans le grand livre. Vérifier la facture de vente.",
-        confidence: 0.85
-      }));
+    const vncAmount = relatedVncRow ? getAmount(relatedVncRow) : 0;
+
+    const bruteRow = balanceRows.find(row =>
+      accountStarts(row, ["21"]) &&
+      getRowText(row).includes(normalizeText(assetName))
+    ) || findBalanceRow(balanceRows, ["21"]);
+
+    const amortRow = balanceRows.find(row =>
+      accountStarts(row, ["28"]) &&
+      getRowText(row).includes(normalizeText(assetName))
+    ) || findBalanceRow(balanceRows, ["28"]);
+
+    const bruteAmount = bruteRow ? getAmount(bruteRow) : 0;
+    const amortAmount = amortRow ? getAmount(amortRow) : 0;
+    const calculatedVnc = bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0;
+    const retainedVnc = vncAmount || calculatedVnc || "À contrôler";
+
+    let resultLabel = "Plus/Moins-value à contrôler";
+    let resultAmount = "À contrôler";
+
+    if (cessionAmount && typeof retainedVnc === "number") {
+      const diff = cessionAmount - retainedVnc;
+      resultAmount = Math.abs(diff);
+      resultLabel = diff >= 0 ? "Plus-value estimée" : "Moins-value estimée";
     }
 
-    if (compte.startsWith("675") || text.includes("vnc") || text.includes("valeur nette comptable") || text.includes("mise au rebut")) {
-      entries.push(makeEntryFromRow(row, {
-        label: "Sortie immobilisation - VNC",
-        debit: "675000",
-        credit: "21xxxx",
-        justification: "Valeur nette comptable ou mise au rebut détectée. Vérifier le tableau des immobilisations.",
-        confidence: 0.8
-      }));
-    }
-  });
+    entries.push({
+      journal: "OD",
+      label: `Sortie immobilisation - prix de cession - ${assetName}`,
+      debit: "462000",
+      credit: "775000",
+      amount: cessionAmount || "À contrôler",
+      justification: "Prix de cession détecté dans le grand livre. Vérifier la facture de vente.",
+      confidence: cessionAmount ? 0.85 : 0.6,
+      source: "grandLivre",
+      status: "À valider"
+    });
 
-  const hasSortie = sortieRows.length > 0;
+    entries.push({
+      journal: "OD",
+      label: `Sortie immobilisation - valeur brute et amortissements - ${assetName}`,
+      debit: amortRow ? getCompte(amortRow) : "28xxxx",
+      credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
+      amount: bruteAmount || "À contrôler",
+      justification: "Sortie de la valeur brute et des amortissements cumulés à vérifier avec le tableau des immobilisations.",
+      confidence: bruteAmount && amortAmount ? 0.75 : 0.55,
+      source: "balance/grandLivre",
+      status: "À valider"
+    });
 
-  if (hasSortie) {
+    entries.push({
+      journal: "OD",
+      label: `Sortie immobilisation - VNC - ${assetName}`,
+      debit: "675000",
+      credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
+      amount: retainedVnc,
+      justification: calculatedVnc
+        ? `VNC calculée : valeur brute ${bruteAmount} - amortissements ${amortAmount} = ${calculatedVnc}.`
+        : "VNC détectée ou à vérifier avec le tableau des immobilisations.",
+      confidence: vncAmount || calculatedVnc ? 0.8 : 0.55,
+      source: vncAmount ? "grandLivre" : "balance",
+      status: "À valider"
+    });
+
+    entries.push({
+      journal: "CONTRÔLE",
+      label: `${resultLabel} - ${assetName}`,
+      debit: "",
+      credit: "",
+      amount: resultAmount,
+      justification: cessionAmount && typeof retainedVnc === "number"
+        ? `Prix de cession ${cessionAmount} - VNC ${retainedVnc} = ${cessionAmount - retainedVnc}.`
+        : "Plus ou moins-value à contrôler avec le prix de cession et la VNC.",
+      confidence: cessionAmount && typeof retainedVnc === "number" ? 0.85 : 0.55,
+      source: "analyse",
+      status: "À valider"
+    });
+
     controls.push({
       type: "fixed_asset_disposal_detected",
       label: "Sortie d'immobilisation détectée",
       level: "warning"
+    });
+  });
+
+  if (!cessionRows.length && vncRows.length) {
+    vncRows.forEach(row => {
+      const assetName = getAssetNameFromText(row);
+
+      entries.push({
+        journal: "OD",
+        label: `Sortie immobilisation - VNC - ${assetName}`,
+        debit: "675000",
+        credit: "21xxxx",
+        amount: getAmount(row) || "À contrôler",
+        justification: "VNC de sortie détectée sans prix de cession. Vérifier s'il s'agit d'une mise au rebut.",
+        confidence: 0.65,
+        source: "grandLivre",
+        status: "À valider"
+      });
     });
   }
 }
