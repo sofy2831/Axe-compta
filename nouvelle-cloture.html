@@ -83,6 +83,7 @@ if(!companyName){msg.textContent="Indiquez le nom de l’entreprise.";return;}
 const balance = balanceFile.files[0] || null;
 const ledger = ledgerFile.files[0] || null;
 const amort = amortFile.files[0] || null;
+    const loan = loanFile.files[0] || null;
     
 
 if(!isAllowedFile(balance) || !isAllowedFile(ledger) || !isAllowedFile(amort)){
