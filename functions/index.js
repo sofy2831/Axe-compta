@@ -191,9 +191,6 @@ function cleanEntryLabel(prefix, row) {
     .replace(/charges a payer/gi, "")
     .replace(/dotation amortissement/gi, "")
     .replace(/dotation aux amortissements/gi, "")
-    .replace(/provision/gi, "")
-    .replace(/dépréciation/gi, "")
-    .replace(/depreciation/gi, "")
     .replace(/extourne/gi, "")
     .replace(/période suivante/gi, "")
     .replace(/periode suivante/gi, "")
@@ -203,7 +200,7 @@ function cleanEntryLabel(prefix, row) {
     .replace(/^[-–—:\s]+/, "")
     .trim();
 
-  if (!label) label = getLibelle(row);
+  if (!label) label = raw || "ligne grand livre";
 
   return `${prefix} - ${label}`;
 }
