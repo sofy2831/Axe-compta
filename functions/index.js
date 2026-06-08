@@ -741,10 +741,13 @@ const analyseText =
 `Immobilisation : ${assetName}
 
 Valeur brute : ${bruteAmount || "?"} €
-Amortissements : ${amortAmount || "?"} €
+Amortissements cumulés : ${amortAmount || "?"} €
 VNC : ${retainedVnc} €
 
 Prix de cession : ${cessionAmount || "?"} €
+
+Calcul :
+${cessionAmount || "?"} € - ${retainedVnc} € = ${diff !== null ? diff : "?"} €
 
 ${resultLabel} : ${resultAmount} €`;
 
@@ -786,7 +789,9 @@ entries.push({
 
 entries.push({
   journal: "ANALYSE",
-  label: `Analyse cession - ${assetName}`,
+  label: diff !== null
+    ? `${resultLabel} - ${assetName}`
+    : `Analyse cession - ${assetName}`,
   debit: "—",
   credit: "—",
   amount: resultAmount,
