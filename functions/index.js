@@ -557,7 +557,7 @@ if (answers.fournisseurs === "yes") {
     }
   }
 
- // Amortissements
+// Amortissements
 if (hasAccount(["281", "681"]) && answers.immo === "yes") {
   const amortRows = grandLivreRows.filter(row => {
     const compte = getCompte(row);
@@ -581,7 +581,7 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
           label: "Dotation amortissement",
           debit: "681120",
           credit,
-          justification: "Dotation amortissement détectée dans le grand livre.",
+          justification: "Dotation amortissement détectée dans le grand livre. Vérifier le tableau d’amortissement.",
           confidence: 0.9
         }));
       });
@@ -596,7 +596,7 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
       debit: "681120",
       credit,
       amount: amount || "À contrôler",
-      justification: "Amortissement détecté dans la balance.",
+      justification: "Amortissement détecté dans la balance. Vérifier le tableau d’amortissement.",
       confidence: amount ? 0.9 : 0.65,
       source: "balance",
       status: "À valider"
