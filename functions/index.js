@@ -225,6 +225,13 @@ function cleanEntryLabel(prefix, row) {
     .replace(/periode 2023/gi, "")
     .replace(/\s+/g, " ")
     .replace(/^[-–—:\s]+/, "")
+    .replace(/sortie immobilisation/gi, "")
+.replace(/sortie immo/gi, "")
+.replace(/cession immobilisation/gi, "")
+.replace(/vente immobilisation/gi, "")
+.replace(/mise au rebut/gi, "")
+.replace(/valeur nette comptable/gi, "")
+.replace(/vnc/gi, "")
     .trim();
 
   if (!label) label = raw || "ligne grand livre";
