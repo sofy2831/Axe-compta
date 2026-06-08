@@ -429,46 +429,49 @@ if (hasAccount(["418"]) && answers.clients === "yes") {
 }
 
   // PAR : produits à recevoir
-  if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
-    const parRows = grandLivreRows.filter(row => {
+if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
+  const parRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("4187") ||
+      compte.startsWith("4687") ||
+      text.includes("produit a recevoir") ||
+      text.includes("produits a recevoir") ||
+      text.includes("produit à recevoir") ||
+      text.includes("produits à recevoir")
+    );
+  });
+
+  if (parRows.length) {
+    parRows.forEach(row => {
       const compte = getCompte(row);
-      const text = getRowText(row);
 
-      return compte.startsWith("4187") ||
-        compte.startsWith("4687") ||
-        text.includes("produit a recevoir") ||
-        text.includes("produits a recevoir");
-    });
-
-    if (parRows.length) {
-      parRows
-        .filter(row => getCompte(row).startsWith("4187") || getCompte(row).startsWith("4687"))
-        .forEach(row => {
-          const compte = getCompte(row);
-          entries.push(makeEntryFromRow(row, {
-            label: "PAR",
-            debit: compte.startsWith("4687") ? "468700" : "418700",
-            credit: "706000",
-            justification: "Produit à recevoir détecté dans le grand livre.",
-            confidence: 0.9
-          }));
-        });
-    } else {
-      entries.push({
-        journal: "OD",
+      entries.push(makeEntryFromRow(row, {
         label: "PAR",
-        debit: "418700",
+        debit: compte.startsWith("4687") ? "468700" : "418700",
         credit: "706000",
-        amount: getBalanceAmount(["4187", "4687"]) || "À contrôler",
-        justification: "Produit à recevoir détecté dans la balance.",
-        confidence: 0.85,
-        source: "balance",
-        status: "À valider"
-      });
-    }
+        justification: "Produit à recevoir détecté dans le grand livre.",
+        confidence: 0.9
+      }));
+    });
+  } else {
+    entries.push({
+      journal: "OD",
+      label: "PAR",
+      debit: "418700",
+      credit: "706000",
+      amount: getBalanceAmount(["4187", "4687"]) || "À contrôler",
+      justification: "Produit à recevoir détecté dans la balance.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
   }
+}
 
-  // CAP : charges à payer hors FNP fournisseurs et hors paie
+  // CAP : charges à payer hors FNP et hors paie
 if (answers.fournisseurs === "yes") {
   const capRows = grandLivreRows.filter(row => {
     const compte = getCompte(row);
@@ -479,13 +482,46 @@ if (answers.fournisseurs === "yes") {
       compte.startsWith("4686") ||
       text.includes("cap") ||
       text.includes("charge a payer") ||
-      text.includes("charges a payer")
+      text.includes("charge à payer") ||
+      text.includes("charges a payer") ||
+      text.includes("charges à payer")
     );
   });
 
   capRows.forEach(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
+
+    if (
+      compte.startsWith("428") ||
+      compte.startsWith("438") ||
+      text.includes("conges payes") ||
+      text.includes("congés payés") ||
+      text.includes("cotisations conges") ||
+      text.includes("cotisations congés")
+    ) {
+      return;
+    }
+
+    let debit = "628000";
+    let credit = compte || "468600";
+
+    if (compte.startsWith("448")) debit = "635000";
+    if (text.includes("honoraire") || text.includes("avocat") || text.includes("comptable")) debit = "622600";
+    if (text.includes("assurance")) debit = "616000";
+    if (text.includes("edf") || text.includes("electricite") || text.includes("électricité")) debit = "606100";
+    if (text.includes("urssaf") || text.includes("social")) debit = "645000";
+    if (text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
+
+    entries.push(makeEntryFromRow(row, {
+      label: "CAP",
+      debit,
+      credit,
+      justification: "Charge à payer détectée dans le grand livre.",
+      confidence: 0.85
+    }));
+  });
+}
 
     // Sécurité : on exclut les charges sociales / congés déjà traités dans le bloc paie
     if (
