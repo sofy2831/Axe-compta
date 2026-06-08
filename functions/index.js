@@ -181,23 +181,19 @@ function cleanEntryLabel(prefix, row) {
   let label = raw
     .replace(/facture non parvenue/gi, "")
     .replace(/facture non recue/gi, "")
-    .replace(/fnp/gi, "")
     .replace(/facture à établir/gi, "")
     .replace(/facture a etablir/gi, "")
-    .replace(/fae/gi, "")
     .replace(/produit à recevoir/gi, "")
     .replace(/produit a recevoir/gi, "")
-    .replace(/par/gi, "")
     .replace(/charge à payer/gi, "")
     .replace(/charge a payer/gi, "")
     .replace(/charges à payer/gi, "")
     .replace(/charges a payer/gi, "")
-    .replace(/cap/gi, "")
-    .replace(/cca/gi, "")
-    .replace(/pca/gi, "")
     .replace(/dotation amortissement/gi, "")
     .replace(/dotation aux amortissements/gi, "")
-    .replace(/amortissement/gi, "")
+    .replace(/provision/gi, "")
+    .replace(/dépréciation/gi, "")
+    .replace(/depreciation/gi, "")
     .replace(/extourne/gi, "")
     .replace(/période suivante/gi, "")
     .replace(/periode suivante/gi, "")
@@ -207,7 +203,7 @@ function cleanEntryLabel(prefix, row) {
     .replace(/^[-–—:\s]+/, "")
     .trim();
 
-  if (!label) label = "ligne grand livre";
+  if (!label) label = getLibelle(row);
 
   return `${prefix} - ${label}`;
 }
