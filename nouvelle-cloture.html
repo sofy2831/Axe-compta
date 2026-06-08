@@ -159,10 +159,19 @@ try {
     updates["files.emprunt"] = fileInfo(loan, loanPath);
   }
 
-  if(Object.keys(updates).length){
-    
-if(Object.keys(updates).length){updates.updatedAt=serverTimestamp();await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);}
-window.location.href=`cloture-analyse.html?id=${docRef.id}`;
-}catch(e){console.error(e);msg.textContent="Erreur lors de l’enregistrement du dossier.";btn.disabled=false;btn.textContent="Enregistrer et continuer";}
+        if(Object.keys(updates).length){
+    updates.updatedAt = serverTimestamp();
+    await updateDoc(doc(db, "users", currentUser.uid, "closures", docRef.id), updates);
+  }
+
+  window.location.href = `cloture-analyse.html?id=${docRef.id}`;
+
+}catch(e){
+  console.error(e);
+  msg.textContent = "Erreur lors de l’enregistrement du dossier.";
+  btn.disabled = false;
+  btn.textContent = "Enregistrer et continuer";
+}
 });
 </script></body></html>
+
