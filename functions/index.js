@@ -323,6 +323,10 @@ function getAssetValue(row, keywords) {
   return 0;
 }
 
+function findFirstRowByPrefixes(rows, prefixes) {
+  return rows.find(row => accountStarts(row, prefixes));
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows = [], closure = {}) {
   const entries = [];
   const controls = [];
