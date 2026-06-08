@@ -440,12 +440,11 @@ if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
   if (parRows.length) {
     parRows.forEach(row => {
       const compte = getCompte(row);
-
       entries.push(makeEntryFromRow(row, {
         label: "PAR",
         debit: compte.startsWith("4687") ? "468700" : "418700",
         credit: "706000",
-        justification: "Produit à recevoir détecté dans le grand livre.",
+        justification: "Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l’exercice.",
         confidence: 0.9
       }));
     });
@@ -456,7 +455,7 @@ if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
       debit: "418700",
       credit: "706000",
       amount: getBalanceAmount(["4187", "4687"]) || "À contrôler",
-      justification: "Produit à recevoir détecté dans la balance.",
+      justification: "Produit à recevoir détecté dans la balance. Vérifier le justificatif.",
       confidence: 0.85,
       source: "balance",
       status: "À valider"
