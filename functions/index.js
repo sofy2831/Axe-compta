@@ -1020,6 +1020,14 @@ const amortissementRows = await parseFile(amortissementsPath);
         anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
       }
 
+      if (amortissementRows.length) {
+  controls.push({
+    type: "amortissements_loaded",
+    label: "Tableau d’amortissement chargé",
+    count: amortissementRows.length
+  });
+}
+      
       const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, closure);
 
       controls = [...controls, ...detected.controls];
