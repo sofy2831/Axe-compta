@@ -86,7 +86,12 @@ const amort = amortFile.files[0] || null;
     const loan = loanFile.files[0] || null;
     
 
-if(!isAllowedFile(balance) || !isAllowedFile(ledger) || !isAllowedFile(amort)){
+if(
+  !isAllowedFile(balance) ||
+  !isAllowedFile(ledger) ||
+  !isAllowedFile(amort) ||
+  !isAllowedFile(loan)
+){
   msg.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
   return;
 }
