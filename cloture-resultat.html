@@ -112,17 +112,13 @@ exportExcelBtn.addEventListener("click",exportExcel);
 exportCsvBtn.addEventListener("click",exportCsv);
 
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;if(!id){window.location.href="tableau-de-bord.html";return;}const closureSnap=await getDoc(doc(db,"users",user.uid,"closures",id));const userSnap=await getDoc(doc(db,"users",user.uid));if(!closureSnap.exists()){window.location.href="tableau-de-bord.html";return;}const c=closureSnap.data();const u=userSnap.exists()?userSnap.data():{};currentClosure=c;closureInfo.textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`;backLink.href=`cloture-analyse.html?id=${id}`;currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});currentEntries=currentEntries.map(e=>({journal:e.journal||"OD",...e,status:e.status||"À valider"}));cyclesCount.textContent=Object.keys(c.answers||{}).length;entriesCount.textContent=currentEntries.length;renderEntries();docsCount.textContent = currentEntries.filter(e => {
-  const text = `${e.label || ""} ${e.justification || ""} ${e.amount || ""}`.toLowerCase();
+  cyclesCount.textContent = countCycles(c);
+entriesCount.textContent = currentEntries.length;
+docsCount.textContent = countDocs(currentEntries);
+renderEntries();
 
-  return (
-    text.includes("à contrôler") ||
-    text.includes("à documenter") ||
-    text.includes("amortissement") ||
-    text.includes("provision") ||
-    text.includes("intérêts") ||
-    text.includes("congés") ||
-    text.includes("stock")
-  );
-}).length;const hasAccess=c.paid===true||u.plan==="monthly";hasAccess?unlockResult():lockResult();});
+const hasAccess = c.paid === true || u.plan === "monthly";
+hasAccess ? unlockResult() : lockResult();
+});
 logoutBtn.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script></body></html>
