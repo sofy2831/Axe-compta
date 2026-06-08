@@ -390,43 +390,43 @@ function detectAccountingEntries(balanceRows, grandLivreRows, closure = {}) {
   }
 
   // FAE : factures à établir
-  if (hasAccount(["418"]) && answers.clients === "yes") {
-    const faeRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
+if (hasAccount(["418"]) && answers.clients === "yes") {
+  const faeRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
 
-      return compte.startsWith("418") ||
-        text.includes("fae") ||
-        text.includes("facture a etablir") ||
-        text.includes("facture à établir");
-    });
+    return (
+      compte.startsWith("4181") ||
+      text.includes("fae") ||
+      text.includes("facture a etablir") ||
+      text.includes("facture à établir")
+    );
+  });
 
-    if (faeRows.length) {
-      faeRows
-        .filter(row => getCompte(row).startsWith("418"))
-        .forEach(row => {
-          entries.push(makeEntryFromRow(row, {
-            label: "FAE",
-            debit: "418100",
-            credit: "706000",
-            justification: "Facture à établir détectée dans le grand livre.",
-            confidence: 0.9
-          }));
-        });
-    } else {
-      entries.push({
-        journal: "OD",
+  if (faeRows.length) {
+    faeRows.forEach(row => {
+      entries.push(makeEntryFromRow(row, {
         label: "FAE",
         debit: "418100",
         credit: "706000",
-        amount: getBalanceAmount(["418"]) || "À contrôler",
-        justification: "Compte 418 détecté : prestation ou vente réalisée avant clôture à facturer.",
-        confidence: 0.85,
-        source: "balance",
-        status: "À valider"
-      });
-    }
+        justification: "Facture à établir détectée dans le grand livre.",
+        confidence: 0.9
+      }));
+    });
+  } else {
+    entries.push({
+      journal: "OD",
+      label: "FAE",
+      debit: "418100",
+      credit: "706000",
+      amount: getBalanceAmount(["4181"]) || "À contrôler",
+      justification: "Compte 418100 détecté : prestation ou vente réalisée avant clôture à facturer.",
+      confidence: 0.85,
+      source: "balance",
+      status: "À valider"
+    });
   }
+}
 
   // PAR : produits à recevoir
   if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
