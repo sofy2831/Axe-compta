@@ -61,6 +61,33 @@ let currentEntries = [];
 function safe(v){return String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function entryJournal(e){return e.journal || "OD";}
 function entryStatus(e){return e.status || "À valider";}
+  function countCycles(c){
+  const controls = Array.isArray(c.controls) ? c.controls : [];
+  const businessControls = controls.filter(ctrl =>
+    !["balance_loaded", "grand_livre_loaded"].includes(ctrl.type)
+  );
+
+  return businessControls.length || Object.values(c.answers || {}).filter(v => v === "yes" || v === "check").length;
+}
+
+function countDocs(entries){
+  return entries.filter(e => {
+    const amount = String(e.amount || "").toLowerCase();
+    const label = String(e.label || "").toLowerCase();
+    const justification = String(e.justification || "").toLowerCase();
+
+    return (
+      amount.includes("à contrôler") ||
+      amount.includes("à documenter") ||
+      justification.includes("vérifier") ||
+      justification.includes("justificatif") ||
+      justification.includes("documenter") ||
+      label.includes("intérêts") ||
+      label.includes("provision") ||
+      label.includes("dépréciation")
+    );
+  }).length;
+}
 function rowHtml(e,index){const s=entryStatus(e);const done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(e.label)}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${index}">${done?"Validée":"À valider"}</button></td></tr>`;}
 
 function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push({journal:"OD",label:"Facture non reçue",debit:"6xxxxx",credit:"408100",amount:"Montant HT",justification:"Dépense réalisée avant clôture, facture reçue après.",status:"À valider"});if(answers.cca==="yes")rows.push({journal:"OD",label:"Charge constatée d’avance",debit:"486000",credit:"6xxxxx",amount:"Part postérieure",justification:"Dépense payée avant clôture couvrant une période après clôture.",status:"À valider"});if(answers.clients==="yes")rows.push({journal:"OD",label:"Facture à établir",debit:"418100",credit:"7xxxxx",amount:"Montant HT",justification:"Prestation réalisée avant clôture, facture émise après.",status:"À valider"});if(answers.stocks==="yes")rows.push({journal:"OD",label:"Variation de stock",debit:"3xxxxx",credit:"603/713",amount:"À calculer",justification:"Inventaire physique déclaré à la clôture.",status:"À valider"});if(answers.immo==="yes")rows.push({journal:"OD",label:"Dotation / sortie immobilisation",debit:"681120",credit:"28xxxx",amount:"À calculer",justification:"Immobilisation ou emprunt à contrôler.",status:"À valider"});if(answers.paie==="yes")rows.push({journal:"OD",label:"Charges sociales / congés à rattacher",debit:"641/645",credit:"428/438",amount:"À calculer",justification:"Élément de paie rattaché à l’exercice.",status:"À valider"});if(answers.provisions==="yes")rows.push({journal:"OD",label:"Provision à justifier",debit:"6815xx",credit:"15xxxx",amount:"À documenter",justification:"Risque ou litige déclaré.",status:"À valider"});return rows;}
