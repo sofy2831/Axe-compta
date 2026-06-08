@@ -733,7 +733,7 @@ if (answers.immo === "yes") {
     if (cessionAmount && typeof retainedVnc === "number") {
       const diff = cessionAmount - retainedVnc;
       resultAmount = Math.abs(diff);
-      resultLabel = diff >= 0 ? "Plus-value de cession estimée" : "Moins-value de cession estimée";
+      resultLabel = diff >= 0 ? "Analyse cession immobilisation - Plus-value" : "Analyse cession immobilisation - Moins-value";
     }
 
     entries.push({
