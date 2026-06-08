@@ -610,34 +610,40 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
   }
 }
   
-  // Paie : congés payés + charges sociales associées
-  if (hasAccount(["428"]) && answers.paie === "yes") {
-    const amount428 = getBalanceAmount(["428"]) || "À contrôler";
+ // Paie : congés payés + charges sociales associées
+if (hasAccount(["428"]) && answers.paie === "yes") {
+  const amount428 = getBalanceAmount(["428"]) || 0;
+  const payrollRate = detectPayrollRate(balanceRows, grandLivreRows);
+  const socialAmount = payrollRate
+    ? Math.round(amount428 * payrollRate)
+    : "À contrôler";
 
-    entries.push({
-      journal: "OD",
-      label: "Congés payés à payer - charge salariale",
-      debit: "641000",
-      credit: "428200",
-      amount: amount428,
-      justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.",
-      confidence: 0.85,
-      source: "balance",
-      status: "À valider"
-    });
+  entries.push({
+    journal: "OD",
+    label: "Congés payés à payer - charge salariale",
+    debit: "641000",
+    credit: "428200",
+    amount: amount428 || "À contrôler",
+    justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.",
+    confidence: 0.85,
+    source: "balance",
+    status: "À valider"
+  });
 
-    entries.push({
-      journal: "OD",
-      label: "Charges sociales sur congés payés à contrôler",
-      debit: "645000",
-      credit: "438600",
-      amount: Math.round((Number(amount428) || 0) * 0.42),
-      justification: "Charges sociales estimées sur congés payés avec un taux par défaut de 42 %, à modifier si nécessaire.",
-      confidence: 0.6,
-      source: "analyse",
-      status: "À valider"
-    });
-  }
+  entries.push({
+    journal: "OD",
+    label: "Charges sociales sur congés payés",
+    debit: "645000",
+    credit: "438600",
+    amount: socialAmount,
+    justification: payrollRate
+      ? `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.`
+      : "Charges sociales sur congés payés à calculer : comptes 641/645 insuffisants.",
+    confidence: payrollRate ? 0.8 : 0.55,
+    source: payrollRate ? "balance/grandLivre" : "analyse",
+    status: "À valider"
+  });
+}
 
   // Provisions multi-lignes
   if (answers.provisions === "yes") {
