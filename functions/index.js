@@ -630,6 +630,59 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
     });
   }
 }
+
+// Sorties d'immobilisations : cession ou mise au rebut
+if (answers.immo === "yes") {
+  const sortieRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("675") ||
+      compte.startsWith("775") ||
+      text.includes("sortie immo") ||
+      text.includes("sortie immobilisation") ||
+      text.includes("cession immobilisation") ||
+      text.includes("vente immobilisation") ||
+      text.includes("mise au rebut")
+    );
+  });
+
+  sortieRows.forEach(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    if (compte.startsWith("775") || text.includes("vente") || text.includes("cession")) {
+      entries.push(makeEntryFromRow(row, {
+        label: "Sortie immobilisation - prix de cession",
+        debit: "462000",
+        credit: "775000",
+        justification: "Prix de cession d'immobilisation détecté dans le grand livre. Vérifier la facture de vente.",
+        confidence: 0.85
+      }));
+    }
+
+    if (compte.startsWith("675") || text.includes("vnc") || text.includes("valeur nette comptable") || text.includes("mise au rebut")) {
+      entries.push(makeEntryFromRow(row, {
+        label: "Sortie immobilisation - VNC",
+        debit: "675000",
+        credit: "21xxxx",
+        justification: "Valeur nette comptable ou mise au rebut détectée. Vérifier le tableau des immobilisations.",
+        confidence: 0.8
+      }));
+    }
+  });
+
+  const hasSortie = sortieRows.length > 0;
+
+  if (hasSortie) {
+    controls.push({
+      type: "fixed_asset_disposal_detected",
+      label: "Sortie d'immobilisation détectée",
+      level: "warning"
+    });
+  }
+}
   
  // Paie : congés payés + charges sociales associées
 if (hasAccount(["428"]) && answers.paie === "yes") {
