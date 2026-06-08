@@ -92,7 +92,7 @@ try{
 const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
 companyName,startDate:startDate.value,endDate:endDate.value,activity:activity.value,vatRegime:vat.value,notes:notes.value,
 status:"draft",paid:false,paymentMode:null,
-files:{balance:null,grandLivre:null},
+files:{balance:null,grandLivre:null,amortissements:null},
 balance:[],grandLivre:[],entries:[],controls:[],anomalies:[],
 aiAnalysis:{status:"not_started",model:null,generatedAt:null,summary:"",warnings:[]},
 createdAt:serverTimestamp(),updatedAt:serverTimestamp()
