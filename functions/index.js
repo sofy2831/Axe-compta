@@ -561,7 +561,7 @@ if (answers.fournisseurs === "yes") {
     }
   }
 
-  // Amortissements
+ // Amortissements
 if (hasAccount(["281", "681"]) && answers.immo === "yes") {
   const amortRows = grandLivreRows.filter(row => {
     const compte = getCompte(row);
@@ -571,7 +571,7 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
       compte.startsWith("6811") ||
       compte.startsWith("68112") ||
       text.includes("dotation amortissement") ||
-      text.includes("amortissement")
+      text.includes("dotation aux amortissements")
     );
   });
 
@@ -579,7 +579,6 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
     amortRows
       .filter(row => getCompte(row).startsWith("681"))
       .forEach(row => {
-        const text = getRowText(row);
         const credit = activity.includes("location meuble") ? "281300" : "281830";
 
         entries.push(makeEntryFromRow(row, {
@@ -608,6 +607,7 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
     });
   }
 }
+  
   // Paie : congés payés + charges sociales associées
   if (hasAccount(["428"]) && answers.paie === "yes") {
     const amount428 = getBalanceAmount(["428"]) || "À contrôler";
