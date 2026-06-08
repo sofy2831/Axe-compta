@@ -737,29 +737,35 @@ if (cessionAmount && typeof retainedVnc === "number") {
   resultLabel = diff >= 0 ? "PLUS-VALUE" : "MOINS-VALUE";
 }
 
+function formatEuro(value) {
+  if (typeof value !== "number") return value || "?";
+  return `${value.toLocaleString("fr-FR")} €`;
+}
+
 const analyseText =
 `Immobilisation : ${assetName}
 
-Valeur brute : ${bruteAmount || "?"} €
-Amortissements cumulés : ${amortAmount || "?"} €
-VNC : ${retainedVnc} €
+Valeur brute : ${formatEuro(bruteAmount)}
+Amortissements cumulés : ${formatEuro(amortAmount)}
+VNC : ${formatEuro(retainedVnc)}
 
-Prix de cession : ${cessionAmount || "?"} €
+Prix de cession : ${formatEuro(cessionAmount)}
 
 Calcul :
-${cessionAmount || "?"} € - ${retainedVnc} € = ${diff !== null ? diff : "?"} €
+Prix de cession - VNC
+${formatEuro(cessionAmount)} - ${formatEuro(retainedVnc)} = ${formatEuro(diff)}
 
-${resultLabel} : ${resultAmount} €`;
+${resultLabel} ESTIMÉE : ${formatEuro(resultAmount)}`;
 
 entries.push({
-  journal: "OD",
-  label: `Sortie immobilisation - Produit de cession - ${assetName}`,
-  debit: "462000",
-  credit: "775000",
-  amount: cessionAmount || "À contrôler",
-  justification: "Prix de cession détecté dans le grand livre. À rapprocher de la facture de vente ou de l’acte de cession.",
-  confidence: cessionAmount ? 0.85 : 0.6,
-  source: "grandLivre",
+  journal: "ANALYSE",
+  label: `Analyse cession - ${assetName}`,
+  debit: "—",
+  credit: "—",
+  amount: resultAmount,
+  justification: analyseText,
+  confidence: diff !== null ? 0.95 : 0.55,
+  source: "analyse",
   status: "À valider"
 });
 
