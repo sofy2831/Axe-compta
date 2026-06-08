@@ -166,6 +166,27 @@ function getAmount(row) {
   return 0;
 }
 
+function sumAmountsByPrefixes(rows, prefixes) {
+  return rows
+    .filter(row => accountStarts(row, prefixes))
+    .reduce((total, row) => total + (getAmount(row) || 0), 0);
+}
+
+function detectPayrollRate(balanceRows, grandLivreRows) {
+  const allRows = [...balanceRows, ...grandLivreRows];
+
+  const salaries = sumAmountsByPrefixes(allRows, ["641"]);
+  const socialCharges = sumAmountsByPrefixes(allRows, ["645"]);
+
+  if (!salaries || !socialCharges) return null;
+
+  const rate = socialCharges / salaries;
+
+  if (rate <= 0 || rate > 1) return null;
+
+  return rate;
+}
+
 function accountStarts(row, prefixes) {
   const compte = getCompte(row);
   return prefixes.some(prefix => compte.startsWith(prefix));
