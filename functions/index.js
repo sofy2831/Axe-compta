@@ -508,7 +508,7 @@ if (answers.fournisseurs === "yes") {
       label: "CAP",
       debit,
       credit,
-      justification: "Charge à payer détectée dans le grand livre.",
+      justification: "Charge à payer détectée dans le grand livre. Vérifier la facture ou l’avis correspondant.",
       confidence: 0.85
     }));
   });
