@@ -295,6 +295,34 @@ function getAssetNameFromText(row) {
   return label || "immobilisation à identifier";
 }
 
+function findAssetRow(amortissementRows, assetName) {
+  const needle = normalizeText(assetName);
+
+  return amortissementRows.find(row => {
+    const text = getRowText(row);
+    return needle && text.includes(needle);
+  });
+}
+
+function getAssetValue(row, keywords) {
+  if (!row) return 0;
+
+  const keys = Object.keys(row);
+
+  for (const key of keys) {
+    const normalizedKey = normalizeText(key);
+
+    if (keywords.some(k => normalizedKey.includes(normalizeText(k)))) {
+      const raw = String(row[key] ?? "").replace(",", ".").replace(/\s/g, "");
+      const n = Number(raw);
+
+      if (!Number.isNaN(n) && n !== 0) return Math.abs(n);
+    }
+  }
+
+  return 0;
+}
+
 function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows = [], closure = {}) {
   const entries = [];
   const controls = [];
