@@ -701,6 +701,8 @@ if (answers.immo === "yes") {
 
     const vncAmount = relatedVncRow ? getAmount(relatedVncRow) : 0;
 
+    const assetRow = findAssetRow(amortissementRows, assetName);
+
     const bruteRow = balanceRows.find(row =>
       accountStarts(row, ["21"]) &&
       getRowText(row).includes(normalizeText(assetName))
@@ -711,9 +713,18 @@ if (answers.immo === "yes") {
       getRowText(row).includes(normalizeText(assetName))
     ) || findBalanceRow(balanceRows, ["28"]);
 
-    const bruteAmount = bruteRow ? getAmount(bruteRow) : 0;
-    const amortAmount = amortRow ? getAmount(amortRow) : 0;
-    const calculatedVnc = bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0;
+    const bruteAmount =
+      getAssetValue(assetRow, ["brut", "valeur brute", "acquisition"]) ||
+      (bruteRow ? getAmount(bruteRow) : 0);
+
+    const amortAmount =
+      getAssetValue(assetRow, ["amortissement", "amortissements cumulés", "cumule"]) ||
+      (amortRow ? getAmount(amortRow) : 0);
+
+    const calculatedVnc =
+      getAssetValue(assetRow, ["vnc", "valeur nette"]) ||
+      (bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
+
     const retainedVnc = vncAmount || calculatedVnc || "À contrôler";
 
     let resultLabel = "Plus/Moins-value à contrôler";
@@ -722,12 +733,12 @@ if (answers.immo === "yes") {
     if (cessionAmount && typeof retainedVnc === "number") {
       const diff = cessionAmount - retainedVnc;
       resultAmount = Math.abs(diff);
-      resultLabel = diff >= 0 ? "Plus-value estimée" : "Moins-value estimée";
+      resultLabel = diff >= 0 ? "Plus-value de cession estimée" : "Moins-value de cession estimée";
     }
 
     entries.push({
       journal: "OD",
-      label: `Sortie immobilisation - prix de cession - ${assetName}`,
+      label: `Sortie immobilisation - Produit de cession - ${assetName}`,
       debit: "462000",
       credit: "775000",
       amount: cessionAmount || "À contrôler",
@@ -739,32 +750,34 @@ if (answers.immo === "yes") {
 
     entries.push({
       journal: "OD",
-      label: `Sortie immobilisation - valeur brute et amortissements - ${assetName}`,
+      label: `Sortie immobilisation - Reprise amortissements - ${assetName}`,
       debit: amortRow ? getCompte(amortRow) : "28xxxx",
       credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
-      amount: bruteAmount || "À contrôler",
-      justification: "Sortie de la valeur brute et des amortissements cumulés à vérifier avec le tableau des immobilisations.",
-      confidence: bruteAmount && amortAmount ? 0.75 : 0.55,
-      source: "balance/grandLivre",
+      amount: amortAmount || "À contrôler",
+      justification: assetRow
+        ? "Amortissements cumulés issus du tableau des immobilisations."
+        : "Amortissements cumulés à vérifier avec le tableau des immobilisations.",
+      confidence: amortAmount ? 0.8 : 0.55,
+      source: assetRow ? "tableau amortissements" : "balance",
       status: "À valider"
     });
 
     entries.push({
       journal: "OD",
-      label: `Sortie immobilisation - VNC - ${assetName}`,
+      label: `Sortie immobilisation - Sortie valeur brute - ${assetName}`,
       debit: "675000",
       credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
-      amount: retainedVnc,
-      justification: calculatedVnc
-        ? `VNC calculée : valeur brute ${bruteAmount} - amortissements ${amortAmount} = ${calculatedVnc}.`
-        : "VNC détectée ou à vérifier avec le tableau des immobilisations.",
-      confidence: vncAmount || calculatedVnc ? 0.8 : 0.55,
-      source: vncAmount ? "grandLivre" : "balance",
+      amount: bruteAmount || "À contrôler",
+      justification: assetRow
+        ? "Valeur brute issue du tableau des immobilisations."
+        : "Valeur brute à vérifier avec le tableau des immobilisations.",
+      confidence: bruteAmount ? 0.8 : 0.55,
+      source: assetRow ? "tableau amortissements" : "balance",
       status: "À valider"
     });
 
     entries.push({
-      journal: "CONTRÔLE",
+      journal: "ANALYSE",
       label: `${resultLabel} - ${assetName}`,
       debit: "",
       credit: "",
@@ -783,24 +796,6 @@ if (answers.immo === "yes") {
       level: "warning"
     });
   });
-
-  if (!cessionRows.length && vncRows.length) {
-    vncRows.forEach(row => {
-      const assetName = getAssetNameFromText(row);
-
-      entries.push({
-        journal: "OD",
-        label: `Sortie immobilisation - VNC - ${assetName}`,
-        debit: "675000",
-        credit: "21xxxx",
-        amount: getAmount(row) || "À contrôler",
-        justification: "VNC de sortie détectée sans prix de cession. Vérifier s'il s'agit d'une mise au rebut.",
-        confidence: 0.65,
-        source: "grandLivre",
-        status: "À valider"
-      });
-    });
-  }
 }
   
  // Paie : congés payés + charges sociales associées
