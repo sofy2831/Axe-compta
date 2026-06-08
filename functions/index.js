@@ -952,26 +952,66 @@ if (answers.provisions === "yes") {
     });
   }
 
-  // Emprunts / intérêts courus
-if (hasAccount(["164", "661"]) && answers.immo === "yes") {
-  const interestRow =
-    findBalanceRow(balanceRows, ["661"]) ||
-    grandLivreRows.find(row => accountStarts(row, ["661"]));
+ // Emprunts : capital restant dû, intérêts, ICNE
+if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
+  const loanRow =
+    findFirstRowByPrefixes(balanceRows, ["164"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["164"]);
 
-  const amount = interestRow ? getAmount(interestRow) : 0;
+  const interestRow =
+    findFirstRowByPrefixes(balanceRows, ["661"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["661"]);
+
+  const icneRow =
+    findFirstRowByPrefixes(balanceRows, ["1688"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["1688"]);
+
+  const capitalAmount = loanRow ? getAmount(loanRow) : 0;
+  const interestAmount = interestRow ? getAmount(interestRow) : 0;
+  const icneAmount = icneRow ? getAmount(icneRow) : 0;
 
   entries.push({
     journal: "OD",
-    label: "Intérêts d'emprunt à contrôler",
+    label: "Intérêts courus d'emprunt",
     debit: "661100",
     credit: "168800",
-    amount: amount || "À contrôler",
-    justification: amount
-      ? "Compte 661 détecté : vérifier les intérêts courus et le tableau d'emprunt."
-      : "Emprunt détecté sans compte 661 exploitable : importer ou vérifier le tableau d'emprunt.",
-    confidence: amount ? 0.75 : 0.55,
-    source: amount ? "balance/grandLivre" : "analyse",
+    amount: icneAmount || interestAmount || "À contrôler",
+    justification: icneAmount
+      ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
+      : interestAmount
+        ? "Compte 661 détecté : vérifier la part d’intérêts courus à rattacher à la clôture."
+        : "Emprunt détecté : intérêts courus à calculer avec le tableau d’emprunt.",
+    confidence: icneAmount ? 0.85 : interestAmount ? 0.7 : 0.55,
+    source: icneAmount ? "balance" : interestAmount ? "balance/grandLivre" : "analyse",
     status: "À valider"
+  });
+
+  entries.push({
+    journal: "ANALYSE",
+    label: "Analyse emprunt",
+    debit: "—",
+    credit: "—",
+    amount: icneAmount || interestAmount || "À contrôler",
+    justification:
+`Emprunt détecté.
+
+Capital restant dû / compte 164 : ${capitalAmount || "?"} €
+Intérêts / compte 661 : ${interestAmount || "?"} €
+ICNE / compte 1688 : ${icneAmount || "?"} €
+
+Écriture proposée :
+Débit 661100 / Crédit 168800
+
+À rapprocher du tableau d’amortissement de l’emprunt.`,
+    confidence: capitalAmount && (icneAmount || interestAmount) ? 0.85 : 0.6,
+    source: "analyse",
+    status: "À valider"
+  });
+
+  controls.push({
+    type: "loan_analysis_detected",
+    label: "Emprunt ou intérêts d’emprunt détectés",
+    level: "info"
   });
 }
 
