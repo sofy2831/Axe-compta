@@ -631,8 +631,8 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
       label: "Charges sociales sur congés payés à contrôler",
       debit: "645000",
       credit: "438600",
-      amount: "À contrôler",
-      justification: "Charges sociales afférentes aux congés payés à estimer ou vérifier.",
+      amount: Math.round((Number(amount428) || 0) * 0.42),
+      justification: "Charges sociales estimées sur congés payés avec un taux par défaut de 42 %, à modifier si nécessaire.",
       confidence: 0.6,
       source: "analyse",
       status: "À valider"
