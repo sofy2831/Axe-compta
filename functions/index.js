@@ -402,7 +402,7 @@ if (hasAccount(["418"]) && answers.clients === "yes") {
         label: "FAE",
         debit: "418100",
         credit: "706000",
-        justification: "Facture à établir détectée dans le grand livre.",
+        justification: "Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l’exercice.",
         confidence: 0.9
       }));
     });
@@ -413,7 +413,7 @@ if (hasAccount(["418"]) && answers.clients === "yes") {
       debit: "418100",
       credit: "706000",
       amount: getBalanceAmount(["4181"]) || "À contrôler",
-      justification: "Compte 418100 détecté : prestation ou vente réalisée avant clôture à facturer.",
+      justification: "Compte 418100 détecté : facture à établir à vérifier.",
       confidence: 0.85,
       source: "balance",
       status: "À valider"
