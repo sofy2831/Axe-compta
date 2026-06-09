@@ -943,6 +943,63 @@ Aucune écriture automatique n'est générée à ce stade.`,
   });
 }
   
+// Comptes d'attente: 471/472
+if (hasAccount(["471","472"])) {
+
+const waitingRows =
+[...balanceRows,...grandLivreRows].filter(row=>{
+    const compte=getCompte(row);
+    return (
+        compte.startsWith("471") ||
+        compte.startsWith("472")
+    );
+});
+
+waitingRows.forEach(row=>{
+
+entries.push({
+
+journal:"ANALYSE",
+label:`Analyse compte d'attente - ${getLibelle(row)}`,
+debit:"—",
+credit:"—",
+amount:getAmount(row)||"À contrôler",
+
+justification:
+
+`Compte d'attente détecté.
+
+Compte : ${getCompte(row)}
+Libellé : ${getLibelle(row)}
+Montant : ${getAmount(row)||"?"} €
+
+Contrôles à effectuer :
+
+• identifier l'origine du mouvement ;
+• vérifier qu'il ne s'agit pas d'une erreur d'imputation ;
+• régulariser avant clôture si possible ;
+• vérifier qu'il n'existe pas depuis plusieurs exercices.
+
+Une clôture sans compte d'attente améliore le score qualité.`,
+
+confidence:0.85,
+source:"balance/grandLivre",
+status:"À valider"
+
+});
+
+});
+
+controls.push({
+
+type:"waiting_account_detected",
+label:"Compte d'attente détecté",
+level:"warning"
+
+});
+
+}
+  
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
   const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
