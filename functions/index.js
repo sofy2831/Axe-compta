@@ -1124,6 +1124,7 @@ detectAccountingEntries(
           balance: balanceRows,
           grandLivre: grandLivreRows,
           amortissements: amortissementRows,
+          emprunt: empruntRows,
           controls,
           anomalies,
           entries,
