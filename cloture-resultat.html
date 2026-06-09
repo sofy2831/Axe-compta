@@ -88,7 +88,25 @@ function countDocs(entries){
     );
   }).length;
 }
-function rowHtml(e,index){const s=entryStatus(e);const done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(e.label)}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${index}">${done?"Validée":"À valider"}</button></td></tr>`;}
+function rowHtml(e,index){
+  const s = entryStatus(e);
+  const done = s === "Validée";
+
+  return `<tr>
+    <td>${safe(entryJournal(e))}</td>
+    <td>${safe(e.label)}</td>
+    <td>${safe(e.debit)}</td>
+    <td>${safe(e.credit)}</td>
+    <td>${safe(e.amount)}</td>
+    <td>${safe(e.justification)}</td>
+    <td>
+      <button class="statusBtn ${done ? "done" : ""}" type="button" data-entry-index="${index}">
+        ${done ? "Validée" : "À valider"}
+      </button>
+      ${detailsButtonHtml(e,index)}
+    </td>
+  </tr>`;
+}
 
 function buildEntries(answers){const rows=[];if(answers.fournisseurs==="yes")rows.push({journal:"OD",label:"Facture non reçue",debit:"6xxxxx",credit:"408100",amount:"Montant HT",justification:"Dépense réalisée avant clôture, facture reçue après.",status:"À valider"});if(answers.cca==="yes")rows.push({journal:"OD",label:"Charge constatée d’avance",debit:"486000",credit:"6xxxxx",amount:"Part postérieure",justification:"Dépense payée avant clôture couvrant une période après clôture.",status:"À valider"});if(answers.clients==="yes")rows.push({journal:"OD",label:"Facture à établir",debit:"418100",credit:"7xxxxx",amount:"Montant HT",justification:"Prestation réalisée avant clôture, facture émise après.",status:"À valider"});if(answers.stocks==="yes")rows.push({journal:"OD",label:"Variation de stock",debit:"3xxxxx",credit:"603/713",amount:"À calculer",justification:"Inventaire physique déclaré à la clôture.",status:"À valider"});if(answers.immo==="yes")rows.push({journal:"OD",label:"Dotation / sortie immobilisation",debit:"681120",credit:"28xxxx",amount:"À calculer",justification:"Immobilisation ou emprunt à contrôler.",status:"À valider"});if(answers.paie==="yes")rows.push({journal:"OD",label:"Charges sociales / congés à rattacher",debit:"641/645",credit:"428/438",amount:"À calculer",justification:"Élément de paie rattaché à l’exercice.",status:"À valider"});if(answers.provisions==="yes")rows.push({journal:"OD",label:"Provision à justifier",debit:"6815xx",credit:"15xxxx",amount:"À documenter",justification:"Risque ou litige déclaré.",status:"À valider"});return rows;}
 function lockResult(){paymentBlock.style.display="block";entriesWrapper.classList.add("blur");accessStatus.textContent="Verrouillé";}
@@ -101,7 +119,48 @@ function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJou
 function exportPdf(){window.print();}
 
 async function saveEntriesStatus(){if(!currentUser||!id)return;await updateDoc(doc(db,"users",currentUser.uid,"closures",id),{entries:currentEntries,updatedAt:serverTimestamp()});}
-function renderEntries(){entriesRows.innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;document.querySelectorAll("[data-entry-index]").forEach(btn=>{btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!Number.isInteger(i)||!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";btn.disabled=true;try{await saveEntriesStatus();renderEntries();}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.");btn.disabled=false;}});});}
+function renderEntries(){
+  entriesRows.innerHTML = currentEntries.length
+    ? currentEntries.map(rowHtml).join("")
+    : `<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
+
+  document.querySelectorAll("[data-entry-index]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const i = Number(btn.dataset.entryIndex);
+      if(!Number.isInteger(i) || !currentEntries[i]) return;
+
+      currentEntries[i].status = entryStatus(currentEntries[i]) === "Validée"
+        ? "À valider"
+        : "Validée";
+
+      btn.disabled = true;
+
+      try {
+        await saveEntriesStatus();
+        renderEntries();
+      } catch(e) {
+        console.error(e);
+        alert("Impossible de mettre à jour le statut.");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-details-index]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.detailsIndex);
+      const entry = currentEntries[i];
+
+      if(!entry || !Array.isArray(entry.details)) return;
+
+      const text = entry.details.map((d, idx) =>
+        `${idx + 1}. ${d.compte || ""} — ${d.libelle || ""} — ${d.amount || 0} €`
+      ).join("\n");
+
+      alert(text || "Aucun détail disponible.");
+    });
+  });
+}
 
 async function startCheckout(plan){if(!currentUser){window.location.href="connexion.html";return;}if(!id){alert("Dossier introuvable.");return;}try{const btn=plan==="monthly"?payMonthlyBtn:payOneShotBtn;btn.disabled=true;btn.textContent="Redirection Stripe...";const response=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});const data=await response.json();if(!response.ok||!data.url)throw new Error(data.error||"Impossible de créer la session Stripe.");window.location.href=data.url;}catch(error){alert(error.message||"Erreur Stripe.");payOneShotBtn.disabled=false;payMonthlyBtn.disabled=false;payOneShotBtn.textContent="Débloquer cette clôture — 39 €";payMonthlyBtn.textContent="Passer en multi-dossiers — 149 €/mois";}}
 
