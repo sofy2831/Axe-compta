@@ -779,6 +779,70 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
   }
 }
 
+// Subventions d'investissement : 131 / 139 / 777
+if (hasAccount(["131", "139", "777"])) {
+  const subventionRow =
+    findFirstRowByPrefixes(balanceRows, ["131"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["131"]);
+
+  const repriseRow =
+    findFirstRowByPrefixes(balanceRows, ["139"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["139"]);
+
+  const quotePartRow =
+    findFirstRowByPrefixes(balanceRows, ["777"]) ||
+    findFirstRowByPrefixes(grandLivreRows, ["777"]);
+
+  const subventionAmount = subventionRow ? getAmount(subventionRow) : 0;
+  const repriseAmount = repriseRow ? getAmount(repriseRow) : 0;
+  const quotePartAmount = quotePartRow ? getAmount(quotePartRow) : 0;
+
+  const retainedAmount = quotePartAmount || repriseAmount || "À contrôler";
+
+  if (quotePartAmount || repriseAmount) {
+    entries.push({
+      journal: "OD",
+      label: "Quote-part subvention virée au résultat",
+      debit: "139000",
+      credit: "777000",
+      amount: retainedAmount,
+      justification: quotePartAmount
+        ? "Compte 777 détecté : quote-part de subvention virée au résultat. Vérifier le plan de reprise de la subvention."
+        : "Compte 139 détecté : reprise de subvention à rapprocher du compte 777 et du plan d'amortissement.",
+      confidence: quotePartAmount ? 0.85 : 0.75,
+      source: quotePartAmount ? "balance/grandLivre" : "analyse",
+      status: "À valider"
+    });
+  }
+
+  entries.push({
+    journal: "ANALYSE",
+    label: "Analyse subvention",
+    debit: "—",
+    credit: "—",
+    amount: retainedAmount,
+    justification:
+`Subvention d'investissement détectée.
+
+Compte 131 - Subvention d'investissement : ${subventionAmount || "?"} €
+Compte 139 - Subventions inscrites au résultat : ${repriseAmount || "?"} €
+Compte 777 - Quote-part virée au résultat : ${quotePartAmount || "?"} €
+
+${quotePartAmount || repriseAmount
+  ? "Une reprise de subvention semble comptabilisée. Vérifier le plan de reprise et la cohérence avec l'amortissement de l'immobilisation financée."
+  : "Aucune quote-part de subvention n'a été détectée. Vérifier si une reprise devait être comptabilisée sur l'exercice."}`,
+    confidence: subventionAmount && (quotePartAmount || repriseAmount) ? 0.85 : 0.65,
+    source: "analyse",
+    status: "À valider"
+  });
+
+  controls.push({
+    type: "subvention_detected",
+    label: "Subvention d'investissement détectée",
+    level: "info"
+  });
+}
+  
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
   const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
