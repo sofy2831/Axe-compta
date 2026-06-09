@@ -899,6 +899,49 @@ Aucune écriture automatique n'est générée à ce stade.`,
     });
   }
 }
+
+// Comptes courants d'associés : 455
+if (hasAccount(["455"])) {
+  const associateRows = [...balanceRows, ...grandLivreRows].filter(row => {
+    const compte = getCompte(row);
+    return compte.startsWith("455");
+  });
+
+  associateRows.forEach(row => {
+    entries.push({
+      journal: "ANALYSE",
+      label: `Analyse compte courant associé - ${getLibelle(row)}`,
+      debit: "—",
+      credit: "—",
+      amount: getAmount(row) || "À contrôler",
+      justification:
+`Compte courant d'associé détecté.
+
+Compte : ${getCompte(row) || "?"}
+Libellé : ${getLibelle(row)}
+Montant détecté : ${getAmount(row) || "?"} €
+
+Contrôles à effectuer :
+- vérifier que le solde est justifié ;
+- contrôler les apports et remboursements effectués sur l'exercice ;
+- vérifier les intérêts éventuellement comptabilisés ;
+- contrôler la cohérence avec la trésorerie ;
+- vérifier qu'il ne s'agit pas d'un compte d'attente ou d'une écriture temporaire ;
+- vérifier si le solde est débiteur, situation sensible à documenter.
+
+Aucune écriture automatique n'est générée à ce stade.`,
+      confidence: 0.75,
+      source: "balance/grandLivre",
+      status: "À valider"
+    });
+  });
+
+  controls.push({
+    type: "associate_current_account_detected",
+    label: "Compte courant d'associé détecté",
+    level: "info"
+  });
+}
   
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
