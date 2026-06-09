@@ -1113,9 +1113,8 @@ Calcul automatique des ICNE réalisé à partir du tableau d'emprunt.
 
 Débit 661100 Intérêts courus
 Crédit 168800 Intérêts courus non échus
-  
-Montant retenu : ${loanEntryAmount} €
-  
+
+Montant retenu : ${loanEntryAmount} €`
   : `Emprunt détecté.
 
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
