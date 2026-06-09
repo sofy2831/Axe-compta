@@ -327,6 +327,81 @@ function findFirstRowByPrefixes(rows, prefixes) {
   return rows.find(row => accountStarts(row, prefixes));
 }
 
+function getCell(row, names) {
+  const keys = Object.keys(row);
+
+  for (const key of keys) {
+    const normalizedKey = normalizeText(key);
+
+    if (names.some(name => normalizedKey.includes(normalizeText(name)))) {
+      return row[key];
+    }
+  }
+
+  return "";
+}
+
+function parseExcelDate(value) {
+  if (!value) return null;
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  const raw = String(value).trim();
+
+  const iso = new Date(raw);
+  if (!Number.isNaN(iso.getTime())) return iso;
+
+  const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (fr) {
+    return new Date(`${fr[3]}-${fr[2]}-${fr[1]}T00:00:00`);
+  }
+
+  return null;
+}
+
+function daysBetween(start, end) {
+  const ms = end.getTime() - start.getTime();
+  return Math.round(ms / (1000 * 60 * 60 * 24));
+}
+
+function findLoanIcne(empruntRows, closureEndDate) {
+  const endDate = parseExcelDate(closureEndDate);
+  if (!endDate || !empruntRows.length) return null;
+
+  for (const row of empruntRows) {
+    const start = parseExcelDate(getCell(row, ["date début période", "date debut periode", "début période"]));
+    const due = parseExcelDate(getCell(row, ["date échéance", "date echeance", "échéance"]));
+    const interest = getAmount({ Montant: getCell(row, ["intérêts", "interets"]) });
+
+    if (!start || !due || !interest) continue;
+
+    if (start <= endDate && due > endDate) {
+      const periodDays = daysBetween(start, due);
+      const elapsedDays = daysBetween(start, endDate) + 1;
+
+      if (periodDays <= 0 || elapsedDays <= 0) return null;
+
+      const icne = Math.round((interest * elapsedDays / periodDays) * 100) / 100;
+
+      return {
+        icne,
+        interest,
+        start,
+        due,
+        periodDays,
+        elapsedDays,
+        bank: getCell(row, ["banque"]) || "",
+        reference: getCell(row, ["référence", "reference"]) || "",
+        capitalRemaining: getAmount({ Montant: getCell(row, ["capital restant dû", "capital restant du"]) })
+      };
+    }
+  }
+
+  return null;
+}
+
 function detectAccountingEntries(
   balanceRows,
   grandLivreRows,
