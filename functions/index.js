@@ -1033,7 +1033,7 @@ if (answers.provisions === "yes") {
     });
   }
 
- // Emprunts : capital restant dû, intérêts, ICNE
+// Emprunts : capital restant dû, intérêts, ICNE
 if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
   const loanRow =
     findFirstRowByPrefixes(balanceRows, ["164"]) ||
@@ -1050,35 +1050,35 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
   const capitalAmount = loanRow ? getAmount(loanRow) : 0;
   const interestAmount = interestRow ? getAmount(interestRow) : 0;
   const icneAmount = icneRow ? getAmount(icneRow) : 0;
+
   const calculatedIcne = findLoanIcne(empruntRows, closure.endDate);
-const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
+  const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
+  const loanEntryAmount = finalIcneAmount || "À calculer";
 
- amount: finalIcneAmount || "À calculer",
+  entries.push({
+    journal: "OD",
+    label: "Intérêts courus d'emprunt",
+    debit: "661100",
+    credit: "168800",
+    amount: loanEntryAmount,
+    justification: icneAmount
+      ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
+      : calculatedIcne
+        ? `ICNE calculé depuis le tableau d’emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.`
+        : "Compte 1688 absent : ICNE à calculer avec le tableau d’emprunt.",
+    confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
+    source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
+    status: "À valider"
+  });
 
-entries.push({
-  journal: "OD",
-  label: "Intérêts courus d'emprunt",
-  debit: "661100",
-  credit: "168800",
-  amount: loanEntryAmount,
-  justification: icneAmount
-  ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
-  : calculatedIcne
-    ? `ICNE calculé depuis le tableau d’emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.`
-    : "Compte 1688 absent : ICNE à calculer avec le tableau d’emprunt.",
-  confidence: icneAmount ? 0.85 : 0.55,
-  source: icneAmount ? "balance" : "analyse",
-  status: "À valider"
-});
-
-entries.push({
-  journal: "ANALYSE",
-  label: "Analyse emprunt",
-  debit: "—",
-  credit: "—",
-  amount: loanEntryAmount,
-  justification: calculatedIcne
-  ? `Emprunt détecté.
+  entries.push({
+    journal: "ANALYSE",
+    label: "Analyse emprunt",
+    debit: "—",
+    credit: "—",
+    amount: loanEntryAmount,
+    justification: calculatedIcne
+      ? `Emprunt détecté.
 
 Banque : ${calculatedIcne.bank || "?"}
 Référence : ${calculatedIcne.reference || "?"}
@@ -1092,21 +1092,18 @@ ICNE calculé : ${calculatedIcne.icne} €
 
 Écriture proposée :
 Débit 661100 / Crédit 168800`
-  : `Emprunt détecté.
+      : `Emprunt détecté.
 
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
-Intérêts / compte 661 : ${interestAmount || "?"} €
+Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
 ICNE / compte 1688 : ${icneAmount || "absent"} €
 
-ICNE à calculer avec le tableau d’emprunt.`,
+Compte 1688 absent : le montant doit être calculé au prorata temporis avec le tableau d’emprunt.`,
+    confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
+    source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
+    status: "À valider"
+  });
 
-${icneAmount
-  ? "Le compte 1688 est présent : le montant est repris depuis la balance."
-  : "Le compte 1688 est absent : le montant doit être calculé au prorata temporis avec le tableau d’emprunt."}`,
-  confidence: icneAmount ? 0.85 : 0.55,
-  source: icneAmount ? "balance" : "analyse",
-  status: "À valider"
-});
   controls.push({
     type: "loan_analysis_detected",
     label: "Emprunt ou intérêts d’emprunt détectés",
