@@ -1058,6 +1058,7 @@ exports.parseClosureFiles = onRequest(
       const balancePath = closure.files?.balance?.storagePath;
 const grandLivrePath = closure.files?.grandLivre?.storagePath;
 const amortissementsPath = closure.files?.amortissements?.storagePath;
+  const empruntPath = closure.files?.emprunt?.storagePath;    
 
       async function parseFile(storagePath) {
         if (!storagePath) return [];
@@ -1099,7 +1100,14 @@ const amortissementRows = await parseFile(amortissementsPath);
   });
 }
       
-      const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, closure);
+      const detected =
+detectAccountingEntries(
+    balanceRows,
+    grandLivreRows,
+    amortissementRows,
+    empruntRows,
+    closure
+);
 
       controls = [...controls, ...detected.controls];
       anomalies = [...anomalies, ...detected.anomalies];
