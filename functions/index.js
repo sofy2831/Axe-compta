@@ -1062,10 +1062,10 @@ entries.push({
   credit: "168800",
   amount: loanEntryAmount,
   justification: icneAmount
-    ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
-    : interestAmount
-      ? "Compte 661 détecté mais compte 1688 absent : les ICNE doivent être calculés à partir du tableau d’emprunt."
-      : "Emprunt détecté : intérêts courus à calculer avec le tableau d’emprunt.",
+  ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
+  : calculatedIcne
+    ? `ICNE calculé depuis le tableau d’emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.`
+    : "Compte 1688 absent : ICNE à calculer avec le tableau d’emprunt.",
   confidence: icneAmount ? 0.85 : 0.55,
   source: icneAmount ? "balance" : "analyse",
   status: "À valider"
