@@ -1050,6 +1050,8 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
   const capitalAmount = loanRow ? getAmount(loanRow) : 0;
   const interestAmount = interestRow ? getAmount(interestRow) : 0;
   const icneAmount = icneRow ? getAmount(icneRow) : 0;
+  const calculatedIcne = findLoanIcne(empruntRows, closure.endDate);
+const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
 
  const loanEntryAmount = icneAmount || "À calculer";
 
