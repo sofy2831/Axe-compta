@@ -1145,7 +1145,8 @@ detectAccountingEntries(
         ok: true,
         balanceRows: balanceRows.length,
         grandLivreRows: grandLivreRows.length,
-        amortissementRows: amortissementRows.length
+        amortissementRows: amortissementRows.length,
+        empruntRows: empruntRows.length
       });
     } catch (error) {
       console.error("parseClosureFiles error:", error);
