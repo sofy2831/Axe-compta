@@ -327,7 +327,13 @@ function findFirstRowByPrefixes(rows, prefixes) {
   return rows.find(row => accountStarts(row, prefixes));
 }
 
-function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows = [], closure = {}) {
+function detectAccountingEntries(
+    balanceRows,
+    grandLivreRows,
+    amortissementRows = [],
+    empruntRows = [],
+    closure = {}
+)
   const entries = [];
   const controls = [];
   const anomalies = [];
