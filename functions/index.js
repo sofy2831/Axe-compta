@@ -330,7 +330,7 @@ function findFirstRowByPrefixes(rows, prefixes) {
 function detectAccountingEntries(
     balanceRows,
     grandLivreRows,
-    amortissementRows = [],
+    amortissementRows,
     empruntRows = [],
     closure = {}
 )
