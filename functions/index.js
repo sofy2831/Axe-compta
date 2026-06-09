@@ -943,61 +943,58 @@ Aucune écriture automatique n'est générée à ce stade.`,
   });
 }
   
-// Comptes d'attente: 471/472
-if (hasAccount(["471","472"])) {
+// Comptes d'attente : 471 / 472 — synthèse unique
+if (hasAccount(["471", "472"])) {
+  const waitingRows = [...balanceRows, ...grandLivreRows].filter(row => {
+    const compte = getCompte(row);
+    return compte.startsWith("471") || compte.startsWith("472");
+  });
 
-const waitingRows =
-[...balanceRows,...grandLivreRows].filter(row=>{
-    const compte=getCompte(row);
-    return (
-        compte.startsWith("471") ||
-        compte.startsWith("472")
-    );
-});
+  const totalWaiting = waitingRows.reduce((total, row) => total + (getAmount(row) || 0), 0);
 
-waitingRows.forEach(row=>{
+  const sampleRows = waitingRows.slice(0, 8).map(row =>
+    `- ${getCompte(row)} | ${getLibelle(row)} | ${getAmount(row) || "?"} €`
+  ).join("\n");
 
-entries.push({
+  entries.push({
+    journal: "ANALYSE",
+    label: "Comptes d'attente",
+    debit: "—",
+    credit: "—",
+    amount: totalWaiting || "À contrôler",
+    justification:
+`Comptes d'attente détectés.
 
-journal:"ANALYSE",
-label:`Analyse compte d'attente - ${getLibelle(row)}`,
-debit:"—",
-credit:"—",
-amount:getAmount(row)||"À contrôler",
+Nombre de mouvements : ${waitingRows.length}
 
-justification:
-
-`Compte d'attente détecté.
-
-Compte : ${getCompte(row)}
-Libellé : ${getLibelle(row)}
-Montant : ${getAmount(row)||"?"} €
+Montant cumulé : ${totalWaiting || "?"} €
 
 Contrôles à effectuer :
 
-• identifier l'origine du mouvement ;
-• vérifier qu'il ne s'agit pas d'une erreur d'imputation ;
+• identifier l'origine des soldes ;
 • régulariser avant clôture si possible ;
-• vérifier qu'il n'existe pas depuis plusieurs exercices.
+• vérifier l'absence d'anciens mouvements ;
+• contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 
-Une clôture sans compte d'attente améliore le score qualité.`,
+${waitingRows.length} écriture(s) concernée(s).
 
-confidence:0.85,
-source:"balance/grandLivre",
-status:"À valider"
+Aperçu des mouvements :
+${sampleRows || "Aucun détail disponible."}`,
+    confidence: 0.85,
+    source: "balance/grandLivre",
+    status: "À valider",
+    details: waitingRows.map(row => ({
+      compte: getCompte(row),
+      libelle: getLibelle(row),
+      amount: getAmount(row) || 0
+    }))
+  });
 
-});
-
-});
-
-controls.push({
-
-type:"waiting_account_detected",
-label:"Compte d'attente détecté",
-level:"warning"
-
-});
-
+  controls.push({
+    type: "waiting_account_detected",
+    label: "Compte d'attente détecté",
+    level: "warning"
+  });
 }
   
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
