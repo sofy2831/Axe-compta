@@ -1083,8 +1083,17 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
     debit: "—",
     credit: "—",
     amount: loanEntryAmount,
-    justification: calculatedIcne
-      ? `Emprunt détecté.
+justification: icneAmount
+  ? `Emprunt détecté.
+
+Capital restant dû / compte 164 : ${capitalAmount || "?"} €
+Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
+ICNE repris du compte 1688 : ${icneAmount} €
+
+Le compte 1688 étant présent dans la balance, ce montant est repris directement.
+Aucun recalcul n'est effectué à partir du tableau d'emprunt.`
+  : calculatedIcne
+  ? `Emprunt détecté.
 
 Banque : ${calculatedIcne.bank || "?"}
 Référence : ${calculatedIcne.reference || "?"}
@@ -1098,13 +1107,13 @@ ICNE calculé : ${calculatedIcne.icne} €
 
 Écriture proposée :
 Débit 661100 / Crédit 168800`
-      : `Emprunt détecté.
+  : `Emprunt détecté.
 
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
 Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
-ICNE / compte 1688 : ${icneAmount || "absent"} €
 
-Compte 1688 absent : le montant doit être calculé au prorata temporis avec le tableau d’emprunt.`,
+Impossible de calculer les ICNE automatiquement.
+Le tableau d’emprunt est absent ou inexploitable.`,
     confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
     source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
     status: "À valider"
