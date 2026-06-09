@@ -1077,15 +1077,28 @@ entries.push({
   debit: "—",
   credit: "—",
   amount: loanEntryAmount,
-  justification:
-`Emprunt détecté.
+  justification: calculatedIcne
+  ? `Emprunt détecté.
 
-Capital restant dû / compte 164 : ${capitalAmount || "?"} €
-Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
-ICNE / compte 1688 : ${icneAmount || "absent"} €
+Banque : ${calculatedIcne.bank || "?"}
+Référence : ${calculatedIcne.reference || "?"}
+
+Période : ${calculatedIcne.start.toLocaleDateString("fr-FR")} → ${calculatedIcne.due.toLocaleDateString("fr-FR")}
+Jours courus : ${calculatedIcne.elapsedDays}
+Jours période : ${calculatedIcne.periodDays}
+
+Intérêts de l’échéance : ${calculatedIcne.interest} €
+ICNE calculé : ${calculatedIcne.icne} €
 
 Écriture proposée :
-Débit 661100 / Crédit 168800
+Débit 661100 / Crédit 168800`
+  : `Emprunt détecté.
+
+Capital restant dû / compte 164 : ${capitalAmount || "?"} €
+Intérêts / compte 661 : ${interestAmount || "?"} €
+ICNE / compte 1688 : ${icneAmount || "absent"} €
+
+ICNE à calculer avec le tableau d’emprunt.`,
 
 ${icneAmount
   ? "Le compte 1688 est présent : le montant est repris depuis la balance."
