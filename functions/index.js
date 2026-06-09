@@ -385,11 +385,13 @@ function findLoanIcne(empruntRows, closureEndDate) {
 
     if (start <= endDate && due >= endDate) {
       const periodDays = daysBetween(start, due);
-      const elapsedDays = daysBetween(start, endDate) + 1;
+const elapsedDaysRaw = daysBetween(start, endDate) + 1;
+const elapsedDays = Math.min(elapsedDaysRaw, periodDays);
 
-      if (periodDays <= 0 || elapsedDays <= 0) return null;
+if (periodDays <= 0 || elapsedDays <= 0) return null;
 
-      const icne = Math.round((interest * elapsedDays / periodDays) * 100) / 100;
+const prorata = Math.min(elapsedDays / periodDays, 1);
+const icne = +(interest * prorata).toFixed(2);
 
       return {
         icne,
@@ -1110,7 +1112,7 @@ Calcul automatique des ICNE réalisé à partir du tableau d'emprunt.
 Écriture proposée :
 
 Débit 661100 Intérêts courus
-Crédit 168800`Intérêts courus non échus
+Crédit 168800 Intérêts courus non échus
   
 Montant retenu : ${loanEntryAmount} €
   
