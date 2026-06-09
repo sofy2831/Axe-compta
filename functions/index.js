@@ -842,6 +842,63 @@ ${quotePartAmount || repriseAmount
     level: "info"
   });
 }
+
+// Crédit-bail / leasing : véhicules, matériel, photocopieur
+if (answers.immo === "yes") {
+  const leasingRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+
+    return (
+      compte.startsWith("612") ||
+      text.includes("credit bail") ||
+      text.includes("crédit bail") ||
+      text.includes("leasing") ||
+      text.includes("loyer vehicule") ||
+      text.includes("loyer véhicule") ||
+      text.includes("photocopieur") ||
+      text.includes("location materiel") ||
+      text.includes("location matériel")
+    );
+  });
+
+  leasingRows.forEach(row => {
+    entries.push({
+      journal: "ANALYSE",
+      label: `Analyse crédit-bail - ${getLibelle(row)}`,
+      debit: "—",
+      credit: "—",
+      amount: getAmount(row) || "À contrôler",
+      justification:
+`Crédit-bail / leasing détecté.
+
+Compte : ${getCompte(row) || "?"}
+Libellé : ${getLibelle(row)}
+Montant détecté : ${getAmount(row) || "?"} €
+
+Contrôles à effectuer :
+- vérifier le contrat de crédit-bail ou leasing ;
+- identifier le bien concerné : véhicule, photocopieur, matériel, autre ;
+- vérifier la période couverte par les loyers ;
+- contrôler les loyers constatés d'avance éventuels ;
+- vérifier l'existence d'une option d'achat ;
+- vérifier si une information doit être mentionnée en annexe.
+
+Aucune écriture automatique n'est générée à ce stade.`,
+      confidence: 0.75,
+      source: "grandLivre",
+      status: "À valider"
+    });
+  });
+
+  if (leasingRows.length) {
+    controls.push({
+      type: "leasing_detected",
+      label: "Crédit-bail ou leasing détecté",
+      level: "info"
+    });
+  }
+}
   
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
