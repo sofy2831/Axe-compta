@@ -1053,7 +1053,7 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
   const calculatedIcne = findLoanIcne(empruntRows, closure.endDate);
 const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
 
- const loanEntryAmount = icneAmount || "À calculer";
+ amount: finalIcneAmount || "À calculer",
 
 entries.push({
   journal: "OD",
