@@ -976,44 +976,47 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
   const interestAmount = interestRow ? getAmount(interestRow) : 0;
   const icneAmount = icneRow ? getAmount(icneRow) : 0;
 
-  entries.push({
-    journal: "OD",
-    label: "Intérêts courus d'emprunt",
-    debit: "661100",
-    credit: "168800",
-    amount: icneAmount || interestAmount || "À contrôler",
-    justification: icneAmount
-      ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
-      : interestAmount
-        ? "Compte 661 détecté : vérifier la part d’intérêts courus à rattacher à la clôture."
-        : "Emprunt détecté : intérêts courus à calculer avec le tableau d’emprunt.",
-    confidence: icneAmount ? 0.85 : interestAmount ? 0.7 : 0.55,
-    source: icneAmount ? "balance" : interestAmount ? "balance/grandLivre" : "analyse",
-    status: "À valider"
-  });
+ const loanEntryAmount = icneAmount || "À calculer";
 
-  entries.push({
-    journal: "ANALYSE",
-    label: "Analyse emprunt",
-    debit: "—",
-    credit: "—",
-    amount: icneAmount || interestAmount || "À contrôler",
-    justification:
+entries.push({
+  journal: "OD",
+  label: "Intérêts courus d'emprunt",
+  debit: "661100",
+  credit: "168800",
+  amount: loanEntryAmount,
+  justification: icneAmount
+    ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
+    : interestAmount
+      ? "Compte 661 détecté mais compte 1688 absent : les ICNE doivent être calculés à partir du tableau d’emprunt."
+      : "Emprunt détecté : intérêts courus à calculer avec le tableau d’emprunt.",
+  confidence: icneAmount ? 0.85 : 0.55,
+  source: icneAmount ? "balance" : "analyse",
+  status: "À valider"
+});
+
+entries.push({
+  journal: "ANALYSE",
+  label: "Analyse emprunt",
+  debit: "—",
+  credit: "—",
+  amount: loanEntryAmount,
+  justification:
 `Emprunt détecté.
 
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
-Intérêts / compte 661 : ${interestAmount || "?"} €
-ICNE / compte 1688 : ${icneAmount || "?"} €
+Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
+ICNE / compte 1688 : ${icneAmount || "absent"} €
 
 Écriture proposée :
 Débit 661100 / Crédit 168800
 
-À rapprocher du tableau d’amortissement de l’emprunt.`,
-    confidence: capitalAmount && (icneAmount || interestAmount) ? 0.85 : 0.6,
-    source: "analyse",
-    status: "À valider"
-  });
-
+${icneAmount
+  ? "Le compte 1688 est présent : le montant est repris depuis la balance."
+  : "Le compte 1688 est absent : le montant doit être calculé au prorata temporis avec le tableau d’emprunt."}`,
+  confidence: icneAmount ? 0.85 : 0.55,
+  source: icneAmount ? "balance" : "analyse",
+  status: "À valider"
+});
   controls.push({
     type: "loan_analysis_detected",
     label: "Emprunt ou intérêts d’emprunt détectés",
