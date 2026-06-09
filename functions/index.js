@@ -377,7 +377,7 @@ function findLoanIcne(empruntRows, closureEndDate) {
 
     if (!start || !due || !interest) continue;
 
-    if (start <= endDate && due > endDate) {
+    if (start <= endDate && due >= endDate) {
       const periodDays = daysBetween(start, due);
       const elapsedDays = daysBetween(start, endDate) + 1;
 
