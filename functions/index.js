@@ -1105,8 +1105,13 @@ Jours période : ${calculatedIcne.periodDays}
 Intérêts de l’échéance : ${calculatedIcne.interest} €
 ICNE calculé : ${calculatedIcne.icne} €
 
+Calcul automatique des ICNE réalisé à partir du tableau d'emprunt.
+
 Écriture proposée :
-Débit 661100 / Crédit 168800`
+Débit 661100 Intérêts courus
+Crédit 168800`Intérêts courus non échus
+Montant retenu : 259,37 €
+  
   : `Emprunt détecté.
 
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
