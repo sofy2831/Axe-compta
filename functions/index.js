@@ -328,12 +328,12 @@ function findFirstRowByPrefixes(rows, prefixes) {
 }
 
 function detectAccountingEntries(
-    balanceRows,
-    grandLivreRows,
-    amortissementRows,
-    empruntRows = [],
-    closure = {}
-)
+  balanceRows,
+  grandLivreRows,
+  amortissementRows = [],
+  empruntRows = [],
+  closure = {}
+) {
   const entries = [];
   const controls = [];
   const anomalies = [];
