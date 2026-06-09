@@ -348,19 +348,25 @@ function parseExcelDate(value) {
     return value;
   }
 
+  if (typeof value === "number") {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (parsed) {
+      return new Date(parsed.y, parsed.m - 1, parsed.d);
+    }
+  }
+
   const raw = String(value).trim();
+
+  const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (fr) {
+    return new Date(Number(fr[3]), Number(fr[2]) - 1, Number(fr[1]));
+  }
 
   const iso = new Date(raw);
   if (!Number.isNaN(iso.getTime())) return iso;
 
-  const fr = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (fr) {
-    return new Date(`${fr[3]}-${fr[2]}-${fr[1]}T00:00:00`);
-  }
-
   return null;
 }
-
 function daysBetween(start, end) {
   const ms = end.getTime() - start.getTime();
   return Math.round(ms / (1000 * 60 * 60 * 24));
