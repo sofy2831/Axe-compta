@@ -54,10 +54,10 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
       <span>Générer les OD de contrepassation N+1 : FNP, CCA, PCA, FAE, PAR, CAP et ICNE.</span>
       <a class="btn" id="extournesModuleLink" href="extournes-automatiques.html">Ouvrir</a>
     </div>
-    <div class="moduleCard disabled">
+    <div class="moduleCard">
       <b>⭐ Score qualité</b>
-      <span>Contrôle global de cohérence : comptes d’attente, justificatifs, anomalies et score /100.</span>
-      <a class="btn" href="#">Bientôt</a>
+      <span>Contrôle global de cohérence : comptes d’attente, justificatifs, anomalies, recontrôles et score /100.</span>
+      <a class="btn" id="scoreModuleLink" href="score-qualite.html">Ouvrir</a>
     </div>
   </div>
 </section>
@@ -82,11 +82,13 @@ import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, ser
 const rows=document.getElementById("closuresRows");
 const affectationModuleLink=document.getElementById("affectationModuleLink");
 const extournesModuleLink=document.getElementById("extournesModuleLink");
+const scoreModuleLink=document.getElementById("scoreModuleLink");
 
 function renderEmpty(){
   rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;
   affectationModuleLink.href="affectation-resultat.html";
   extournesModuleLink.href="extournes-automatiques.html";
+  scoreModuleLink.href="score-qualite.html";
 }
 
 function statusLabel(status){
@@ -162,6 +164,7 @@ async function loadDashboard(user){
               <a class="btn small primary" href="cloture-resultat.html?id=${docSnap.id}">Ouvrir</a>
               <a class="btn small" href="affectation-resultat.html?id=${docSnap.id}">Affectation</a>
               <a class="btn small" href="extournes-automatiques.html?id=${docSnap.id}">Extournes</a>
+              <a class="btn small" href="score-qualite.html?id=${docSnap.id}">Score</a>
               <button class="btn small" type="button" data-archive="${docSnap.id}" data-state="${archived}">
                 ${archiveLabel}
               </button>
@@ -177,6 +180,10 @@ async function loadDashboard(user){
     extournesModuleLink.href = firstActiveClosureId
       ? `extournes-automatiques.html?id=${firstActiveClosureId}`
       : "extournes-automatiques.html";
+
+    scoreModuleLink.href = firstActiveClosureId
+      ? `score-qualite.html?id=${firstActiveClosureId}`
+      : "score-qualite.html";
 
     activeClosures.textContent=activeCount;
     exportsCount.textContent=exports;
