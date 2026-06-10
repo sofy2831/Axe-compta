@@ -6,55 +6,154 @@
 <title>Affectation du résultat | Axe Compta IA</title>
 <meta name="robots" content="noindex,nofollow"/>
 <style>
-body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#102847;color:#f6f8fb}
-.wrap{width:min(980px,calc(100% - 36px));margin:0 auto;padding:42px 0}
-.box{background:rgba(28,67,113,.82);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:24px;margin-top:18px}
-h1{font-size:42px;margin:0 0 10px}
-label{display:block;margin:14px 0 6px;font-weight:800}
-input,select{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:#0d294b;color:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn{display:inline-flex;margin-top:18px;margin-right:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:850;color:#06121e;background:linear-gradient(135deg,#72e0c5,#4aa3ff);cursor:pointer;text-decoration:none}
-.btn.secondary{color:#f6f8fb;background:rgba(255,255,255,.08)}
-.notice{margin-top:16px;padding:14px;border-left:4px solid #72e0c5;background:rgba(114,224,197,.10);border-radius:14px}
-table{width:100%;border-collapse:collapse;margin-top:18px}
-td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left}
-.muted{color:#c2d0e3}
-.err{color:#ffb3b3}
-.ok{color:#8df0b3}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
+:root{
+  --bg:#102847;
+  --panel:rgba(28,67,113,.82);
+  --panel2:rgba(13,41,75,.72);
+  --line:rgba(255,255,255,.14);
+  --text:#f6f8fb;
+  --muted:#c2d0e3;
+  --primary:#72e0c5;
+  --primary2:#4aa3ff;
+  --ok:#8df0b3;
+  --warn:#ffd166;
+  --danger:#ff9b9b;
+  --radius:22px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:radial-gradient(circle at top left,rgba(74,163,255,.32),transparent 38rem),linear-gradient(180deg,#10294a 0%,#14365f 45%,#102847 100%);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.55;
+}
+a{color:inherit;text-decoration:none}
+.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 64px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+h1{font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:-.05em;margin:0 0 10px}
+h2{margin:0 0 14px;font-size:22px;letter-spacing:-.03em}
+h3{margin:0 0 10px;font-size:18px}
+.muted{color:var(--muted)}
+.box,.card{
+  background:linear-gradient(180deg,rgba(28,67,113,.86),rgba(19,52,91,.78));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-top:18px;
+  box-shadow:0 20px 55px rgba(7,23,45,.22);
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+label{display:block;margin:14px 0 6px;font-weight:850;color:#eef6ff}
+input,select,textarea{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:#0d294b;
+  color:#fff;
+  font:inherit;
+}
+input[readonly]{opacity:.9;background:rgba(13,41,75,.55)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:12px 18px;
+  font-weight:900;
+  color:var(--text);
+  background:rgba(255,255,255,.07);
+  cursor:pointer;
+  transition:.18s ease;
+  gap:8px;
+}
+.btn:hover{background:rgba(255,255,255,.11);transform:translateY(-1px)}
+.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}
+.btn.warn{color:#06121e;border-color:transparent;background:linear-gradient(135deg,#ffd166,#72e0c5)}
+.btn.danger{border-color:rgba(255,155,155,.35);color:#ffe1e1;background:rgba(255,155,155,.08)}
+.btn.small{padding:9px 12px;font-size:13px}
+.btn[disabled]{opacity:.45;pointer-events:none;transform:none}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}
+.notice.warn{border-left-color:var(--warn);background:rgba(255,209,102,.10)}
+.notice.err{border-left-color:var(--danger);background:rgba(255,155,155,.10)}
+.ok{color:var(--ok)}.errTxt{color:var(--danger)}.warnTxt{color:var(--warn)}
+.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.summaryItem{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:14px}
+.summaryItem span{display:block;color:var(--muted);font-size:13px}.summaryItem b{display:block;font-size:24px;color:#fff;letter-spacing:-.03em}
+.progressWrap{height:14px;background:rgba(255,255,255,.10);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.10);margin-top:12px}
+.progressBar{height:100%;width:0%;background:linear-gradient(135deg,var(--primary),var(--primary2));transition:.2s ease}
+table{width:100%;border-collapse:collapse;margin-top:18px;border:1px solid var(--line);border-radius:16px;overflow:hidden;font-size:14px}
+th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#dce8f6}
+tr:last-child td{border-bottom:none}
+.aiBox{border:1px dashed rgba(114,224,197,.45);background:rgba(114,224,197,.07)}
+.proposals{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.proposal{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:14px}
+.proposal b{display:block;margin-bottom:6px}.proposal p{margin:0;color:var(--muted);font-size:14px}
+.exportBar{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.printOnly{display:none}
+@media(max-width:920px){.grid,.grid3,.summaryGrid,.proposals{grid-template-columns:1fr}.topbar{align-items:flex-start}}
+@media print{
+  body{background:#fff;color:#111}.wrap{width:100%;padding:0}.topbar,.actions,.exportBar,.btn,.notice.noPrint{display:none!important}.box,.card{box-shadow:none;border:1px solid #ddd;background:#fff;color:#111}.muted{color:#555}input{border:none;background:#fff;color:#111;padding:0}.printOnly{display:block}table{border-color:#ccc}th,td{border-color:#ccc;color:#111}th{background:#f3f3f3;color:#111}
+}
 </style>
 </head>
-
 <body>
 <div class="wrap">
-  <h1>Affectation du résultat</h1>
-  <p class="muted">Préparez l’écriture d’affectation du résultat après PV d’assemblée générale.</p>
+  <div class="topbar">
+    <div>
+      <h1>Affectation du résultat</h1>
+      <p class="muted">Assistant d’affectation du résultat après clôture et préparation du PV d’assemblée générale.</p>
+    </div>
+    <div class="actions" style="margin-top:0">
+      <a class="btn" href="tableau-de-bord.html">← Tableau de bord</a>
+      <a class="btn" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
+    </div>
+  </div>
 
-  <div class="box">
+  <section class="box">
+    <h2>1. Résultat détecté</h2>
     <p class="muted" id="statusLine">Chargement de la clôture...</p>
 
     <div class="grid">
       <div>
         <label>Société</label>
-        <input id="companyName" placeholder="Ex : SARL Exemple">
+        <input id="companyName" readonly placeholder="Société">
       </div>
       <div>
         <label>Exercice concerné</label>
-        <input id="fiscalYear" placeholder="Ex : 2022">
+        <input id="fiscalYear" readonly placeholder="Exercice">
       </div>
     </div>
 
-    <label>Type de résultat</label>
-    <select id="resultType">
-      <option value="profit">Bénéfice</option>
-      <option value="loss">Perte</option>
-    </select>
+    <div class="summaryGrid">
+      <div class="summaryItem"><span>Nature du résultat</span><b id="resultTypeLabel">—</b></div>
+      <div class="summaryItem"><span>Résultat à affecter</span><b id="resultAmountLabel">0,00 €</b></div>
+      <div class="summaryItem"><span>Total affecté</span><b id="allocatedLabel">0,00 €</b></div>
+      <div class="summaryItem"><span>Reste à affecter</span><b id="remainingLabel">0,00 €</b></div>
+    </div>
 
-    <label>Résultat à affecter</label>
-    <input id="resultAmount" type="number" step="0.01" value="0">
+    <div class="progressWrap"><div class="progressBar" id="progressBar"></div></div>
+    <div id="balanceStatus" class="notice warn noPrint">Saisissez une affectation ou utilisez une proposition automatique.</div>
+  </section>
+
+  <section class="box">
+    <h2>2. Répartition</h2>
+
+    <div class="actions" style="margin-top:0">
+      <button class="btn warn" type="button" id="autoProposalBtn">Proposition automatique</button>
+      <button class="btn" type="button" id="aiProposalBtn">IA — proposer la meilleure affectation</button>
+    </div>
+
+    <div class="notice aiBox noPrint" id="aiNotice" style="display:none">
+      Le bouton IA est prêt côté interface. Il pourra être branché plus tard sur une Cloud Function ou l’API IA pour proposer une affectation argumentée selon les statuts, réserves et politique de distribution.
+    </div>
 
     <div id="profitFields">
-      <div class="grid">
+      <div class="grid3">
         <div>
           <label>Réserve légale / autres réserves - 1068</label>
           <input id="reserveAmount" type="number" step="0.01" value="0">
@@ -63,10 +162,29 @@ td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left
           <label>Report à nouveau créditeur - 110</label>
           <input id="carryForwardAmount" type="number" step="0.01" value="0">
         </div>
+        <div>
+          <label>Dividendes à payer - 457</label>
+          <input id="dividendAmount" type="number" step="0.01" value="0">
+        </div>
       </div>
 
-      <label>Dividendes à payer - 457</label>
-      <input id="dividendAmount" type="number" step="0.01" value="0">
+      <div class="proposals noPrint">
+        <div class="proposal">
+          <b>Prudent</b>
+          <p>Réserve légale estimée puis solde en report à nouveau.</p>
+          <button class="btn small" type="button" id="applyPrudentBtn">Appliquer</button>
+        </div>
+        <div class="proposal">
+          <b>Report intégral</b>
+          <p>100 % du bénéfice en report à nouveau créditeur.</p>
+          <button class="btn small" type="button" id="applyCarryBtn">Appliquer</button>
+        </div>
+        <div class="proposal">
+          <b>Distribution</b>
+          <p>100 % du bénéfice en dividendes à payer.</p>
+          <button class="btn small" type="button" id="applyDividendBtn">Appliquer</button>
+        </div>
+      </div>
     </div>
 
     <div id="lossFields" style="display:none">
@@ -77,13 +195,25 @@ td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left
     <label>Date du PV d’AG</label>
     <input id="pvDate" type="date">
 
-    <button class="btn" type="button" id="generateBtn">Générer l’écriture</button>
-    <button class="btn secondary" type="button" id="saveBtn" style="display:none">Enregistrer dans Firestore</button>
-    <button class="btn secondary" type="button" id="pvBtn" style="display:none">Télécharger le PV d’AG</button>
+    <div class="actions">
+      <button class="btn primary" type="button" id="generateBtn" disabled>Générer les écritures</button>
+      <button class="btn" type="button" id="saveBtn" disabled>Enregistrer l’affectation</button>
+      <button class="btn" type="button" id="pvBtn" disabled>Télécharger le PV d’AG</button>
+    </div>
+  </section>
 
-    <div id="resultBox" class="notice" style="display:none"></div>
+  <section class="box" id="entriesSection" style="display:none">
+    <h2>3. Écritures générées</h2>
     <div id="entriesBox"></div>
-  </div>
+
+    <div class="exportBar noPrint">
+      <button class="btn small" type="button" id="printBtn">Imprimer</button>
+      <button class="btn small" type="button" id="pdfBtn">PDF</button>
+      <button class="btn small" type="button" id="csvBtn">CSV</button>
+      <button class="btn small" type="button" id="excelBtn">Excel</button>
+      <button class="btn small" type="button" id="wordBtn">Word</button>
+    </div>
+  </section>
 </div>
 
 <script type="module">
@@ -93,453 +223,243 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 
 const params = new URLSearchParams(window.location.search);
 const closureId = params.get("id");
-
 let currentUser = null;
 let currentClosure = null;
+let resultType = "profit";
+let detectedAmount = 0;
 let generatedRows = [];
 
 const $ = id => document.getElementById(id);
+const money = v => Number(v || 0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €";
+const n = id => Number($(id).value || 0);
+const setVal = (id,v) => { $(id).value = v ?? ""; };
+const cleanFile = s => String(s || "societe").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase();
 
-function n(id){
-  return Number($(id).value || 0);
-}
-
-function setValue(id,value){
-  $(id).value = value ?? "";
-}
-
-function fmt(v){
-  return Number(v || 0).toLocaleString("fr-FR",{
-    minimumFractionDigits:2,
-    maximumFractionDigits:2
-  }) + " €";
-}
-
-function getCompte(row){
-  return String(row.Compte || row.compte || "").replace(/\s/g,"");
-}
-
-function getLibelle(row){
-  return String(row.Libellé || row.libelle || row.Libelle || "").trim();
-}
-
+function getCompte(row){ return String(row?.Compte || row?.compte || "").replace(/\s/g,""); }
+function normalizeKey(value){ return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
 function getAmount(row){
   const keys = Object.keys(row || {});
-  const preferredKeys = keys.filter(k => {
-    const key = String(k).toLowerCase();
-    return key.includes("montant") || key.includes("solde") || key.includes("debit") || key.includes("débit") || key.includes("credit") || key.includes("crédit");
+  const preferred = keys.filter(k => {
+    const key = normalizeKey(k);
+    return key.includes("montant") || key.includes("solde") || key.includes("debit") || key.includes("credit");
   });
-
-  const searchKeys = preferredKeys.length ? preferredKeys : keys;
-
-  for(const key of searchKeys){
+  for(const key of (preferred.length ? preferred : keys)){
     const raw = String(row[key] ?? "").replace(",",".").replace(/\s/g,"");
     const value = Number(raw);
     if(!Number.isNaN(value) && value !== 0) return value;
   }
-
   return 0;
 }
-
 function findResultFromBalance(closure){
   const rows = Array.isArray(closure?.balance) ? closure.balance : [];
-
-  const resultRow = rows.find(row => {
-    const compte = getCompte(row);
-    return compte.startsWith("120") || compte.startsWith("129");
-  });
-
-  if(!resultRow) return null;
-
-  const compte = getCompte(resultRow);
-  const amount = Math.abs(getAmount(resultRow));
-
+  const row = rows.find(r => getCompte(r).startsWith("120") || getCompte(r).startsWith("129"));
+  if(!row) return null;
+  const amount = Math.abs(getAmount(row));
   if(!amount) return null;
-
-  return {
-    type: compte.startsWith("129") ? "loss" : "profit",
-    amount
-  };
+  return { type:getCompte(row).startsWith("129") ? "loss" : "profit", amount };
 }
-
 function findResultFromClosure(closure){
-  const direct =
-    closure.resultAmount ??
-    closure.accountingResult ??
-    closure.netIncome ??
-    closure.result ??
-    closure.resultat ??
-    null;
-
+  const direct = closure?.resultAmount ?? closure?.accountingResult ?? closure?.netIncome ?? closure?.result ?? closure?.resultat ?? null;
   if(direct !== null && direct !== undefined && !Number.isNaN(Number(direct))){
     const value = Number(direct);
-    return {
-      type: value < 0 ? "loss" : "profit",
-      amount: Math.abs(value)
-    };
+    return { type:value < 0 ? "loss" : "profit", amount:Math.abs(value) };
   }
-
   return findResultFromBalance(closure);
 }
-
 function fiscalYearLabel(closure){
-  if(closure?.startDate && closure?.endDate){
-    return `${closure.startDate} → ${closure.endDate}`;
-  }
-
-  if(closure?.endDate){
-    const year = String(closure.endDate).slice(0,4);
-    return year || "";
-  }
-
+  if(closure?.startDate && closure?.endDate) return `${closure.startDate} → ${closure.endDate}`;
+  if(closure?.endDate) return String(closure.endDate).slice(0,4);
   return closure?.fiscalYear || closure?.exercice || "";
 }
+function refreshUI(){
+  const allocated = resultType === "profit"
+    ? n("reserveAmount") + n("carryForwardAmount") + n("dividendAmount")
+    : n("lossCarryForwardAmount");
+  const remaining = +(detectedAmount - allocated).toFixed(2);
+  const pct = detectedAmount ? Math.max(0, Math.min(100, (allocated / detectedAmount) * 100)) : 0;
 
-function toggleFields(){
-  const isProfit = $("resultType").value === "profit";
-  $("profitFields").style.display = isProfit ? "block" : "none";
-  $("lossFields").style.display = isProfit ? "none" : "block";
-}
+  $("resultTypeLabel").textContent = resultType === "profit" ? "Bénéfice" : "Perte";
+  $("resultAmountLabel").textContent = money(detectedAmount);
+  $("allocatedLabel").textContent = money(allocated);
+  $("remainingLabel").textContent = money(remaining);
+  $("progressBar").style.width = pct + "%";
 
-$("resultType").addEventListener("change", toggleFields);
+  const balanced = detectedAmount > 0 && Math.abs(remaining) <= 0.01;
+  $("generateBtn").disabled = !balanced;
+  $("saveBtn").disabled = !generatedRows.length;
+  $("pvBtn").disabled = !generatedRows.length;
 
-async function loadClosure(user){
-  if(!closureId){
-    $("statusLine").innerHTML = `<span class="err">Aucune clôture sélectionnée. Retourne au tableau de bord et clique sur “Affectation”.</span>`;
-    return;
-  }
-
-  const ref = doc(db, "users", user.uid, "closures", closureId);
-  const snap = await getDoc(ref);
-
-  if(!snap.exists()){
-    $("statusLine").innerHTML = `<span class="err">Clôture introuvable.</span>`;
-    return;
-  }
-
-  currentClosure = snap.data();
-
-  setValue("companyName", currentClosure.companyName || "");
-  setValue("fiscalYear", fiscalYearLabel(currentClosure));
-
-  const detectedResult = findResultFromClosure(currentClosure);
-
-  if(detectedResult){
-    $("resultType").value = detectedResult.type;
-    setValue("resultAmount", detectedResult.amount);
-    toggleFields();
-    $("statusLine").innerHTML = `<span class="ok">Clôture chargée. Résultat prérempli automatiquement si détecté.</span>`;
+  if(balanced){
+    $("balanceStatus").className = "notice noPrint";
+    $("balanceStatus").innerHTML = `<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.`;
+  }else if(remaining > 0){
+    $("balanceStatus").className = "notice warn noPrint";
+    $("balanceStatus").innerHTML = `<b class="warnTxt">Il reste ${money(remaining)} à affecter.</b>`;
   }else{
-    $("statusLine").innerHTML = `<span class="err">Clôture chargée, mais résultat non détecté automatiquement. À renseigner manuellement.</span>`;
-  }
-
-  if(currentClosure.affectationResult){
-    const a = currentClosure.affectationResult;
-
-    setValue("pvDate", a.pvDate || "");
-    $("resultType").value = a.resultType || $("resultType").value;
-    setValue("resultAmount", a.resultAmount || $("resultAmount").value);
-
-    setValue("reserveAmount", a.reserveAmount || 0);
-    setValue("carryForwardAmount", a.carryForwardAmount || 0);
-    setValue("dividendAmount", a.dividendAmount || 0);
-    setValue("lossCarryForwardAmount", a.lossCarryForwardAmount || 0);
-
-    toggleFields();
-
-    if(Array.isArray(a.entries) && a.entries.length){
-      generatedRows = a.entries;
-      renderEntries(generatedRows);
-      $("saveBtn").style.display = "inline-flex";
-      $("pvBtn").style.display = "inline-flex";
-      $("resultBox").style.display = "block";
-      $("resultBox").innerHTML = `<b class="ok">Affectation déjà enregistrée.</b><br>Tu peux la modifier puis réenregistrer.`;
-    }
+    $("balanceStatus").className = "notice err noPrint";
+    $("balanceStatus").innerHTML = `<b class="errTxt">Affectation supérieure au résultat de ${money(Math.abs(remaining))}.</b>`;
   }
 }
-
+function resetGenerated(){
+  generatedRows = [];
+  $("entriesSection").style.display = "none";
+  $("entriesBox").innerHTML = "";
+  refreshUI();
+}
+["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>{
+  $(id).addEventListener("input",()=>{ resetGenerated(); refreshUI(); });
+});
+function applyProfit(reserve, carry, dividend){
+  setVal("reserveAmount", reserve);
+  setVal("carryForwardAmount", carry);
+  setVal("dividendAmount", dividend);
+  resetGenerated();
+  refreshUI();
+}
+function legalReserveEstimate(){
+  return Math.min(Math.round(detectedAmount * 0.05 * 100) / 100, detectedAmount);
+}
+$("applyPrudentBtn").addEventListener("click",()=>{
+  const reserve = legalReserveEstimate();
+  applyProfit(reserve, +(detectedAmount - reserve).toFixed(2), 0);
+});
+$("applyCarryBtn").addEventListener("click",()=> applyProfit(0, detectedAmount, 0));
+$("applyDividendBtn").addEventListener("click",()=> applyProfit(0, 0, detectedAmount));
+$("autoProposalBtn").addEventListener("click",()=>{
+  if(resultType === "loss"){
+    setVal("lossCarryForwardAmount", detectedAmount);
+    resetGenerated(); refreshUI(); return;
+  }
+  const reserve = legalReserveEstimate();
+  applyProfit(reserve, +(detectedAmount - reserve).toFixed(2), 0);
+});
+$("aiProposalBtn").addEventListener("click",()=>{
+  $("aiNotice").style.display = $("aiNotice").style.display === "none" ? "block" : "none";
+});
 function buildEntries(){
-  const type = $("resultType").value;
-  const result = n("resultAmount");
-  let rows = [];
-  let total = 0;
-  let diff = 0;
-
-  if(type === "profit"){
-    const reserve = n("reserveAmount");
-    const carry = n("carryForwardAmount");
-    const dividend = n("dividendAmount");
-
-    total = reserve + carry + dividend;
-    diff = result - total;
-
-    if(Math.abs(diff) > 0.01){
-      throw new Error(`Affectation déséquilibrée.<br>Résultat : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`);
-    }
-
-    rows.push({
-      journal:"OD",
-      label:"Affectation du résultat bénéficiaire",
-      debit:"120000",
-      credit:"",
-      amount:result
-    });
-
-    if(reserve){
-      rows.push({
-        journal:"OD",
-        label:"Affectation en réserves",
-        debit:"",
-        credit:"106800",
-        amount:reserve
-      });
-    }
-
-    if(carry){
-      rows.push({
-        journal:"OD",
-        label:"Report à nouveau créditeur",
-        debit:"",
-        credit:"110000",
-        amount:carry
-      });
-    }
-
-    if(dividend){
-      rows.push({
-        journal:"OD",
-        label:"Dividendes à payer",
-        debit:"",
-        credit:"457000",
-        amount:dividend
-      });
-    }
-  }
-
-  if(type === "loss"){
+  const rows = [];
+  if(resultType === "profit"){
+    const reserve = n("reserveAmount"), carry = n("carryForwardAmount"), dividend = n("dividendAmount");
+    const total = reserve + carry + dividend;
+    if(Math.abs(detectedAmount - total) > 0.01) throw new Error("Affectation déséquilibrée.");
+    rows.push({ journal:"OD", label:"Affectation du résultat bénéficiaire", debit:"120000", credit:"", amount:detectedAmount });
+    if(reserve) rows.push({ journal:"OD", label:"Affectation en réserves", debit:"", credit:"106800", amount:reserve });
+    if(carry) rows.push({ journal:"OD", label:"Report à nouveau créditeur", debit:"", credit:"110000", amount:carry });
+    if(dividend) rows.push({ journal:"OD", label:"Dividendes à payer", debit:"", credit:"457000", amount:dividend });
+  }else{
     const lossCarry = n("lossCarryForwardAmount");
-
-    total = lossCarry;
-    diff = result - total;
-
-    if(Math.abs(diff) > 0.01){
-      throw new Error(`Affectation déséquilibrée.<br>Perte : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`);
-    }
-
-    rows.push({
-      journal:"OD",
-      label:"Report à nouveau débiteur",
-      debit:"119000",
-      credit:"",
-      amount:lossCarry
-    });
-
-    rows.push({
-      journal:"OD",
-      label:"Affectation du résultat déficitaire",
-      debit:"",
-      credit:"129000",
-      amount:lossCarry
-    });
+    if(Math.abs(detectedAmount - lossCarry) > 0.01) throw new Error("Affectation déséquilibrée.");
+    rows.push({ journal:"OD", label:"Report à nouveau débiteur", debit:"119000", credit:"", amount:lossCarry });
+    rows.push({ journal:"OD", label:"Affectation du résultat déficitaire", debit:"", credit:"129000", amount:lossCarry });
   }
-
   return rows;
 }
-
-function renderEntries(rows){
+function renderEntries(){
+  $("entriesSection").style.display = "block";
   $("entriesBox").innerHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Journal</th>
-          <th>Libellé</th>
-          <th>Débit</th>
-          <th>Crédit</th>
-          <th>Montant</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows.map(r => `
-          <tr>
-            <td>${r.journal}</td>
-            <td>${r.label}</td>
-            <td>${r.debit || ""}</td>
-            <td>${r.credit || ""}</td>
-            <td>${fmt(r.amount)}</td>
-          </tr>
-        `).join("")}
-      </tbody>
+    <table id="entriesTable">
+      <thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
+      <tbody>${generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("")}</tbody>
     </table>`;
+  refreshUI();
 }
-
-$("generateBtn").addEventListener("click", () => {
-  try{
-    generatedRows = buildEntries();
-
-    $("resultBox").style.display = "block";
-    $("resultBox").innerHTML = `<b class="ok">Affectation équilibrée.</b><br>PV d’AG : ${$("pvDate").value || "à renseigner"}`;
-
-    renderEntries(generatedRows);
-
-    $("saveBtn").style.display = "inline-flex";
-    $("pvBtn").style.display = "inline-flex";
-  }catch(error){
-    $("resultBox").style.display = "block";
-    $("resultBox").innerHTML = `<b class="err">${error.message}</b>`;
-    $("entriesBox").innerHTML = "";
-    $("saveBtn").style.display = "none";
-    $("pvBtn").style.display = "none";
-  }
+$("generateBtn").addEventListener("click",()=>{
+  try{ generatedRows = buildEntries(); renderEntries(); }
+  catch(e){ alert(e.message || "Affectation impossible."); }
 });
-
-$("saveBtn").addEventListener("click", async () => {
-  if(!currentUser || !closureId){
-    alert("Impossible d’enregistrer : clôture non sélectionnée.");
-    return;
-  }
-
+$("saveBtn").addEventListener("click",async()=>{
+  if(!currentUser || !closureId) return alert("Clôture non sélectionnée.");
+  if(!generatedRows.length) generatedRows = buildEntries();
+  const data = {
+    companyName: $("companyName").value.trim(),
+    fiscalYear: $("fiscalYear").value.trim(),
+    resultType,
+    resultAmount: detectedAmount,
+    reserveAmount: n("reserveAmount"),
+    carryForwardAmount: n("carryForwardAmount"),
+    dividendAmount: n("dividendAmount"),
+    lossCarryForwardAmount: n("lossCarryForwardAmount"),
+    pvDate: $("pvDate").value || "",
+    entries: generatedRows,
+    status:"validated",
+    updatedAt:new Date().toISOString()
+  };
   try{
-    if(!generatedRows.length){
-      generatedRows = buildEntries();
-    }
-
-    const affectationData = {
-      companyName: $("companyName").value.trim(),
-      fiscalYear: $("fiscalYear").value.trim(),
-      resultType: $("resultType").value,
-      resultAmount: n("resultAmount"),
-      reserveAmount: n("reserveAmount"),
-      carryForwardAmount: n("carryForwardAmount"),
-      dividendAmount: n("dividendAmount"),
-      lossCarryForwardAmount: n("lossCarryForwardAmount"),
-      pvDate: $("pvDate").value || "",
-      entries: generatedRows,
-      status: "generated",
-      updatedAt: new Date().toISOString()
-    };
-
-    await setDoc(
-      doc(db, "users", currentUser.uid, "closures", closureId),
-      {
-        affectationResult: affectationData,
-        updatedAt: serverTimestamp()
-      },
-      { merge:true }
-    );
-
-    $("resultBox").style.display = "block";
-    $("resultBox").innerHTML = `<b class="ok">Affectation enregistrée dans Firestore.</b>`;
-  }catch(error){
-    console.error(error);
-    $("resultBox").style.display = "block";
-    $("resultBox").innerHTML = `<b class="err">Erreur lors de l’enregistrement Firestore.</b>`;
-  }
+    await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{ affectationResult:data, updatedAt:serverTimestamp() },{ merge:true });
+    alert("Affectation enregistrée.");
+  }catch(e){ console.error(e); alert("Erreur lors de l’enregistrement de l’affectation."); }
 });
-
-function generatePvHtml(){
-  const company = $("companyName").value.trim() || "Société";
-  const fiscalYear = $("fiscalYear").value.trim() || "exercice concerné";
-  const pvDate = $("pvDate").value || "date à compléter";
-  const type = $("resultType").value;
-  const result = n("resultAmount");
-
-  const rowsHtml = generatedRows.map(r => `
-    <tr>
-      <td>${r.label}</td>
-      <td>${r.debit || ""}</td>
-      <td>${r.credit || ""}</td>
-      <td>${fmt(r.amount)}</td>
-    </tr>
-  `).join("");
-
-  const decisionText = type === "profit"
-    ? `L’assemblée générale décide d’affecter le bénéfice de l’exercice, soit ${fmt(result)}, conformément au tableau d’affectation ci-dessous.`
-    : `L’assemblée générale décide d’affecter la perte de l’exercice, soit ${fmt(result)}, en report à nouveau débiteur.`;
-
-  return `
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>PV d'Assemblée Générale - ${company}</title>
-<style>
-body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:40px}
-h1,h2{text-align:center}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-td,th{border:1px solid #ccc;padding:10px;text-align:left}
-.signature{margin-top:60px}
-</style>
-</head>
-<body>
-<h1>Procès-verbal d’Assemblée Générale</h1>
-<h2>${company}</h2>
-
-<p><strong>Date :</strong> ${pvDate}</p>
-<p><strong>Exercice concerné :</strong> ${fiscalYear}</p>
-
-<h2>Affectation du résultat</h2>
-
-<p>${decisionText}</p>
-
-<table>
-<thead>
-<tr>
-<th>Libellé</th>
-<th>Débit</th>
-<th>Crédit</th>
-<th>Montant</th>
-</tr>
-</thead>
-<tbody>
-${rowsHtml}
-</tbody>
-</table>
-
-<p class="signature">
-Fait le ${pvDate}<br><br>
-Signature du représentant légal :<br><br><br>
-____________________________
-</p>
-</body>
-</html>`;
+function getExportRows(){
+  return generatedRows.map(r=>({ Journal:r.journal, Libelle:r.label, Debit:r.debit||"", Credit:r.credit||"", Montant:Number(r.amount||0).toFixed(2).replace(".",",") }));
 }
-
-$("pvBtn").addEventListener("click", () => {
-  if(!generatedRows.length){
-    alert("Génère d’abord l’écriture d’affectation.");
-    return;
-  }
-
-  const html = generatePvHtml();
-  const blob = new Blob([html], { type:"text/html;charset=utf-8" });
+function download(filename, content, type){
+  const blob = new Blob([content],{type});
   const url = URL.createObjectURL(blob);
-
-  const company = $("companyName").value.trim().replace(/\s+/g,"-").toLowerCase() || "societe";
   const a = document.createElement("a");
-
-  a.href = url;
-  a.download = `pv-ag-affectation-resultat-${company}.html`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
-});
-
-onAuthStateChanged(auth, async user => {
-  if(!user){
-    window.location.href = "connexion.html";
-    return;
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function csvContent(){
+  const rows = getExportRows();
+  const header = Object.keys(rows[0] || {Journal:"",Libelle:"",Debit:"",Credit:"",Montant:""});
+  return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
+}
+function pvHtml(){
+  const company = $("companyName").value || "Société";
+  const fiscalYear = $("fiscalYear").value || "exercice concerné";
+  const pvDate = $("pvDate").value || "date à compléter";
+  const decision = resultType === "profit"
+    ? `L’assemblée décide d’affecter le bénéfice de l’exercice, soit ${money(detectedAmount)}, conformément au tableau ci-dessous.`
+    : `L’assemblée décide d’affecter la perte de l’exercice, soit ${money(detectedAmount)}, en report à nouveau débiteur.`;
+  const rows = generatedRows.map(r=>`<tr><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("");
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - ${company}</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:40px}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border:1px solid #ccc;padding:10px;text-align:left}.signature{margin-top:60px}</style></head><body><h1>Procès-verbal d’Assemblée Générale</h1><h2>${company}</h2><p><strong>Date :</strong> ${pvDate}</p><p><strong>Exercice concerné :</strong> ${fiscalYear}</p><h2>Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows}</tbody></table><p class="signature">Fait le ${pvDate}<br><br>Signature du représentant légal :<br><br><br>____________________________</p></body></html>`;
+}
+function exportHtmlDoc(title){
+  const company = $("companyName").value || "Société";
+  const rows = generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("");
+  return `<html><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:8px;text-align:left}</style></head><body><h1>${title}</h1><p><strong>Société :</strong> ${company}</p><p><strong>Exercice :</strong> ${$("fiscalYear").value}</p><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+}
+$("printBtn").addEventListener("click",()=>window.print());
+$("pdfBtn").addEventListener("click",()=>window.print());
+$("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
+$("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
+$("wordBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.doc`, exportHtmlDoc("Affectation du résultat"), "application/msword;charset=utf-8"));
+$("pvBtn").addEventListener("click",()=>download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8"));
+async function loadClosure(user){
+  if(!closureId){ $("statusLine").innerHTML = `<span class="errTxt">Aucune clôture sélectionnée. Retournez au tableau de bord.</span>`; return; }
+  $("backClosureBtn").href = `cloture-resultat.html?id=${closureId}`;
+  const snap = await getDoc(doc(db,"users",user.uid,"closures",closureId));
+  if(!snap.exists()){ $("statusLine").innerHTML = `<span class="errTxt">Clôture introuvable.</span>`; return; }
+  currentClosure = snap.data();
+  setVal("companyName", currentClosure.companyName || "");
+  setVal("fiscalYear", fiscalYearLabel(currentClosure));
+  const detected = findResultFromClosure(currentClosure);
+  if(detected){
+    resultType = detected.type; detectedAmount = detected.amount;
+    $("profitFields").style.display = resultType === "profit" ? "block" : "none";
+    $("lossFields").style.display = resultType === "loss" ? "block" : "none";
+    $("statusLine").innerHTML = `<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>`;
+  }else{
+    detectedAmount = 0;
+    $("statusLine").innerHTML = `<span class="errTxt">Clôture chargée, mais aucun compte 120/129 ou résultat exploitable n’a été trouvé.</span>`;
   }
-
+  if(currentClosure.affectationResult){
+    const a = currentClosure.affectationResult;
+    resultType = a.resultType || resultType;
+    detectedAmount = Number(a.resultAmount || detectedAmount || 0);
+    setVal("pvDate", a.pvDate || "");
+    setVal("reserveAmount", a.reserveAmount || 0);
+    setVal("carryForwardAmount", a.carryForwardAmount || 0);
+    setVal("dividendAmount", a.dividendAmount || 0);
+    setVal("lossCarryForwardAmount", a.lossCarryForwardAmount || 0);
+    if(Array.isArray(a.entries) && a.entries.length){ generatedRows = a.entries; renderEntries(); }
+  }
+  refreshUI();
+}
+onAuthStateChanged(auth,async user=>{
+  if(!user){ window.location.href="connexion.html"; return; }
   currentUser = user;
-
-  try{
-    await loadClosure(user);
-  }catch(error){
-    console.error(error);
-    $("statusLine").innerHTML = `<span class="err">Erreur de chargement de la clôture.</span>`;
-  }
+  try{ await loadClosure(user); }
+  catch(e){ console.error(e); $("statusLine").innerHTML = `<span class="errTxt">Erreur de chargement de la clôture.</span>`; }
 });
 </script>
 </body>
