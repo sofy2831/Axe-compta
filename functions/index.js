@@ -1008,6 +1008,70 @@ Cliquer sur « Voir » pour afficher le détail des mouvements.`,
     level: "warning"
   });
 }
+
+  // Immobilisations en cours : 23
+if (hasAccount(["23"])) {
+  const constructionRows = [...balanceRows, ...grandLivreRows].filter(row => {
+    const compte = getCompte(row);
+    return compte.startsWith("23");
+  });
+
+  const seenConstruction = new Set();
+
+  const uniqueConstructionRows = constructionRows.filter(row => {
+    const key = [
+      getCompte(row),
+      getLibelle(row),
+      getAmount(row)
+    ].join("|").toLowerCase();
+
+    if (seenConstruction.has(key)) return false;
+    seenConstruction.add(key);
+    return true;
+  });
+
+  const totalConstruction = uniqueConstructionRows.reduce(
+    (total, row) => total + (getAmount(row) || 0),
+    0
+  );
+
+  entries.push({
+    journal: "ANALYSE",
+    label: "Immobilisations en cours",
+    debit: "—",
+    credit: "—",
+    amount: totalConstruction || "À contrôler",
+    justification:
+`Immobilisations en cours détectées.
+
+Nombre de ligne(s) : ${uniqueConstructionRows.length}
+Montant cumulé : ${totalConstruction || "?"} €
+
+Contrôles à effectuer :
+
+• vérifier si les immobilisations sont toujours en cours à la clôture ;
+• transférer en compte 21 si le bien est mis en service ;
+• vérifier l'absence d'amortissement avant mise en service ;
+• rapprocher les montants des factures et situations de travaux.
+
+Une immobilisation en cours non justifiée pénalise le score qualité.`,
+    confidence: 0.85,
+    source: "balance/grandLivre",
+    status: "À valider",
+    details: uniqueConstructionRows.map(row => ({
+      compte: getCompte(row),
+      libelle: getLibelle(row),
+      amount: getAmount(row) || 0
+    }))
+  });
+
+  controls.push({
+    type: "construction_in_progress_detected",
+    label: "Immobilisation en cours détectée",
+    level: "info"
+  });
+}
+  
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
   const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
