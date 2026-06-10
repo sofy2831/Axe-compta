@@ -61,6 +61,21 @@ let currentEntries = [];
 function safe(v){return String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function entryJournal(e){return e.journal || "OD";}
 function entryStatus(e){return e.status || "À valider";}
+ function detailsButtonHtml(e,index){
+  if(!Array.isArray(e.details) || !e.details.length){
+    return "";
+  }
+
+  return `
+    <button
+      class="statusBtn"
+      type="button"
+      data-details-index="${index}"
+      style="margin-top:6px">
+      Voir
+    </button>
+  `;
+}
   function countCycles(c){
   const controls = Array.isArray(c.controls) ? c.controls : [];
   const businessControls = controls.filter(ctrl =>
