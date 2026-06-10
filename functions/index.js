@@ -975,7 +975,7 @@ if (hasAccount(["471", "472"])) {
     debit: "—",
     credit: "—",
     amount: totalWaiting || "À contrôler",
-    justification:
+ 
 
       justification:
 `Comptes d'attente détectés.
