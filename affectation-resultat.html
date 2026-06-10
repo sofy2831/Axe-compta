@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Affectation du résultat | Axe Compta IA</title>
+<meta name="robots" content="noindex,nofollow"/>
+<style>
+body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#102847;color:#f6f8fb}
+.wrap{width:min(980px,calc(100% - 36px));margin:0 auto;padding:42px 0}
+.box{background:rgba(28,67,113,.82);border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:24px;margin-top:18px}
+h1{font-size:42px;margin:0 0 10px}
+label{display:block;margin:14px 0 6px;font-weight:800}
+input,select{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:#0d294b;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-flex;margin-top:18px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:850;color:#06121e;background:linear-gradient(135deg,#72e0c5,#4aa3ff);cursor:pointer}
+.notice{margin-top:16px;padding:14px;border-left:4px solid #72e0c5;background:rgba(114,224,197,.10);border-radius:14px}
+table{width:100%;border-collapse:collapse;margin-top:18px}
+td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left}
+.muted{color:#c2d0e3}
+.err{color:#ffb3b3}
+.ok{color:#8df0b3}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Affectation du résultat</h1>
+  <p class="muted">Préparez l’écriture d’affectation du résultat après PV d’assemblée générale.</p>
 
+  <div class="box">
+    <div class="grid">
+      <div>
+        <label>Société</label>
+        <input id="companyName" placeholder="Ex : SARL Exemple">
+      </div>
+      <div>
+        <label>Exercice concerné</label>
+        <input id="fiscalYear" placeholder="Ex : 2022">
+      </div>
+    </div>
+
+    <label>Type de résultat</label>
+    <select id="resultType">
+      <option value="profit">Bénéfice</option>
+      <option value="loss">Perte</option>
+    </select>
+
+    <label>Résultat à affecter</label>
+    <input id="resultAmount" type="number" step="0.01" value="0">
+
+    <div id="profitFields">
+      <div class="grid">
+        <div>
+          <label>Réserve légale / autres réserves - 1068</label>
+          <input id="reserveAmount" type="number" step="0.01" value="0">
+        </div>
+        <div>
+          <label>Report à nouveau créditeur - 110</label>
+          <input id="carryForwardAmount" type="number" step="0.01" value="0">
+        </div>
+      </div>
+
+      <label>Dividendes à payer - 457</label>
+      <input id="dividendAmount" type="number" step="0.01" value="0">
+    </div>
+
+    <div id="lossFields" style="display:none">
+      <label>Report à nouveau débiteur - 119</label>
+      <input id="lossCarryForwardAmount" type="number" step="0.01" value="0">
+    </div>
+
+    <label>Date du PV d’AG</label>
+    <input id="pvDate" type="date">
+
+    <button class="btn" type="button" id="generateBtn">Générer l’écriture</button>
+
+    <div id="resultBox" class="notice" style="display:none"></div>
+    <div id="entriesBox"></div>
+  </div>
+</div>
+
+<script>
+function n(id){return Number(document.getElementById(id).value || 0);}
+function fmt(v){return Number(v || 0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
+
+resultType.addEventListener("change",()=>{
+  const isProfit = resultType.value === "profit";
+  profitFields.style.display = isProfit ? "block" : "none";
+  lossFields.style.display = isProfit ? "none" : "block";
+});
+
+generateBtn.addEventListener("click",()=>{
+  const type = resultType.value;
+  const result = n("resultAmount");
+  let rows = [];
+  let total = 0;
+  let diff = 0;
+
+  if(type === "profit"){
+    const reserve = n("reserveAmount");
+    const carry = n("carryForwardAmount");
+    const dividend = n("dividendAmount");
+
+    total = reserve + carry + dividend;
+    diff = result - total;
+
+    if(Math.abs(diff) > 0.01){
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<b class="err">Affectation déséquilibrée.</b><br>Résultat : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`;
+      entriesBox.innerHTML = "";
+      return;
+    }
+
+    rows.push(["OD", "Affectation du résultat bénéficiaire", "120000", "", result]);
+    if(reserve) rows.push(["OD", "Affectation en réserves", "", "106800", reserve]);
+    if(carry) rows.push(["OD", "Report à nouveau créditeur", "", "110000", carry]);
+    if(dividend) rows.push(["OD", "Dividendes à payer", "", "457000", dividend]);
+  }
+
+  if(type === "loss"){
+    const lossCarry = n("lossCarryForwardAmount");
+    total = lossCarry;
+    diff = Math.abs(result) - total;
+
+    if(Math.abs(diff) > 0.01){
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<b class="err">Affectation déséquilibrée.</b><br>Perte : ${fmt(Math.abs(result))}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`;
+      entriesBox.innerHTML = "";
+      return;
+    }
+
+    rows.push(["OD", "Report à nouveau débiteur", "119000", "", lossCarry]);
+    rows.push(["OD", "Affectation du résultat déficitaire", "", "129000", lossCarry]);
+  }
+
+  resultBox.style.display = "block";
+  resultBox.innerHTML = `<b class="ok">Affectation équilibrée.</b><br>PV d’AG : ${pvDate.value || "à renseigner"}`;
+
+  entriesBox.innerHTML = `
+    <table>
+      <thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${fmt(r[4])}</td></tr>`).join("")}
+      </tbody>
+    </table>`;
+});
+</script>
+</body>
+</html>
