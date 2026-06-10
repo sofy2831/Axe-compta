@@ -175,9 +175,15 @@ function renderEntries(){
 const text =
 `COMPTES D'ATTENTE
 
-${entry.details.map(d =>
-  `${d.compte || ""}   ${d.libelle || ""}   ${d.amount || 0} €`
-).join("\n\n")}
+${entry.details.map((d,i)=>
+`${i+1}. ${d.compte || ""}
+
+Libellé : ${d.libelle || ""}
+
+Montant : ${d.amount || 0} €`
+).join("\n\n-------------------------\n\n")}
+
+=========================
 
 Montant cumulé : ${total} €`;
 
