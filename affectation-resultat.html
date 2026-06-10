@@ -7,66 +7,52 @@
 <meta name="robots" content="noindex,nofollow"/>
 <style>
 :root{--bg:#102847;--panel:#1c4371;--panel2:#14365f;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}.progress{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.choice b{display:block;margin-bottom:6px}.choice p{margin:0 0 10px;color:#d7e4f3;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.exportBar{display:none}.pvPreview{display:none;background:#fff;color:#111;border-radius:18px;padding:28px;margin-top:18px}.pvPreview *{color:#111}.pvDoc{font-family:Arial,sans-serif;line-height:1.55}.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td{border:1px solid #d6dce3;padding:10px}.pvInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.pvDoc h2{font-size:21px;margin-top:26px}.pvDoc table{border-collapse:collapse;width:100%;margin-top:14px}.pvDoc th,.pvDoc td{border:1px solid #ccd3dc;padding:10px}.pvDoc th{background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{
-position:fixed;
-left:0;
-right:0;
-bottom:0;
-text-align:center;
-font-size:11px;
-color:#666;
-border-top:1px solid #cfcfcf;
-padding:6px 0;
-background:#fff;
-}@media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}
+a{color:inherit;text-decoration:none}
+.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}
+.logo{height:52px;width:auto;display:block;margin-bottom:12px}
+h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}
+.muted{color:var(--muted)}
+.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}
+.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}
+.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}
+input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}
+input[readonly]{opacity:.92}
+.metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}
+.metric span{display:block;color:#c8d7ea;font-size:12px}
+.metric b{display:block;font-size:21px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}
+.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.small{padding:8px 12px;font-size:13px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}
+.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}
+.progress{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}
+.choice b{display:block;margin-bottom:6px}.choice p{margin:0 0 10px;color:#d7e4f3;font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}
+.exportBar{display:none}
+.pvPreview{display:none;background:#fff;color:#111;border-radius:18px;padding:28px;margin-top:18px}.pvPreview *{color:#111}
+.pvDoc{font-family:Arial,sans-serif;line-height:1.55;position:relative;min-height:96vh;padding-bottom:70px}
+.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td{border:1px solid #d6dce3;padding:10px}.pvInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.pvDoc h2{font-size:21px;margin-top:26px}.pvDoc table{border-collapse:collapse;width:100%;margin-top:14px}.pvDoc th,.pvDoc td{border:1px solid #ccd3dc;padding:10px}.pvDoc th{background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:11px;color:#666;border-top:1px solid #cfcfcf;padding:8px 0;background:#fff}
+@media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{
-
-body{
-    background:#fff;
-    color:#111;
-}
-
-.wrap{
-    width:100%;
-    padding:0;
-}
-
-.topbar,
-.box:not(.printable),
-.exportBar{
-    display:none!important;
-}
-
-.pvPreview{
-    display:block!important;
-    padding:0;
-    border-radius:0;
-}
-
-.pvDoc{
-    font-size:12pt;
-    position:relative;
-    min-height:96vh;
-    padding-bottom:70px;
-}
-
-.pvLogo{
-    max-height:55px;
-}
-
-.pvFooter{
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    text-align:center;
-    font-size:11px;
-    color:#666;
-    border-top:1px solid #cfcfcf;
-    padding:6px 0;
-    background:#fff;
-}
-
+body{background:#fff;color:#111}
+.wrap{width:100%;padding:0}
+.topbar,.box:not(.printable),.exportBar{display:none!important}
+.pvPreview{display:block!important;padding:0;border-radius:0}
+.pvDoc{font-size:12pt;position:relative;min-height:96vh;padding-bottom:70px}
+.pvLogo{max-height:55px}
+.pvFooter{position:fixed;left:0;right:0;bottom:0;text-align:center;font-size:11px;color:#666;border-top:1px solid #cfcfcf;padding:6px 0;background:#fff}
 }
 </style>
 </head>
@@ -181,25 +167,16 @@ async function saveAffectation(){if(!currentUser||!closureId)return alert("Clôt
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 function affectationRows(){return generatedRows.filter(r=>r.affectation).map(r=>`<tr><td>${sanitize(r.affectation)}</td><td>${r.credit||r.debit}</td><td>${euro(r.amount)}</td></tr>`).join("")}
 function entriesRows(){return generatedRows.map(r=>`<tr><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${euro(r.amount)}</td></tr>`).join("")}
-function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHeader"><img src="images/axe-compta.png" class="pvLogo" onerror="this.style.display='none'"><div class="pvTitle">Procès-verbal d’Assemblée Générale Ordinaire</div><div class="pvSub">Affectation du résultat</div></div><table class="pvInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="pvOk">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSign"><p>Fait à ______________________________</p><p>Le _________________________________</p><br><br>
-
-<p><b>Le représentant légal</b></p><br><br><br>
-
-<p>Nom : ______________________________</p>
-
-<p>Qualité : ___________________________</p><p>Signature : __________________________</p></div><div class="pvFooter">
-Document généré automatiquement par
-<b>AXE COMPTA IA</b>
-— Assistant de clôture comptable.
-</div></div>`}
+function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHeader"><img src="images/axe-compta.png" class="pvLogo" onerror="this.style.display='none'"><div class="pvTitle">Procès-verbal d’Assemblée Générale Ordinaire</div><div class="pvSub">Affectation du résultat</div></div><table class="pvInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="pvOk">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSign"><p>Fait à ______________________________</p><p>Le _________________________________</p><br><br><p><b>Le représentant légal</b></p><br><br><p>Nom : ______________________________</p><p>Qualité : ___________________________</p><p>Signature : _________________________</p></div><div class="pvFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderPvPreview(){if(!generatedRows.length)return;$("pvPreview").innerHTML=pvHtml();$("pvPreview").style.display="block"}
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
-$("pvBtn").addEventListener("click",()=>{renderPvPreview();download(fileBase()+"-pv-ag.html",`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG</title><style>body{font-family:Arial,sans-serif;margin:40px;color:#111;line-height:1.55}.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo,table{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td,td,th{border:1px solid #ccd3dc;padding:10px}.pvInfo td:first-child,th{font-weight:700;background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{margin-top:50px;border-top:1px solid #ccd3dc;padding-top:12px;font-size:12px;text-align:center;color:#555}</style></head><body>${pvHtml()}</body></html>`,"text/html;charset=utf-8")});
+const pvExportCss=`body{font-family:Arial,sans-serif;margin:40px;color:#111;line-height:1.55}.pvDoc{position:relative;min-height:96vh;padding-bottom:70px}.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo,table{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td,td,th{border:1px solid #ccd3dc;padding:10px}.pvInfo td:first-child,th{font-weight:700;background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{position:fixed;left:0;right:0;bottom:0;text-align:center;font-size:11px;color:#666;border-top:1px solid #cfcfcf;padding:6px 0;background:#fff}`;
+$("pvBtn").addEventListener("click",()=>{renderPvPreview();download(fileBase()+"-pv-ag.html",`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG</title><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,"text/html;charset=utf-8")});
 $("printBtn").addEventListener("click",()=>{renderPvPreview();window.print()});
 $("csvBtn").addEventListener("click",()=>{const csv=["Journal;Libellé;Débit;Crédit;Montant",...generatedRows.map(r=>`${r.journal};${r.label};${r.debit||""};${r.credit||""};${String(r.amount).replace(".",",")}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8")});
 $("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${r.amount}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8")});
-$("wordBtn").addEventListener("click",()=>{download(fileBase()+"-pv-ag.doc",`<html><head><meta charset="UTF-8"></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")});
+$("wordBtn").addEventListener("click",()=>{download(fileBase()+"-pv-ag.doc",`<html><head><meta charset="UTF-8"><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")});
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPvPreview()}}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
