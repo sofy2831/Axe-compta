@@ -168,11 +168,20 @@ function renderEntries(){
 
       if(!entry || !Array.isArray(entry.details)) return;
 
-      const text = entry.details.map((d, idx) =>
-        `${idx + 1}. ${d.compte || ""} — ${d.libelle || ""} — ${d.amount || 0} €`
-      ).join("\n");
+      const total = entry.details.reduce((sum, d) => {
+  return sum + (Number(d.amount) || 0);
+}, 0);
 
-      alert(text || "Aucun détail disponible.");
+const text =
+`COMPTES D'ATTENTE
+
+${entry.details.map(d =>
+  `${d.compte || ""}   ${d.libelle || ""}   ${d.amount || 0} €`
+).join("\n\n")}
+
+Montant cumulé : ${total} €`;
+
+alert(text);
     });
   });
 }
