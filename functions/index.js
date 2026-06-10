@@ -943,18 +943,31 @@ Aucune écriture automatique n'est générée à ce stade.`,
   });
 }
   
-// Comptes d'attente : 471 / 472 — synthèse unique
+// Comptes d'attente : 471 / 472 — synthèse unique sans doublons
 if (hasAccount(["471", "472"])) {
-  const waitingRows = [...balanceRows, ...grandLivreRows].filter(row => {
+  const rawWaitingRows = [...balanceRows, ...grandLivreRows].filter(row => {
     const compte = getCompte(row);
     return compte.startsWith("471") || compte.startsWith("472");
   });
 
-  const totalWaiting = waitingRows.reduce((total, row) => total + (getAmount(row) || 0), 0);
+  const seenWaiting = new Set();
 
-  const sampleRows = waitingRows.slice(0, 8).map(row =>
-    `- ${getCompte(row)} | ${getLibelle(row)} | ${getAmount(row) || "?"} €`
-  ).join("\n");
+  const waitingRows = rawWaitingRows.filter(row => {
+    const key = [
+      getCompte(row),
+      getLibelle(row),
+      getAmount(row)
+    ].join("|").toLowerCase();
+
+    if (seenWaiting.has(key)) return false;
+    seenWaiting.add(key);
+    return true;
+  });
+
+  const totalWaiting = waitingRows.reduce(
+    (total, row) => total + (getAmount(row) || 0),
+    0
+  );
 
   entries.push({
     journal: "ANALYSE",
@@ -976,10 +989,7 @@ Contrôles à effectuer :
 • vérifier l'absence d'anciens mouvements ;
 • contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 
-${waitingRows.length} écriture(s) concernée(s).
-
-Aperçu des mouvements :
-${sampleRows || "Aucun détail disponible."}`,
+${waitingRows.length} écriture(s) concernée(s).`,
     confidence: 0.85,
     source: "balance/grandLivre",
     status: "À valider",
@@ -996,7 +1006,6 @@ ${sampleRows || "Aucun détail disponible."}`,
     level: "warning"
   });
 }
-  
 // Sorties d'immobilisations : cession, mise au rebut, VNC, plus/moins-value
 if (answers.immo === "yes") {
   const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
