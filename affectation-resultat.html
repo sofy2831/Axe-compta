@@ -13,7 +13,8 @@ h1{font-size:42px;margin:0 0 10px}
 label{display:block;margin:14px 0 6px;font-weight:800}
 input,select{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:#0d294b;color:#fff}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn{display:inline-flex;margin-top:18px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:850;color:#06121e;background:linear-gradient(135deg,#72e0c5,#4aa3ff);cursor:pointer}
+.btn{display:inline-flex;margin-top:18px;margin-right:8px;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:850;color:#06121e;background:linear-gradient(135deg,#72e0c5,#4aa3ff);cursor:pointer;text-decoration:none}
+.btn.secondary{color:#f6f8fb;background:rgba(255,255,255,.08)}
 .notice{margin-top:16px;padding:14px;border-left:4px solid #72e0c5;background:rgba(114,224,197,.10);border-radius:14px}
 table{width:100%;border-collapse:collapse;margin-top:18px}
 td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left}
@@ -23,12 +24,15 @@ td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
+
 <body>
 <div class="wrap">
   <h1>Affectation du résultat</h1>
   <p class="muted">Préparez l’écriture d’affectation du résultat après PV d’assemblée générale.</p>
 
   <div class="box">
+    <p class="muted" id="statusLine">Chargement de la clôture...</p>
+
     <div class="grid">
       <div>
         <label>Société</label>
@@ -74,24 +78,188 @@ td,th{padding:12px;border-bottom:1px solid rgba(255,255,255,.14);text-align:left
     <input id="pvDate" type="date">
 
     <button class="btn" type="button" id="generateBtn">Générer l’écriture</button>
+    <button class="btn secondary" type="button" id="saveBtn" style="display:none">Enregistrer dans Firestore</button>
+    <button class="btn secondary" type="button" id="pvBtn" style="display:none">Télécharger le PV d’AG</button>
 
     <div id="resultBox" class="notice" style="display:none"></div>
     <div id="entriesBox"></div>
   </div>
 </div>
 
-<script>
-function n(id){return Number(document.getElementById(id).value || 0);}
-function fmt(v){return Number(v || 0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
+<script type="module">
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-resultType.addEventListener("change",()=>{
-  const isProfit = resultType.value === "profit";
-  profitFields.style.display = isProfit ? "block" : "none";
-  lossFields.style.display = isProfit ? "none" : "block";
-});
+const params = new URLSearchParams(window.location.search);
+const closureId = params.get("id");
 
-generateBtn.addEventListener("click",()=>{
-  const type = resultType.value;
+let currentUser = null;
+let currentClosure = null;
+let generatedRows = [];
+
+const $ = id => document.getElementById(id);
+
+function n(id){
+  return Number($(id).value || 0);
+}
+
+function setValue(id,value){
+  $(id).value = value ?? "";
+}
+
+function fmt(v){
+  return Number(v || 0).toLocaleString("fr-FR",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + " €";
+}
+
+function getCompte(row){
+  return String(row.Compte || row.compte || "").replace(/\s/g,"");
+}
+
+function getLibelle(row){
+  return String(row.Libellé || row.libelle || row.Libelle || "").trim();
+}
+
+function getAmount(row){
+  const keys = Object.keys(row || {});
+  const preferredKeys = keys.filter(k => {
+    const key = String(k).toLowerCase();
+    return key.includes("montant") || key.includes("solde") || key.includes("debit") || key.includes("débit") || key.includes("credit") || key.includes("crédit");
+  });
+
+  const searchKeys = preferredKeys.length ? preferredKeys : keys;
+
+  for(const key of searchKeys){
+    const raw = String(row[key] ?? "").replace(",",".").replace(/\s/g,"");
+    const value = Number(raw);
+    if(!Number.isNaN(value) && value !== 0) return value;
+  }
+
+  return 0;
+}
+
+function findResultFromBalance(closure){
+  const rows = Array.isArray(closure?.balance) ? closure.balance : [];
+
+  const resultRow = rows.find(row => {
+    const compte = getCompte(row);
+    return compte.startsWith("120") || compte.startsWith("129");
+  });
+
+  if(!resultRow) return null;
+
+  const compte = getCompte(resultRow);
+  const amount = Math.abs(getAmount(resultRow));
+
+  if(!amount) return null;
+
+  return {
+    type: compte.startsWith("129") ? "loss" : "profit",
+    amount
+  };
+}
+
+function findResultFromClosure(closure){
+  const direct =
+    closure.resultAmount ??
+    closure.accountingResult ??
+    closure.netIncome ??
+    closure.result ??
+    closure.resultat ??
+    null;
+
+  if(direct !== null && direct !== undefined && !Number.isNaN(Number(direct))){
+    const value = Number(direct);
+    return {
+      type: value < 0 ? "loss" : "profit",
+      amount: Math.abs(value)
+    };
+  }
+
+  return findResultFromBalance(closure);
+}
+
+function fiscalYearLabel(closure){
+  if(closure?.startDate && closure?.endDate){
+    return `${closure.startDate} → ${closure.endDate}`;
+  }
+
+  if(closure?.endDate){
+    const year = String(closure.endDate).slice(0,4);
+    return year || "";
+  }
+
+  return closure?.fiscalYear || closure?.exercice || "";
+}
+
+function toggleFields(){
+  const isProfit = $("resultType").value === "profit";
+  $("profitFields").style.display = isProfit ? "block" : "none";
+  $("lossFields").style.display = isProfit ? "none" : "block";
+}
+
+$("resultType").addEventListener("change", toggleFields);
+
+async function loadClosure(user){
+  if(!closureId){
+    $("statusLine").innerHTML = `<span class="err">Aucune clôture sélectionnée. Retourne au tableau de bord et clique sur “Affectation”.</span>`;
+    return;
+  }
+
+  const ref = doc(db, "users", user.uid, "closures", closureId);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists()){
+    $("statusLine").innerHTML = `<span class="err">Clôture introuvable.</span>`;
+    return;
+  }
+
+  currentClosure = snap.data();
+
+  setValue("companyName", currentClosure.companyName || "");
+  setValue("fiscalYear", fiscalYearLabel(currentClosure));
+
+  const detectedResult = findResultFromClosure(currentClosure);
+
+  if(detectedResult){
+    $("resultType").value = detectedResult.type;
+    setValue("resultAmount", detectedResult.amount);
+    toggleFields();
+    $("statusLine").innerHTML = `<span class="ok">Clôture chargée. Résultat prérempli automatiquement si détecté.</span>`;
+  }else{
+    $("statusLine").innerHTML = `<span class="err">Clôture chargée, mais résultat non détecté automatiquement. À renseigner manuellement.</span>`;
+  }
+
+  if(currentClosure.affectationResult){
+    const a = currentClosure.affectationResult;
+
+    setValue("pvDate", a.pvDate || "");
+    $("resultType").value = a.resultType || $("resultType").value;
+    setValue("resultAmount", a.resultAmount || $("resultAmount").value);
+
+    setValue("reserveAmount", a.reserveAmount || 0);
+    setValue("carryForwardAmount", a.carryForwardAmount || 0);
+    setValue("dividendAmount", a.dividendAmount || 0);
+    setValue("lossCarryForwardAmount", a.lossCarryForwardAmount || 0);
+
+    toggleFields();
+
+    if(Array.isArray(a.entries) && a.entries.length){
+      generatedRows = a.entries;
+      renderEntries(generatedRows);
+      $("saveBtn").style.display = "inline-flex";
+      $("pvBtn").style.display = "inline-flex";
+      $("resultBox").style.display = "block";
+      $("resultBox").innerHTML = `<b class="ok">Affectation déjà enregistrée.</b><br>Tu peux la modifier puis réenregistrer.`;
+    }
+  }
+}
+
+function buildEntries(){
+  const type = $("resultType").value;
   const result = n("resultAmount");
   let rows = [];
   let total = 0;
@@ -106,44 +274,272 @@ generateBtn.addEventListener("click",()=>{
     diff = result - total;
 
     if(Math.abs(diff) > 0.01){
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `<b class="err">Affectation déséquilibrée.</b><br>Résultat : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`;
-      entriesBox.innerHTML = "";
-      return;
+      throw new Error(`Affectation déséquilibrée.<br>Résultat : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`);
     }
 
-    rows.push(["OD", "Affectation du résultat bénéficiaire", "120000", "", result]);
-    if(reserve) rows.push(["OD", "Affectation en réserves", "", "106800", reserve]);
-    if(carry) rows.push(["OD", "Report à nouveau créditeur", "", "110000", carry]);
-    if(dividend) rows.push(["OD", "Dividendes à payer", "", "457000", dividend]);
+    rows.push({
+      journal:"OD",
+      label:"Affectation du résultat bénéficiaire",
+      debit:"120000",
+      credit:"",
+      amount:result
+    });
+
+    if(reserve){
+      rows.push({
+        journal:"OD",
+        label:"Affectation en réserves",
+        debit:"",
+        credit:"106800",
+        amount:reserve
+      });
+    }
+
+    if(carry){
+      rows.push({
+        journal:"OD",
+        label:"Report à nouveau créditeur",
+        debit:"",
+        credit:"110000",
+        amount:carry
+      });
+    }
+
+    if(dividend){
+      rows.push({
+        journal:"OD",
+        label:"Dividendes à payer",
+        debit:"",
+        credit:"457000",
+        amount:dividend
+      });
+    }
   }
 
   if(type === "loss"){
     const lossCarry = n("lossCarryForwardAmount");
+
     total = lossCarry;
-    diff = Math.abs(result) - total;
+    diff = result - total;
 
     if(Math.abs(diff) > 0.01){
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `<b class="err">Affectation déséquilibrée.</b><br>Perte : ${fmt(Math.abs(result))}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`;
-      entriesBox.innerHTML = "";
-      return;
+      throw new Error(`Affectation déséquilibrée.<br>Perte : ${fmt(result)}<br>Affecté : ${fmt(total)}<br>Écart : ${fmt(diff)}`);
     }
 
-    rows.push(["OD", "Report à nouveau débiteur", "119000", "", lossCarry]);
-    rows.push(["OD", "Affectation du résultat déficitaire", "", "129000", lossCarry]);
+    rows.push({
+      journal:"OD",
+      label:"Report à nouveau débiteur",
+      debit:"119000",
+      credit:"",
+      amount:lossCarry
+    });
+
+    rows.push({
+      journal:"OD",
+      label:"Affectation du résultat déficitaire",
+      debit:"",
+      credit:"129000",
+      amount:lossCarry
+    });
   }
 
-  resultBox.style.display = "block";
-  resultBox.innerHTML = `<b class="ok">Affectation équilibrée.</b><br>PV d’AG : ${pvDate.value || "à renseigner"}`;
+  return rows;
+}
 
-  entriesBox.innerHTML = `
+function renderEntries(rows){
+  $("entriesBox").innerHTML = `
     <table>
-      <thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Journal</th>
+          <th>Libellé</th>
+          <th>Débit</th>
+          <th>Crédit</th>
+          <th>Montant</th>
+        </tr>
+      </thead>
       <tbody>
-        ${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${fmt(r[4])}</td></tr>`).join("")}
+        ${rows.map(r => `
+          <tr>
+            <td>${r.journal}</td>
+            <td>${r.label}</td>
+            <td>${r.debit || ""}</td>
+            <td>${r.credit || ""}</td>
+            <td>${fmt(r.amount)}</td>
+          </tr>
+        `).join("")}
       </tbody>
     </table>`;
+}
+
+$("generateBtn").addEventListener("click", () => {
+  try{
+    generatedRows = buildEntries();
+
+    $("resultBox").style.display = "block";
+    $("resultBox").innerHTML = `<b class="ok">Affectation équilibrée.</b><br>PV d’AG : ${$("pvDate").value || "à renseigner"}`;
+
+    renderEntries(generatedRows);
+
+    $("saveBtn").style.display = "inline-flex";
+    $("pvBtn").style.display = "inline-flex";
+  }catch(error){
+    $("resultBox").style.display = "block";
+    $("resultBox").innerHTML = `<b class="err">${error.message}</b>`;
+    $("entriesBox").innerHTML = "";
+    $("saveBtn").style.display = "none";
+    $("pvBtn").style.display = "none";
+  }
+});
+
+$("saveBtn").addEventListener("click", async () => {
+  if(!currentUser || !closureId){
+    alert("Impossible d’enregistrer : clôture non sélectionnée.");
+    return;
+  }
+
+  try{
+    if(!generatedRows.length){
+      generatedRows = buildEntries();
+    }
+
+    const affectationData = {
+      companyName: $("companyName").value.trim(),
+      fiscalYear: $("fiscalYear").value.trim(),
+      resultType: $("resultType").value,
+      resultAmount: n("resultAmount"),
+      reserveAmount: n("reserveAmount"),
+      carryForwardAmount: n("carryForwardAmount"),
+      dividendAmount: n("dividendAmount"),
+      lossCarryForwardAmount: n("lossCarryForwardAmount"),
+      pvDate: $("pvDate").value || "",
+      entries: generatedRows,
+      status: "generated",
+      updatedAt: new Date().toISOString()
+    };
+
+    await setDoc(
+      doc(db, "users", currentUser.uid, "closures", closureId),
+      {
+        affectationResult: affectationData,
+        updatedAt: serverTimestamp()
+      },
+      { merge:true }
+    );
+
+    $("resultBox").style.display = "block";
+    $("resultBox").innerHTML = `<b class="ok">Affectation enregistrée dans Firestore.</b>`;
+  }catch(error){
+    console.error(error);
+    $("resultBox").style.display = "block";
+    $("resultBox").innerHTML = `<b class="err">Erreur lors de l’enregistrement Firestore.</b>`;
+  }
+});
+
+function generatePvHtml(){
+  const company = $("companyName").value.trim() || "Société";
+  const fiscalYear = $("fiscalYear").value.trim() || "exercice concerné";
+  const pvDate = $("pvDate").value || "date à compléter";
+  const type = $("resultType").value;
+  const result = n("resultAmount");
+
+  const rowsHtml = generatedRows.map(r => `
+    <tr>
+      <td>${r.label}</td>
+      <td>${r.debit || ""}</td>
+      <td>${r.credit || ""}</td>
+      <td>${fmt(r.amount)}</td>
+    </tr>
+  `).join("");
+
+  const decisionText = type === "profit"
+    ? `L’assemblée générale décide d’affecter le bénéfice de l’exercice, soit ${fmt(result)}, conformément au tableau d’affectation ci-dessous.`
+    : `L’assemblée générale décide d’affecter la perte de l’exercice, soit ${fmt(result)}, en report à nouveau débiteur.`;
+
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>PV d'Assemblée Générale - ${company}</title>
+<style>
+body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:40px}
+h1,h2{text-align:center}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+td,th{border:1px solid #ccc;padding:10px;text-align:left}
+.signature{margin-top:60px}
+</style>
+</head>
+<body>
+<h1>Procès-verbal d’Assemblée Générale</h1>
+<h2>${company}</h2>
+
+<p><strong>Date :</strong> ${pvDate}</p>
+<p><strong>Exercice concerné :</strong> ${fiscalYear}</p>
+
+<h2>Affectation du résultat</h2>
+
+<p>${decisionText}</p>
+
+<table>
+<thead>
+<tr>
+<th>Libellé</th>
+<th>Débit</th>
+<th>Crédit</th>
+<th>Montant</th>
+</tr>
+</thead>
+<tbody>
+${rowsHtml}
+</tbody>
+</table>
+
+<p class="signature">
+Fait le ${pvDate}<br><br>
+Signature du représentant légal :<br><br><br>
+____________________________
+</p>
+</body>
+</html>`;
+}
+
+$("pvBtn").addEventListener("click", () => {
+  if(!generatedRows.length){
+    alert("Génère d’abord l’écriture d’affectation.");
+    return;
+  }
+
+  const html = generatePvHtml();
+  const blob = new Blob([html], { type:"text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const company = $("companyName").value.trim().replace(/\s+/g,"-").toLowerCase() || "societe";
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = `pv-ag-affectation-resultat-${company}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+});
+
+onAuthStateChanged(auth, async user => {
+  if(!user){
+    window.location.href = "connexion.html";
+    return;
+  }
+
+  currentUser = user;
+
+  try{
+    await loadClosure(user);
+  }catch(error){
+    console.error(error);
+    $("statusLine").innerHTML = `<span class="err">Erreur de chargement de la clôture.</span>`;
+  }
 });
 </script>
 </body>
