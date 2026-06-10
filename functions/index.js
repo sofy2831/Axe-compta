@@ -977,11 +977,10 @@ if (hasAccount(["471", "472"])) {
     amount: totalWaiting || "À contrôler",
  
 
-      justification:
+justification:
 `Comptes d'attente détectés.
 
 Nombre de mouvements : ${waitingRows.length}
-
 Montant cumulé : ${totalWaiting || "?"} €
 
 Contrôles à effectuer :
@@ -991,7 +990,7 @@ Contrôles à effectuer :
 • vérifier l'absence d'anciens mouvements ;
 • contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 
-Voir le détail des mouvements.`,
+Cliquer sur « Voir » pour afficher le détail des mouvements.`,
     
     confidence: 0.85,
     source: "balance/grandLivre",
