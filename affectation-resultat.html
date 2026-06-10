@@ -6,214 +6,90 @@
 <title>Affectation du résultat | Axe Compta IA</title>
 <meta name="robots" content="noindex,nofollow"/>
 <style>
-:root{
-  --bg:#102847;
-  --panel:rgba(28,67,113,.82);
-  --panel2:rgba(13,41,75,.72);
-  --line:rgba(255,255,255,.14);
-  --text:#f6f8fb;
-  --muted:#c2d0e3;
-  --primary:#72e0c5;
-  --primary2:#4aa3ff;
-  --ok:#8df0b3;
-  --warn:#ffd166;
-  --danger:#ff9b9b;
-  --radius:22px;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:radial-gradient(circle at top left,rgba(74,163,255,.32),transparent 38rem),linear-gradient(180deg,#10294a 0%,#14365f 45%,#102847 100%);
-  color:var(--text);
-  min-height:100vh;
-  line-height:1.55;
-}
-a{color:inherit;text-decoration:none}
-.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 64px}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
-h1{font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:-.05em;margin:0 0 10px}
-h2{margin:0 0 14px;font-size:22px;letter-spacing:-.03em}
-h3{margin:0 0 10px;font-size:18px}
-.muted{color:var(--muted)}
-.box,.card{
-  background:linear-gradient(180deg,rgba(28,67,113,.86),rgba(19,52,91,.78));
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:24px;
-  margin-top:18px;
-  box-shadow:0 20px 55px rgba(7,23,45,.22);
-}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-label{display:block;margin:14px 0 6px;font-weight:850;color:#eef6ff}
-input,select,textarea{
-  width:100%;
-  padding:13px 14px;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:#0d294b;
-  color:#fff;
-  font:inherit;
-}
-input[readonly]{opacity:.9;background:rgba(13,41,75,.55)}
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:12px 18px;
-  font-weight:900;
-  color:var(--text);
-  background:rgba(255,255,255,.07);
-  cursor:pointer;
-  transition:.18s ease;
-  gap:8px;
-}
-.btn:hover{background:rgba(255,255,255,.11);transform:translateY(-1px)}
-.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}
-.btn.warn{color:#06121e;border-color:transparent;background:linear-gradient(135deg,#ffd166,#72e0c5)}
-.btn.danger{border-color:rgba(255,155,155,.35);color:#ffe1e1;background:rgba(255,155,155,.08)}
-.btn.small{padding:9px 12px;font-size:13px}
-.btn[disabled]{opacity:.45;pointer-events:none;transform:none}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}
-.notice.warn{border-left-color:var(--warn);background:rgba(255,209,102,.10)}
-.notice.err{border-left-color:var(--danger);background:rgba(255,155,155,.10)}
-.ok{color:var(--ok)}.errTxt{color:var(--danger)}.warnTxt{color:var(--warn)}
-.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
-.summaryItem{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:14px}
-.summaryItem span{display:block;color:var(--muted);font-size:13px}.summaryItem b{display:block;font-size:24px;color:#fff;letter-spacing:-.03em}
-.progressWrap{height:14px;background:rgba(255,255,255,.10);border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.10);margin-top:12px}
-.progressBar{height:100%;width:0%;background:linear-gradient(135deg,var(--primary),var(--primary2));transition:.2s ease}
-table{width:100%;border-collapse:collapse;margin-top:18px;border:1px solid var(--line);border-radius:16px;overflow:hidden;font-size:14px}
-th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#dce8f6}
-tr:last-child td{border-bottom:none}
-.aiBox{border:1px dashed rgba(114,224,197,.45);background:rgba(114,224,197,.07)}
-.proposals{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
-.proposal{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:18px;padding:14px}
-.proposal b{display:block;margin-bottom:6px}.proposal p{margin:0;color:var(--muted);font-size:14px}
-.exportBar{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.printOnly{display:none}
-@media(max-width:920px){.grid,.grid3,.summaryGrid,.proposals{grid-template-columns:1fr}.topbar{align-items:flex-start}}
-@media print{
-  body{background:#fff;color:#111}.wrap{width:100%;padding:0}.topbar,.actions,.exportBar,.btn,.notice.noPrint{display:none!important}.box,.card{box-shadow:none;border:1px solid #ddd;background:#fff;color:#111}.muted{color:#555}input{border:none;background:#fff;color:#111;padding:0}.printOnly{display:block}table{border-color:#ccc}th,td{border-color:#ccc;color:#111}th{background:#f3f3f3;color:#111}
-}
+:root{--bg:#102847;--panel:#1c4371;--panel2:#14365f;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}.progress{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.choice b{display:block;margin-bottom:6px}.choice p{margin:0 0 10px;color:#d7e4f3;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.exportBar{display:none}.pvPreview{display:none;background:#fff;color:#111;border-radius:18px;padding:28px;margin-top:18px}.pvPreview *{color:#111}.pvDoc{font-family:Arial,sans-serif;line-height:1.55}.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td{border:1px solid #d6dce3;padding:10px}.pvInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.pvDoc h2{font-size:21px;margin-top:26px}.pvDoc table{border-collapse:collapse;width:100%;margin-top:14px}.pvDoc th,.pvDoc td{border:1px solid #ccd3dc;padding:10px}.pvDoc th{background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{margin-top:50px;border-top:1px solid #ccd3dc;padding-top:12px;font-size:12px;text-align:center;color:#555}@media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
+@media print{body{background:#fff;color:#111}.wrap{width:100%;padding:0}.topbar,.box:not(.printable),.exportBar{display:none!important}.pvPreview{display:block!important;padding:0;border-radius:0}.pvDoc{font-size:12pt}.pvLogo{max-height:55px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
     <div>
+      <img src="images/axe-compta.png" alt="Axe Compta IA" class="logo" onerror="this.style.display='none'">
       <h1>Affectation du résultat</h1>
       <p class="muted">Assistant d’affectation du résultat après clôture et préparation du PV d’assemblée générale.</p>
     </div>
-    <div class="actions" style="margin-top:0">
-      <a class="btn" href="tableau-de-bord.html">← Tableau de bord</a>
-      <a class="btn" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
+    <div class="navActions">
+      <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
+      <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
   </div>
 
   <section class="box">
     <h2>1. Résultat détecté</h2>
-    <p class="muted" id="statusLine">Chargement de la clôture...</p>
-
+    <p id="statusLine" class="muted">Chargement de la clôture...</p>
     <div class="grid">
-      <div>
-        <label>Société</label>
-        <input id="companyName" readonly placeholder="Société">
-      </div>
-      <div>
-        <label>Exercice concerné</label>
-        <input id="fiscalYear" readonly placeholder="Exercice">
-      </div>
+      <div><label>Société</label><input id="companyName" readonly></div>
+      <div><label>Exercice concerné</label><input id="fiscalYear" readonly></div>
     </div>
-
-    <div class="summaryGrid">
-      <div class="summaryItem"><span>Nature du résultat</span><b id="resultTypeLabel">—</b></div>
-      <div class="summaryItem"><span>Résultat à affecter</span><b id="resultAmountLabel">0,00 €</b></div>
-      <div class="summaryItem"><span>Total affecté</span><b id="allocatedLabel">0,00 €</b></div>
-      <div class="summaryItem"><span>Reste à affecter</span><b id="remainingLabel">0,00 €</b></div>
+    <div class="grid4" style="margin-top:14px">
+      <div class="metric"><span>Nature du résultat</span><b id="resultNature">—</b></div>
+      <div class="metric"><span>Résultat à affecter</span><b id="resultAmountLabel">0,00 €</b></div>
+      <div class="metric"><span>Total affecté</span><b id="allocatedLabel">0,00 €</b></div>
+      <div class="metric"><span>Reste à affecter</span><b id="remainingLabel">0,00 €</b></div>
     </div>
-
-    <div class="progressWrap"><div class="progressBar" id="progressBar"></div></div>
-    <div id="balanceStatus" class="notice warn noPrint">Saisissez une affectation ou utilisez une proposition automatique.</div>
+    <div class="progress"><div class="bar" id="progressBar"></div></div>
+    <div id="balanceBox" class="notice"></div>
   </section>
 
   <section class="box">
     <h2>2. Répartition</h2>
-
     <div class="actions" style="margin-top:0">
-      <button class="btn warn" type="button" id="autoProposalBtn">Proposition automatique</button>
-      <button class="btn" type="button" id="aiProposalBtn">IA — proposer la meilleure affectation</button>
+      <button class="btn warn" type="button" id="autoBtn">Proposition automatique</button>
+      <button class="btn secondary" type="button" id="aiBtn">IA — proposer la meilleure affectation</button>
     </div>
 
-    <div class="notice aiBox noPrint" id="aiNotice" style="display:none">
-      Le bouton IA est prêt côté interface. Il pourra être branché plus tard sur une Cloud Function ou l’API IA pour proposer une affectation argumentée selon les statuts, réserves et politique de distribution.
-    </div>
-
-    <div id="profitFields">
-      <div class="grid3">
-        <div>
-          <label>Réserve légale / autres réserves - 1068</label>
-          <input id="reserveAmount" type="number" step="0.01" value="0">
-        </div>
-        <div>
-          <label>Report à nouveau créditeur - 110</label>
-          <input id="carryForwardAmount" type="number" step="0.01" value="0">
-        </div>
-        <div>
-          <label>Dividendes à payer - 457</label>
-          <input id="dividendAmount" type="number" step="0.01" value="0">
-        </div>
+    <div id="profitInputs">
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div><label>Réserve légale / autres réserves - 1068</label><input id="reserveAmount" type="number" step="0.01" value="0"></div>
+        <div><label>Report à nouveau créditeur - 110</label><input id="carryForwardAmount" type="number" step="0.01" value="0"></div>
+        <div><label>Dividendes à payer - 457</label><input id="dividendAmount" type="number" step="0.01" value="0"></div>
       </div>
-
-      <div class="proposals noPrint">
-        <div class="proposal">
-          <b>Prudent</b>
-          <p>Réserve légale estimée puis solde en report à nouveau.</p>
-          <button class="btn small" type="button" id="applyPrudentBtn">Appliquer</button>
-        </div>
-        <div class="proposal">
-          <b>Report intégral</b>
-          <p>100 % du bénéfice en report à nouveau créditeur.</p>
-          <button class="btn small" type="button" id="applyCarryBtn">Appliquer</button>
-        </div>
-        <div class="proposal">
-          <b>Distribution</b>
-          <p>100 % du bénéfice en dividendes à payer.</p>
-          <button class="btn small" type="button" id="applyDividendBtn">Appliquer</button>
-        </div>
+      <div class="cards3">
+        <div class="choice"><b>Prudent</b><p>Réserve légale estimée puis solde en report à nouveau.</p><button class="btn secondary small" type="button" data-strategy="prudent">Appliquer</button></div>
+        <div class="choice"><b>Report intégral</b><p>100 % du bénéfice en report à nouveau créditeur.</p><button class="btn secondary small" type="button" data-strategy="report">Appliquer</button></div>
+        <div class="choice"><b>Distribution</b><p>100 % du bénéfice en dividendes à payer.</p><button class="btn secondary small" type="button" data-strategy="distribution">Appliquer</button></div>
       </div>
     </div>
 
-    <div id="lossFields" style="display:none">
+    <div id="lossInputs" style="display:none">
       <label>Report à nouveau débiteur - 119</label>
       <input id="lossCarryForwardAmount" type="number" step="0.01" value="0">
+      <div class="choice" style="margin-top:12px"><b>Perte détectée</b><p>La perte est affectée automatiquement en report à nouveau débiteur.</p><button class="btn secondary small" type="button" data-strategy="loss">Appliquer</button></div>
     </div>
 
-    <label>Date du PV d’AG</label>
+    <label>Date du PV d’Assemblée Générale</label>
     <input id="pvDate" type="date">
 
     <div class="actions">
-      <button class="btn primary" type="button" id="generateBtn" disabled>Générer les écritures</button>
-      <button class="btn" type="button" id="saveBtn" disabled>Enregistrer l’affectation</button>
-      <button class="btn" type="button" id="pvBtn" disabled>Télécharger le PV d’AG</button>
+      <button class="btn" type="button" id="generateBtn">Générer les écritures</button>
+      <button class="btn secondary" type="button" id="saveBtn" disabled>Enregistrer l’affectation</button>
+      <button class="btn secondary" type="button" id="pvBtn" disabled>Télécharger le PV d’AG</button>
     </div>
-  </section>
-
-  <section class="box" id="entriesSection" style="display:none">
-    <h2>3. Écritures générées</h2>
     <div id="entriesBox"></div>
+  </section>
 
-    <div class="exportBar noPrint">
-      <button class="btn small" type="button" id="printBtn">Imprimer</button>
-      <button class="btn small" type="button" id="pdfBtn">PDF</button>
-      <button class="btn small" type="button" id="csvBtn">CSV</button>
-      <button class="btn small" type="button" id="excelBtn">Excel</button>
-      <button class="btn small" type="button" id="wordBtn">Word</button>
+  <section class="box exportBar" id="exportBar">
+    <h2>3. Exports</h2>
+    <div class="actions" style="margin-top:0">
+      <button class="btn secondary" type="button" id="printBtn">Imprimer / PDF</button>
+      <button class="btn secondary" type="button" id="csvBtn">CSV</button>
+      <button class="btn secondary" type="button" id="excelBtn">Excel</button>
+      <button class="btn secondary" type="button" id="wordBtn">Word</button>
     </div>
   </section>
+
+  <section class="pvPreview printable" id="pvPreview"></section>
 </div>
 
 <script type="module">
@@ -221,246 +97,42 @@ import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-const params = new URLSearchParams(window.location.search);
-const closureId = params.get("id");
-let currentUser = null;
-let currentClosure = null;
-let resultType = "profit";
-let detectedAmount = 0;
-let generatedRows = [];
-
-const $ = id => document.getElementById(id);
-const money = v => Number(v || 0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}) + " €";
-const n = id => Number($(id).value || 0);
-const setVal = (id,v) => { $(id).value = v ?? ""; };
-const cleanFile = s => String(s || "societe").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase();
-
-function getCompte(row){ return String(row?.Compte || row?.compte || "").replace(/\s/g,""); }
-function normalizeKey(value){ return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
-function getAmount(row){
-  const keys = Object.keys(row || {});
-  const preferred = keys.filter(k => {
-    const key = normalizeKey(k);
-    return key.includes("montant") || key.includes("solde") || key.includes("debit") || key.includes("credit");
-  });
-  for(const key of (preferred.length ? preferred : keys)){
-    const raw = String(row[key] ?? "").replace(",",".").replace(/\s/g,"");
-    const value = Number(raw);
-    if(!Number.isNaN(value) && value !== 0) return value;
-  }
-  return 0;
-}
-function findResultFromBalance(closure){
-  const rows = Array.isArray(closure?.balance) ? closure.balance : [];
-  const row = rows.find(r => getCompte(r).startsWith("120") || getCompte(r).startsWith("129"));
-  if(!row) return null;
-  const amount = Math.abs(getAmount(row));
-  if(!amount) return null;
-  return { type:getCompte(row).startsWith("129") ? "loss" : "profit", amount };
-}
-function findResultFromClosure(closure){
-  const direct = closure?.resultAmount ?? closure?.accountingResult ?? closure?.netIncome ?? closure?.result ?? closure?.resultat ?? null;
-  if(direct !== null && direct !== undefined && !Number.isNaN(Number(direct))){
-    const value = Number(direct);
-    return { type:value < 0 ? "loss" : "profit", amount:Math.abs(value) };
-  }
-  return findResultFromBalance(closure);
-}
-function fiscalYearLabel(closure){
-  if(closure?.startDate && closure?.endDate) return `${closure.startDate} → ${closure.endDate}`;
-  if(closure?.endDate) return String(closure.endDate).slice(0,4);
-  return closure?.fiscalYear || closure?.exercice || "";
-}
-function refreshUI(){
-  const allocated = resultType === "profit"
-    ? n("reserveAmount") + n("carryForwardAmount") + n("dividendAmount")
-    : n("lossCarryForwardAmount");
-  const remaining = +(detectedAmount - allocated).toFixed(2);
-  const pct = detectedAmount ? Math.max(0, Math.min(100, (allocated / detectedAmount) * 100)) : 0;
-
-  $("resultTypeLabel").textContent = resultType === "profit" ? "Bénéfice" : "Perte";
-  $("resultAmountLabel").textContent = money(detectedAmount);
-  $("allocatedLabel").textContent = money(allocated);
-  $("remainingLabel").textContent = money(remaining);
-  $("progressBar").style.width = pct + "%";
-
-  const balanced = detectedAmount > 0 && Math.abs(remaining) <= 0.01;
-  $("generateBtn").disabled = !balanced;
-  $("saveBtn").disabled = !generatedRows.length;
-  $("pvBtn").disabled = !generatedRows.length;
-
-  if(balanced){
-    $("balanceStatus").className = "notice noPrint";
-    $("balanceStatus").innerHTML = `<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.`;
-  }else if(remaining > 0){
-    $("balanceStatus").className = "notice warn noPrint";
-    $("balanceStatus").innerHTML = `<b class="warnTxt">Il reste ${money(remaining)} à affecter.</b>`;
-  }else{
-    $("balanceStatus").className = "notice err noPrint";
-    $("balanceStatus").innerHTML = `<b class="errTxt">Affectation supérieure au résultat de ${money(Math.abs(remaining))}.</b>`;
-  }
-}
-function resetGenerated(){
-  generatedRows = [];
-  $("entriesSection").style.display = "none";
-  $("entriesBox").innerHTML = "";
-  refreshUI();
-}
-["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>{
-  $(id).addEventListener("input",()=>{ resetGenerated(); refreshUI(); });
-});
-function applyProfit(reserve, carry, dividend){
-  setVal("reserveAmount", reserve);
-  setVal("carryForwardAmount", carry);
-  setVal("dividendAmount", dividend);
-  resetGenerated();
-  refreshUI();
-}
-function legalReserveEstimate(){
-  return Math.min(Math.round(detectedAmount * 0.05 * 100) / 100, detectedAmount);
-}
-$("applyPrudentBtn").addEventListener("click",()=>{
-  const reserve = legalReserveEstimate();
-  applyProfit(reserve, +(detectedAmount - reserve).toFixed(2), 0);
-});
-$("applyCarryBtn").addEventListener("click",()=> applyProfit(0, detectedAmount, 0));
-$("applyDividendBtn").addEventListener("click",()=> applyProfit(0, 0, detectedAmount));
-$("autoProposalBtn").addEventListener("click",()=>{
-  if(resultType === "loss"){
-    setVal("lossCarryForwardAmount", detectedAmount);
-    resetGenerated(); refreshUI(); return;
-  }
-  const reserve = legalReserveEstimate();
-  applyProfit(reserve, +(detectedAmount - reserve).toFixed(2), 0);
-});
-$("aiProposalBtn").addEventListener("click",()=>{
-  $("aiNotice").style.display = $("aiNotice").style.display === "none" ? "block" : "none";
-});
-function buildEntries(){
-  const rows = [];
-  if(resultType === "profit"){
-    const reserve = n("reserveAmount"), carry = n("carryForwardAmount"), dividend = n("dividendAmount");
-    const total = reserve + carry + dividend;
-    if(Math.abs(detectedAmount - total) > 0.01) throw new Error("Affectation déséquilibrée.");
-    rows.push({ journal:"OD", label:"Affectation du résultat bénéficiaire", debit:"120000", credit:"", amount:detectedAmount });
-    if(reserve) rows.push({ journal:"OD", label:"Affectation en réserves", debit:"", credit:"106800", amount:reserve });
-    if(carry) rows.push({ journal:"OD", label:"Report à nouveau créditeur", debit:"", credit:"110000", amount:carry });
-    if(dividend) rows.push({ journal:"OD", label:"Dividendes à payer", debit:"", credit:"457000", amount:dividend });
-  }else{
-    const lossCarry = n("lossCarryForwardAmount");
-    if(Math.abs(detectedAmount - lossCarry) > 0.01) throw new Error("Affectation déséquilibrée.");
-    rows.push({ journal:"OD", label:"Report à nouveau débiteur", debit:"119000", credit:"", amount:lossCarry });
-    rows.push({ journal:"OD", label:"Affectation du résultat déficitaire", debit:"", credit:"129000", amount:lossCarry });
-  }
-  return rows;
-}
-function renderEntries(){
-  $("entriesSection").style.display = "block";
-  $("entriesBox").innerHTML = `
-    <table id="entriesTable">
-      <thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
-      <tbody>${generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("")}</tbody>
-    </table>`;
-  refreshUI();
-}
-$("generateBtn").addEventListener("click",()=>{
-  try{ generatedRows = buildEntries(); renderEntries(); }
-  catch(e){ alert(e.message || "Affectation impossible."); }
-});
-$("saveBtn").addEventListener("click",async()=>{
-  if(!currentUser || !closureId) return alert("Clôture non sélectionnée.");
-  if(!generatedRows.length) generatedRows = buildEntries();
-  const data = {
-    companyName: $("companyName").value.trim(),
-    fiscalYear: $("fiscalYear").value.trim(),
-    resultType,
-    resultAmount: detectedAmount,
-    reserveAmount: n("reserveAmount"),
-    carryForwardAmount: n("carryForwardAmount"),
-    dividendAmount: n("dividendAmount"),
-    lossCarryForwardAmount: n("lossCarryForwardAmount"),
-    pvDate: $("pvDate").value || "",
-    entries: generatedRows,
-    status:"validated",
-    updatedAt:new Date().toISOString()
-  };
-  try{
-    await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{ affectationResult:data, updatedAt:serverTimestamp() },{ merge:true });
-    alert("Affectation enregistrée.");
-  }catch(e){ console.error(e); alert("Erreur lors de l’enregistrement de l’affectation."); }
-});
-function getExportRows(){
-  return generatedRows.map(r=>({ Journal:r.journal, Libelle:r.label, Debit:r.debit||"", Credit:r.credit||"", Montant:Number(r.amount||0).toFixed(2).replace(".",",") }));
-}
-function download(filename, content, type){
-  const blob = new Blob([content],{type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-function csvContent(){
-  const rows = getExportRows();
-  const header = Object.keys(rows[0] || {Journal:"",Libelle:"",Debit:"",Credit:"",Montant:""});
-  return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
-}
-function pvHtml(){
-  const company = $("companyName").value || "Société";
-  const fiscalYear = $("fiscalYear").value || "exercice concerné";
-  const pvDate = $("pvDate").value || "date à compléter";
-  const decision = resultType === "profit"
-    ? `L’assemblée décide d’affecter le bénéfice de l’exercice, soit ${money(detectedAmount)}, conformément au tableau ci-dessous.`
-    : `L’assemblée décide d’affecter la perte de l’exercice, soit ${money(detectedAmount)}, en report à nouveau débiteur.`;
-  const rows = generatedRows.map(r=>`<tr><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("");
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - ${company}</title><style>body{font-family:Arial,sans-serif;color:#111;line-height:1.5;margin:40px}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin-top:20px}td,th{border:1px solid #ccc;padding:10px;text-align:left}.signature{margin-top:60px}</style></head><body><h1>Procès-verbal d’Assemblée Générale</h1><h2>${company}</h2><p><strong>Date :</strong> ${pvDate}</p><p><strong>Exercice concerné :</strong> ${fiscalYear}</p><h2>Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows}</tbody></table><p class="signature">Fait le ${pvDate}<br><br>Signature du représentant légal :<br><br><br>____________________________</p></body></html>`;
-}
-function exportHtmlDoc(title){
-  const company = $("companyName").value || "Société";
-  const rows = generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${r.label}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${money(r.amount)}</td></tr>`).join("");
-  return `<html><head><meta charset="UTF-8"><title>${title}</title><style>body{font-family:Arial,sans-serif}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:8px;text-align:left}</style></head><body><h1>${title}</h1><p><strong>Société :</strong> ${company}</p><p><strong>Exercice :</strong> ${$("fiscalYear").value}</p><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-}
-$("printBtn").addEventListener("click",()=>window.print());
-$("pdfBtn").addEventListener("click",()=>window.print());
-$("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
-$("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
-$("wordBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.doc`, exportHtmlDoc("Affectation du résultat"), "application/msword;charset=utf-8"));
-$("pvBtn").addEventListener("click",()=>download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8"));
-async function loadClosure(user){
-  if(!closureId){ $("statusLine").innerHTML = `<span class="errTxt">Aucune clôture sélectionnée. Retournez au tableau de bord.</span>`; return; }
-  $("backClosureBtn").href = `cloture-resultat.html?id=${closureId}`;
-  const snap = await getDoc(doc(db,"users",user.uid,"closures",closureId));
-  if(!snap.exists()){ $("statusLine").innerHTML = `<span class="errTxt">Clôture introuvable.</span>`; return; }
-  currentClosure = snap.data();
-  setVal("companyName", currentClosure.companyName || "");
-  setVal("fiscalYear", fiscalYearLabel(currentClosure));
-  const detected = findResultFromClosure(currentClosure);
-  if(detected){
-    resultType = detected.type; detectedAmount = detected.amount;
-    $("profitFields").style.display = resultType === "profit" ? "block" : "none";
-    $("lossFields").style.display = resultType === "loss" ? "block" : "none";
-    $("statusLine").innerHTML = `<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>`;
-  }else{
-    detectedAmount = 0;
-    $("statusLine").innerHTML = `<span class="errTxt">Clôture chargée, mais aucun compte 120/129 ou résultat exploitable n’a été trouvé.</span>`;
-  }
-  if(currentClosure.affectationResult){
-    const a = currentClosure.affectationResult;
-    resultType = a.resultType || resultType;
-    detectedAmount = Number(a.resultAmount || detectedAmount || 0);
-    setVal("pvDate", a.pvDate || "");
-    setVal("reserveAmount", a.reserveAmount || 0);
-    setVal("carryForwardAmount", a.carryForwardAmount || 0);
-    setVal("dividendAmount", a.dividendAmount || 0);
-    setVal("lossCarryForwardAmount", a.lossCarryForwardAmount || 0);
-    if(Array.isArray(a.entries) && a.entries.length){ generatedRows = a.entries; renderEntries(); }
-  }
-  refreshUI();
-}
-onAuthStateChanged(auth,async user=>{
-  if(!user){ window.location.href="connexion.html"; return; }
-  currentUser = user;
-  try{ await loadClosure(user); }
-  catch(e){ console.error(e); $("statusLine").innerHTML = `<span class="errTxt">Erreur de chargement de la clôture.</span>`; }
-});
+const params=new URLSearchParams(window.location.search);const closureId=params.get("id");
+let currentUser=null,currentClosure=null,resultType="profit",resultAmount=0,generatedRows=[];
+const $=id=>document.getElementById(id);
+const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+function euro(v){return nf.format(Number(v||0))+" €"}function n(id){return Number($(id).value||0)}function set(id,v){$(id).value=v??""}
+function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
+function getCompte(row){return String(row.Compte||row.compte||"").replace(/\s/g,"")}function getAmount(row){const keys=Object.keys(row||{});const pref=keys.filter(k=>{const x=String(k).toLowerCase();return x.includes("montant")||x.includes("solde")||x.includes("debit")||x.includes("débit")||x.includes("credit")||x.includes("crédit")});for(const k of (pref.length?pref:keys)){const v=Number(String(row[k]??"").replace(",",".").replace(/\s/g,""));if(!Number.isNaN(v)&&v!==0)return v}return 0}
+function findResultFromBalance(c){const rows=Array.isArray(c?.balance)?c.balance:[];const row=rows.find(r=>getCompte(r).startsWith("120")||getCompte(r).startsWith("129"));if(!row)return null;const amount=Math.abs(getAmount(row));if(!amount)return null;return{type:getCompte(row).startsWith("129")?"loss":"profit",amount}}
+function findResult(c){for(const k of ["resultAmount","accountingResult","netIncome","result","resultat"]){if(c?.[k]!==undefined&&c?.[k]!==null&&!Number.isNaN(Number(c[k]))){const v=Number(c[k]);return{type:v<0?"loss":"profit",amount:Math.abs(v)}}}return findResultFromBalance(c)}
+function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
+function endDateLabel(){const fy=$("fiscalYear").value;const m=fy.match(/(\d{4})-(\d{2})-(\d{2})\s*$/);return m?`${m[3]}/${m[2]}/${m[1]}`:fy}
+function showMode(){const profit=resultType==="profit";$("profitInputs").style.display=profit?"block":"none";$("lossInputs").style.display=profit?"none":"block";$("resultNature").textContent=profit?"Bénéfice":"Perte"}
+function totals(){const allocated=resultType==="profit"?n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");const remaining=+(resultAmount-allocated).toFixed(2);return{allocated,remaining}}
+function updateSummary(){const t=totals();$("resultAmountLabel").textContent=euro(resultAmount);$("allocatedLabel").textContent=euro(t.allocated);$("remainingLabel").textContent=euro(t.remaining);const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;$("progressBar").style.width=pct+"%";if(Math.abs(t.remaining)<=0.01){$("balanceBox").innerHTML='<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.'}else if(t.remaining>0){$("balanceBox").innerHTML=`<b class="warnText">Affectation en cours.</b><br>Il reste ${euro(t.remaining)} à affecter.`}else{$("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`}generatedRows=[];$("entriesBox").innerHTML="";$("saveBtn").disabled=true;$("pvBtn").disabled=true;$("exportBar").style.display="none";$("pvPreview").style.display="none"}
+["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>$(id).addEventListener("input",updateSummary));
+function applyStrategy(strategy){if(resultType==="loss"||strategy==="loss"){set("lossCarryForwardAmount",resultAmount);updateSummary();return}set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);if(strategy==="distribution"){set("dividendAmount",resultAmount)}else if(strategy==="report"){set("carryForwardAmount",resultAmount)}else{const reserve=Math.min(resultAmount,Math.round(resultAmount*0.05*100)/100);set("reserveAmount",reserve);set("carryForwardAmount",+(resultAmount-reserve).toFixed(2))}updateSummary()}
+$("autoBtn").addEventListener("click",()=>applyStrategy(resultType==="loss"?"loss":"prudent"));document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
+$("aiBtn").addEventListener("click",()=>alert("Module IA prévu : il proposera la meilleure affectation selon la société, les réserves, la trésorerie et la stratégie de distribution."));
+function buildEntries(){const t=totals();if(Math.abs(t.remaining)>0.01)throw new Error("L’affectation doit être équilibrée avant de générer les écritures.");const rows=[];if(resultType==="profit"){rows.push({journal:"OD",label:"Affectation du résultat bénéficiaire",debit:"120000",credit:"",amount:resultAmount});const r=n("reserveAmount"),cf=n("carryForwardAmount"),d=n("dividendAmount");if(r)rows.push({journal:"OD",label:"Affectation en réserves",debit:"",credit:"106800",amount:r,affectation:"Réserve légale / autres réserves"});if(cf)rows.push({journal:"OD",label:"Report à nouveau créditeur",debit:"",credit:"110000",amount:cf,affectation:"Report à nouveau créditeur"});if(d)rows.push({journal:"OD",label:"Dividendes à payer",debit:"",credit:"457000",amount:d,affectation:"Dividendes à payer"})}else{const l=n("lossCarryForwardAmount");rows.push({journal:"OD",label:"Report à nouveau débiteur",debit:"119000",credit:"",amount:l,affectation:"Report à nouveau débiteur"});rows.push({journal:"OD",label:"Affectation du résultat déficitaire",debit:"",credit:"129000",amount:l})}return rows}
+function renderEntries(rows){$("entriesBox").innerHTML=`<table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.journal}</td><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`}
+$("generateBtn").addEventListener("click",()=>{try{generatedRows=buildEntries();renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPvPreview()}catch(e){alert(e.message)}});
+async function saveAffectation(){if(!currentUser||!closureId)return alert("Clôture non sélectionnée.");if(!generatedRows.length)generatedRows=buildEntries();const data={companyName:$("companyName").value,fiscalYear:$("fiscalYear").value,resultType,resultAmount,reserveAmount:n("reserveAmount"),carryForwardAmount:n("carryForwardAmount"),dividendAmount:n("dividendAmount"),lossCarryForwardAmount:n("lossCarryForwardAmount"),pvDate:$("pvDate").value,entries:generatedRows,status:"generated",updatedAt:new Date().toISOString()};await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{affectationResult:data,updatedAt:serverTimestamp()},{merge:true});alert("Affectation enregistrée.")}
+$("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
+function affectationRows(){return generatedRows.filter(r=>r.affectation).map(r=>`<tr><td>${sanitize(r.affectation)}</td><td>${r.credit||r.debit}</td><td>${euro(r.amount)}</td></tr>`).join("")}
+function entriesRows(){return generatedRows.map(r=>`<tr><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${euro(r.amount)}</td></tr>`).join("")}
+function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHeader"><img src="images/axe-compta.png" class="pvLogo" onerror="this.style.display='none'"><div class="pvTitle">Procès-verbal d’Assemblée Générale Ordinaire</div><div class="pvSub">Affectation du résultat</div></div><table class="pvInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="pvOk">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSign"><p>Fait à ______________________________</p><p>Le _________________________________</p><br><p><strong>Le représentant légal</strong></p><br><br><p>Signature : __________________________</p></div><div class="pvFooter">Document généré automatiquement par AXE COMPTA IA — Assistant de clôture comptable.</div></div>`}
+function renderPvPreview(){if(!generatedRows.length)return;$("pvPreview").innerHTML=pvHtml();$("pvPreview").style.display="block"}
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
+$("pvBtn").addEventListener("click",()=>{renderPvPreview();download(fileBase()+"-pv-ag.html",`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG</title><style>body{font-family:Arial,sans-serif;margin:40px;color:#111;line-height:1.55}.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo,table{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td,td,th{border:1px solid #ccd3dc;padding:10px}.pvInfo td:first-child,th{font-weight:700;background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{margin-top:50px;border-top:1px solid #ccd3dc;padding-top:12px;font-size:12px;text-align:center;color:#555}</style></head><body>${pvHtml()}</body></html>`,"text/html;charset=utf-8")});
+$("printBtn").addEventListener("click",()=>{renderPvPreview();window.print()});
+$("csvBtn").addEventListener("click",()=>{const csv=["Journal;Libellé;Débit;Crédit;Montant",...generatedRows.map(r=>`${r.journal};${r.label};${r.debit||""};${r.credit||""};${String(r.amount).replace(".",",")}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8")});
+$("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${r.amount}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8")});
+$("wordBtn").addEventListener("click",()=>{download(fileBase()+"-pv-ag.doc",`<html><head><meta charset="UTF-8"></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")});
+async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPvPreview()}}
+onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
 </body>
 </html>
