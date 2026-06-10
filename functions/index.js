@@ -16,7 +16,7 @@ const PRICE_MONTHLY = "price_1TeDgZRDM80msH4W9UDDkMFd";
 
 exports.createCheckoutSession = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -53,7 +53,7 @@ exports.createCheckoutSession = onRequest(
 
 exports.stripeWebhook = onRequest(
   { secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers["stripe-signature"];
 
@@ -147,7 +147,7 @@ function getLibelle(row) {
 function getAmount(row) {
   const keys = Object.keys(row);
 
-  const preferredKeys = keys.filter(k =&gt;
+  const preferredKeys = keys.filter(k =>
     normalizeText(k).includes("montant") ||
     normalizeText(k).includes("solde") ||
     normalizeText(k).includes("debit") ||
@@ -168,8 +168,8 @@ function getAmount(row) {
 
 function sumAmountsByPrefixes(rows, prefixes) {
   return rows
-    .filter(row =&gt; accountStarts(row, prefixes))
-    .reduce((total, row) =&gt; total + (getAmount(row) || 0), 0);
+    .filter(row =>accountStarts(row, prefixes))
+    .reduce((total, row) => total + (getAmount(row) || 0), 0);
 }
 
 function detectPayrollRate(balanceRows, grandLivreRows) {
@@ -189,11 +189,11 @@ function detectPayrollRate(balanceRows, grandLivreRows) {
 
 function accountStarts(row, prefixes) {
   const compte = getCompte(row);
-  return prefixes.some(prefix =&gt; compte.startsWith(prefix));
+  return prefixes.some(prefix => compte.startsWith(prefix));
 }
 
 function findBalanceRow(balanceRows, prefixes) {
-  return balanceRows.find(row =&gt; accountStarts(row, prefixes));
+  return balanceRows.find(row=> accountStarts(row, prefixes));
 }
 
 function cleanEntryLabel(prefix, row) {
@@ -254,13 +254,13 @@ function makeEntryFromRow(row, config) {
 }
 
 function makeLedgerEntries(rows, config) {
-  return rows.map(row =&gt; makeEntryFromRow(row, config));
+  return rows.map(row=>=>makeEntryFromRow(row, config));
 }
 
 function dedupeEntries(entries) {
   const seen = new Set();
 
-  return entries.filter(e =&gt; {
+  return entries.filter(e => {
     const key = [
       e.journal || "OD",
       e.label || "",
@@ -275,7 +275,7 @@ function dedupeEntries(entries) {
   });
 }
 function findLedgerRowsByPrefixes(rows, prefixes) {
-  return rows.filter(row =&gt; accountStarts(row, prefixes));
+  return rows.filter(row => accountStarts(row, prefixes));
 }
 
 function getAssetNameFromText(row) {
@@ -298,7 +298,7 @@ function getAssetNameFromText(row) {
 function findAssetRow(amortissementRows, assetName) {
   const needle = normalizeText(assetName);
 
-  return amortissementRows.find(row =&gt; {
+  return amortissementRows.find(row => {
     const text = getRowText(row);
     return needle &amp;&amp; text.includes(needle);
   });
@@ -312,7 +312,7 @@ function getAssetValue(row, keywords) {
   for (const key of keys) {
     const normalizedKey = normalizeText(key);
 
-    if (keywords.some(k =&gt; normalizedKey.includes(normalizeText(k)))) {
+    if (keywords.some(k => normalizedKey.includes(normalizeText(k)))) {
       const raw = String(row[key] ?? "").replace(",", ".").replace(/\s/g, "");
       const n = Number(raw);
 
@@ -324,7 +324,7 @@ function getAssetValue(row, keywords) {
 }
 
 function findFirstRowByPrefixes(rows, prefixes) {
-  return rows.find(row =&gt; accountStarts(row, prefixes));
+  return rows.find(row => accountStarts(row, prefixes));
 }
 
 function getCell(row, names) {
@@ -333,7 +333,7 @@ function getCell(row, names) {
   for (const key of keys) {
     const normalizedKey = normalizeText(key);
 
-    if (names.some(name =&gt; normalizedKey.includes(normalizeText(name)))) {
+    if (names.some(name => normalizedKey.includes(normalizeText(name)))) {
       return row[key];
     }
   }
@@ -424,10 +424,10 @@ function detectAccountingEntries(
   const answers = closure.answers || {};
   const activity = normalizeText(closure.activity || "");
 
-  const hasAccount = prefixes =&gt;
-    [...balanceRows, ...grandLivreRows].some(row =&gt; accountStarts(row, prefixes));
+  const hasAccount = prefixes =>
+    [...balanceRows, ...grandLivreRows].some(row => accountStarts(row, prefixes));
 
-  const getBalanceAmount = prefixes =&gt; {
+  const getBalanceAmount = prefixes => {
     const row = findBalanceRow(balanceRows, prefixes);
     return row ? getAmount(row) : 0;
   };
@@ -446,7 +446,7 @@ function detectAccountingEntries(
 
   // FNP : factures non parvenues, lecture multi-lignes côté charges
   if (hasAccount(["408"]) &amp;&amp; answers.fournisseurs === "yes") {
-    const fnpRows = grandLivreRows.filter(row =&gt; {
+    const fnpRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
 
@@ -482,7 +482,7 @@ function detectAccountingEntries(
 
   // CCA : charges constatées d'avance
   if (hasAccount(["486"]) &amp;&amp; answers.cca === "yes") {
-    const ccaRows = grandLivreRows.filter(row =&gt; {
+    const ccaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
 
@@ -520,7 +520,7 @@ function detectAccountingEntries(
 
   // PCA : produits constatés d'avance
   if (hasAccount(["487"]) &amp;&amp; answers.cca === "yes") {
-    const pcaRows = grandLivreRows.filter(row =&gt; {
+    const pcaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
 
@@ -532,8 +532,8 @@ function detectAccountingEntries(
 
     if (pcaRows.length) {
       pcaRows
-        .filter(row =&gt; getCompte(row).startsWith("487"))
-        .forEach(row =&gt; {
+        .filter(row => getCompte(row).startsWith("487"))
+        .forEach(row => {
           entries.push(makeEntryFromRow(row, {
             label: "PCA",
             debit: "706000",
@@ -559,7 +559,7 @@ function detectAccountingEntries(
 
   // FAE : factures à établir
 if (hasAccount(["418"]) &amp;&amp; answers.clients === "yes") {
-  const faeRows = grandLivreRows.filter(row =&gt; {
+  const faeRows = grandLivreRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -572,7 +572,7 @@ if (hasAccount(["418"]) &amp;&amp; answers.clients === "yes") {
   }); 
 
   if (faeRows.length) {
-    faeRows.forEach(row =&gt; {
+    faeRows.forEach(row => {
       entries.push(makeEntryFromRow(row, {
         label: "FAE",
         debit: "418100",
