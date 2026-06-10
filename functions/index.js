@@ -1,4 +1,5 @@
-const { onRequest } = require("firebase-functions/v2/https");
+
+  const { onRequest } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
@@ -16,7 +17,7 @@ const PRICE_MONTHLY = "price_1TeDgZRDM80msH4W9UDDkMFd";
 
 exports.createCheckoutSession = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
-  async (req, res) => {
+  async (req, res) =&gt; {
     res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -29,7 +30,7 @@ exports.createCheckoutSession = onRequest(
       const { uid, closureId, plan, email } = req.body || {};
 
       if (!uid || !plan || !email) return res.status(400).json({ error: "Paramètres manquants." });
-      if (plan === "one-shot" && !closureId) return res.status(400).json({ error: "closureId manquant." });
+      if (plan === "one-shot" &amp;&amp; !closureId) return res.status(400).json({ error: "closureId manquant." });
 
       const price = plan === "monthly" ? PRICE_MONTHLY : PRICE_ONE_SHOT;
 
@@ -39,7 +40,7 @@ exports.createCheckoutSession = onRequest(
         customer_email: email,
         line_items: [{ price, quantity: 1 }],
         success_url: "https://compta.axe-dossier.fr/merci.html",
-        cancel_url: `https://compta.axe-dossier.fr/cloture-resultat.html?id=${closureId || ""}`,
+        cancel_url: <code class="user-message-inline-code">https://compta.axe-dossier.fr/cloture-resultat.html?id=${closureId || ""}</code>,
         metadata: { uid, closureId: closureId || "", plan },
       });
 
@@ -53,7 +54,7 @@ exports.createCheckoutSession = onRequest(
 
 exports.stripeWebhook = onRequest(
   { secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
-  async (req, res) => {
+  async (req, res) =&gt; {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers["stripe-signature"];
 
@@ -63,7 +64,7 @@ exports.stripeWebhook = onRequest(
       event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (error) {
       console.error("Webhook signature error:", error.message);
-      res.status(400).send(`Webhook Error: ${error.message}`);
+      res.status(400).send(<code class="user-message-inline-code">Webhook Error: ${error.message}</code>);
       return;
     }
 
@@ -147,7 +148,7 @@ function getLibelle(row) {
 function getAmount(row) {
   const keys = Object.keys(row);
 
-  const preferredKeys = keys.filter(k =>
+  const preferredKeys = keys.filter(k =&gt;
     normalizeText(k).includes("montant") ||
     normalizeText(k).includes("solde") ||
     normalizeText(k).includes("debit") ||
@@ -160,7 +161,7 @@ function getAmount(row) {
     const raw = String(row[key] ?? "").replace(",", ".").replace(/\s/g, "");
     const n = Number(raw);
 
-    if (!Number.isNaN(n) && n !== 0 && Math.abs(n) > 100) return Math.abs(n);
+    if (!Number.isNaN(n) &amp;&amp; n !== 0 &amp;&amp; Math.abs(n) &gt; 100) return Math.abs(n);
   }
 
   return 0;
@@ -168,8 +169,8 @@ function getAmount(row) {
 
 function sumAmountsByPrefixes(rows, prefixes) {
   return rows
-    .filter(row => accountStarts(row, prefixes))
-    .reduce((total, row) => total + (getAmount(row) || 0), 0);
+    .filter(row =&gt; accountStarts(row, prefixes))
+    .reduce((total, row) =&gt; total + (getAmount(row) || 0), 0);
 }
 
 function detectPayrollRate(balanceRows, grandLivreRows) {
@@ -182,18 +183,18 @@ function detectPayrollRate(balanceRows, grandLivreRows) {
 
   const rate = socialCharges / salaries;
 
-  if (rate <= 0 || rate > 1) return null;
+  if (rate &lt;= 0 || rate &gt; 1) return null;
 
   return rate;
 }
 
 function accountStarts(row, prefixes) {
   const compte = getCompte(row);
-  return prefixes.some(prefix => compte.startsWith(prefix));
+  return prefixes.some(prefix =&gt; compte.startsWith(prefix));
 }
 
 function findBalanceRow(balanceRows, prefixes) {
-  return balanceRows.find(row => accountStarts(row, prefixes));
+  return balanceRows.find(row =&gt; accountStarts(row, prefixes));
 }
 
 function cleanEntryLabel(prefix, row) {
@@ -236,7 +237,7 @@ function cleanEntryLabel(prefix, row) {
 
   if (!label) label = raw || "ligne grand livre";
 
-  return `${prefix} - ${label}`;
+  return <code class="user-message-inline-code">${prefix} - ${label}</code>;
 }
 
 function makeEntryFromRow(row, config) {
@@ -254,13 +255,13 @@ function makeEntryFromRow(row, config) {
 }
 
 function makeLedgerEntries(rows, config) {
-  return rows.map(row => makeEntryFromRow(row, config));
+  return rows.map(row =&gt; makeEntryFromRow(row, config));
 }
 
 function dedupeEntries(entries) {
   const seen = new Set();
 
-  return entries.filter(e => {
+  return entries.filter(e =&gt; {
     const key = [
       e.journal || "OD",
       e.label || "",
@@ -275,7 +276,7 @@ function dedupeEntries(entries) {
   });
 }
 function findLedgerRowsByPrefixes(rows, prefixes) {
-  return rows.filter(row => accountStarts(row, prefixes));
+  return rows.filter(row =&gt; accountStarts(row, prefixes));
 }
 
 function getAssetNameFromText(row) {
@@ -298,9 +299,9 @@ function getAssetNameFromText(row) {
 function findAssetRow(amortissementRows, assetName) {
   const needle = normalizeText(assetName);
 
-  return amortissementRows.find(row => {
+  return amortissementRows.find(row =&gt; {
     const text = getRowText(row);
-    return needle && text.includes(needle);
+    return needle &amp;&amp; text.includes(needle);
   });
 }
 
@@ -312,11 +313,11 @@ function getAssetValue(row, keywords) {
   for (const key of keys) {
     const normalizedKey = normalizeText(key);
 
-    if (keywords.some(k => normalizedKey.includes(normalizeText(k)))) {
+    if (keywords.some(k =&gt; normalizedKey.includes(normalizeText(k)))) {
       const raw = String(row[key] ?? "").replace(",", ".").replace(/\s/g, "");
       const n = Number(raw);
 
-      if (!Number.isNaN(n) && n !== 0) return Math.abs(n);
+      if (!Number.isNaN(n) &amp;&amp; n !== 0) return Math.abs(n);
     }
   }
 
@@ -324,7 +325,7 @@ function getAssetValue(row, keywords) {
 }
 
 function findFirstRowByPrefixes(rows, prefixes) {
-  return rows.find(row => accountStarts(row, prefixes));
+  return rows.find(row =&gt; accountStarts(row, prefixes));
 }
 
 function getCell(row, names) {
@@ -333,7 +334,7 @@ function getCell(row, names) {
   for (const key of keys) {
     const normalizedKey = normalizeText(key);
 
-    if (names.some(name => normalizedKey.includes(normalizeText(name)))) {
+    if (names.some(name =&gt; normalizedKey.includes(normalizeText(name)))) {
       return row[key];
     }
   }
@@ -344,7 +345,7 @@ function getCell(row, names) {
 function parseExcelDate(value) {
   if (!value) return null;
 
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+  if (value instanceof Date &amp;&amp; !Number.isNaN(value.getTime())) {
     return value;
   }
 
@@ -383,12 +384,12 @@ function findLoanIcne(empruntRows, closureEndDate) {
 
     if (!start || !due || !interest) continue;
 
-    if (start <= endDate && due >= endDate) {
+    if (start &lt;= endDate &amp;&amp; due &gt;= endDate) {
       const periodDays = daysBetween(start, due);
 const elapsedDaysRaw = daysBetween(start, endDate) + 1;
 const elapsedDays = Math.min(elapsedDaysRaw, periodDays);
 
-if (periodDays <= 0 || elapsedDays <= 0) return null;
+if (periodDays &lt;= 0 || elapsedDays &lt;= 0) return null;
 
 const prorata = Math.min(elapsedDays / periodDays, 1);
 const icne = +(interest * prorata).toFixed(2);
@@ -424,10 +425,10 @@ function detectAccountingEntries(
   const answers = closure.answers || {};
   const activity = normalizeText(closure.activity || "");
 
-  const hasAccount = prefixes =>
-    [...balanceRows, ...grandLivreRows].some(row => accountStarts(row, prefixes));
+  const hasAccount = prefixes =&gt;
+    [...balanceRows, ...grandLivreRows].some(row =&gt; accountStarts(row, prefixes));
 
-  const getBalanceAmount = prefixes => {
+  const getBalanceAmount = prefixes =&gt; {
     const row = findBalanceRow(balanceRows, prefixes);
     return row ? getAmount(row) : 0;
   };
@@ -445,12 +446,12 @@ function detectAccountingEntries(
   }
 
   // FNP : factures non parvenues, lecture multi-lignes côté charges
-  if (hasAccount(["408"]) && answers.fournisseurs === "yes") {
-    const fnpRows = grandLivreRows.filter(row => {
+  if (hasAccount(["408"]) &amp;&amp; answers.fournisseurs === "yes") {
+    const fnpRows = grandLivreRows.filter(row =&gt; {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return compte.startsWith("6") && (
+      return compte.startsWith("6") &amp;&amp; (
         text.includes("fnp") ||
         text.includes("facture non parvenue") ||
         text.includes("facture non recue")
@@ -481,12 +482,12 @@ function detectAccountingEntries(
   }
 
   // CCA : charges constatées d'avance
-  if (hasAccount(["486"]) && answers.cca === "yes") {
-    const ccaRows = grandLivreRows.filter(row => {
+  if (hasAccount(["486"]) &amp;&amp; answers.cca === "yes") {
+    const ccaRows = grandLivreRows.filter(row =&gt; {
       const compte = getCompte(row);
       const text = getRowText(row);
 
-      return compte.startsWith("486") && (
+      return compte.startsWith("486") &amp;&amp; (
         text.includes("cca") ||
         text.includes("charge constatee") ||
         text.includes("charges constatees") ||
@@ -519,8 +520,8 @@ function detectAccountingEntries(
   }
 
   // PCA : produits constatés d'avance
-  if (hasAccount(["487"]) && answers.cca === "yes") {
-    const pcaRows = grandLivreRows.filter(row => {
+  if (hasAccount(["487"]) &amp;&amp; answers.cca === "yes") {
+    const pcaRows = grandLivreRows.filter(row =&gt; {
       const compte = getCompte(row);
       const text = getRowText(row);
 
@@ -532,8 +533,8 @@ function detectAccountingEntries(
 
     if (pcaRows.length) {
       pcaRows
-        .filter(row => getCompte(row).startsWith("487"))
-        .forEach(row => {
+        .filter(row =&gt; getCompte(row).startsWith("487"))
+        .forEach(row =&gt; {
           entries.push(makeEntryFromRow(row, {
             label: "PCA",
             debit: "706000",
@@ -558,8 +559,8 @@ function detectAccountingEntries(
   }
 
   // FAE : factures à établir
-if (hasAccount(["418"]) && answers.clients === "yes") {
-  const faeRows = grandLivreRows.filter(row => {
+if (hasAccount(["418"]) &amp;&amp; answers.clients === "yes") {
+  const faeRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -569,10 +570,10 @@ if (hasAccount(["418"]) && answers.clients === "yes") {
       text.includes("facture a etablir") ||
       text.includes("facture à établir")
     );
-  });
+  }); 
 
   if (faeRows.length) {
-    faeRows.forEach(row => {
+    faeRows.forEach(row =&gt; {
       entries.push(makeEntryFromRow(row, {
         label: "FAE",
         debit: "418100",
@@ -597,8 +598,8 @@ if (hasAccount(["418"]) && answers.clients === "yes") {
 }
 
   // PAR : produits à recevoir
-if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
-  const parRows = grandLivreRows.filter(row => {
+if (hasAccount(["4187", "4687"]) &amp;&amp; answers.clients === "yes") {
+  const parRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -613,7 +614,7 @@ if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
   });
 
   if (parRows.length) {
-    parRows.forEach(row => {
+    parRows.forEach(row =&gt; {
       const compte = getCompte(row);
       entries.push(makeEntryFromRow(row, {
         label: "PAR",
@@ -640,7 +641,7 @@ if (hasAccount(["4187", "4687"]) && answers.clients === "yes") {
 
  // CAP : charges à payer hors FNP et hors paie
 if (answers.fournisseurs === "yes") {
-  const capRows = grandLivreRows.filter(row => {
+  const capRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -655,7 +656,7 @@ if (answers.fournisseurs === "yes") {
     );
   });
 
-  capRows.forEach(row => {
+  capRows.forEach(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -701,13 +702,13 @@ if (answers.fournisseurs === "yes") {
 
     let stockFound = false;
 
-    stockConfigs.forEach(config => {
-      const rows = grandLivreRows.filter(row => {
+    stockConfigs.forEach(config =&gt; {
+      const rows = grandLivreRows.filter(row =&gt; {
         const compte = getCompte(row);
-        return config.prefixes.some(prefix => compte.startsWith(prefix));
+        return config.prefixes.some(prefix =&gt; compte.startsWith(prefix));
       });
 
-      rows.forEach(row => {
+      rows.forEach(row =&gt; {
         stockFound = true;
         entries.push({
           journal: "OD",
@@ -733,8 +734,8 @@ if (answers.fournisseurs === "yes") {
   }
 
 // Amortissements
-if (hasAccount(["281", "681"]) && answers.immo === "yes") {
-  const amortRows = grandLivreRows.filter(row => {
+if (hasAccount(["281", "681"]) &amp;&amp; answers.immo === "yes") {
+  const amortRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -748,8 +749,8 @@ if (hasAccount(["281", "681"]) && answers.immo === "yes") {
 
   if (amortRows.length) {
     amortRows
-      .filter(row => getCompte(row).startsWith("681"))
-      .forEach(row => {
+      .filter(row =&gt; getCompte(row).startsWith("681"))
+      .forEach(row =&gt; {
         const credit = activity.includes("location meuble") ? "281300" : "281830";
 
         entries.push(makeEntryFromRow(row, {
@@ -822,16 +823,16 @@ if (hasAccount(["131", "139", "777"])) {
     credit: "—",
     amount: retainedAmount,
     justification:
-`Subvention d'investissement détectée.
-
+<code class="user-message-inline-code">Subvention d'investissement détectée.
+</code>
 Compte 131 - Subvention d'investissement : ${subventionAmount || "?"} €
 Compte 139 - Subventions inscrites au résultat : ${repriseAmount || "?"} €
 Compte 777 - Quote-part virée au résultat : ${quotePartAmount || "?"} €
 
 ${quotePartAmount || repriseAmount
   ? "Une reprise de subvention semble comptabilisée. Vérifier le plan de reprise et la cohérence avec l'amortissement de l'immobilisation financée."
-  : "Aucune quote-part de subvention n'a été détectée. Vérifier si une reprise devait être comptabilisée sur l'exercice."}`,
-    confidence: subventionAmount && (quotePartAmount || repriseAmount) ? 0.85 : 0.65,
+  : "Aucune quote-part de subvention n'a été détectée. Vérifier si une reprise devait être comptabilisée sur l'exercice."}<code class="user-message-inline-code">,
+</code>    confidence: subventionAmount &amp;&amp; (quotePartAmount || repriseAmount) ? 0.85 : 0.65,
     source: "analyse",
     status: "À valider"
   });
@@ -845,7 +846,7 @@ ${quotePartAmount || repriseAmount
 
 // Crédit-bail / leasing : véhicules, matériel, photocopieur
 if (answers.immo === "yes") {
-  const leasingRows = grandLivreRows.filter(row => {
+  const leasingRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -862,16 +863,16 @@ if (answers.immo === "yes") {
     );
   });
 
-  leasingRows.forEach(row => {
+  leasingRows.forEach(row =&gt; {
     entries.push({
       journal: "ANALYSE",
-      label: `Analyse crédit-bail - ${getLibelle(row)}`,
+      label: <code class="user-message-inline-code">Analyse crédit-bail - ${getLibelle(row)}</code>,
       debit: "—",
       credit: "—",
       amount: getAmount(row) || "À contrôler",
       justification:
-`Crédit-bail / leasing détecté.
-
+<code class="user-message-inline-code">Crédit-bail / leasing détecté.
+</code>
 Compte : ${getCompte(row) || "?"}
 Libellé : ${getLibelle(row)}
 Montant détecté : ${getAmount(row) || "?"} €
@@ -884,8 +885,8 @@ Contrôles à effectuer :
 - vérifier l'existence d'une option d'achat ;
 - vérifier si une information doit être mentionnée en annexe.
 
-Aucune écriture automatique n'est générée à ce stade.`,
-      confidence: 0.75,
+Aucune écriture automatique n'est générée à ce stade.<code class="user-message-inline-code">,
+</code>      confidence: 0.75,
       source: "grandLivre",
       status: "À valider"
     });
@@ -902,21 +903,21 @@ Aucune écriture automatique n'est générée à ce stade.`,
 
 // Comptes courants d'associés : 455
 if (hasAccount(["455"])) {
-  const associateRows = [...balanceRows, ...grandLivreRows].filter(row => {
+  const associateRows = [...balanceRows, ...grandLivreRows].filter(row =&gt; {
     const compte = getCompte(row);
     return compte.startsWith("455");
   });
 
-  associateRows.forEach(row => {
+  associateRows.forEach(row =&gt; {
     entries.push({
       journal: "ANALYSE",
-      label: `Analyse compte courant associé - ${getLibelle(row)}`,
+      label: <code class="user-message-inline-code">Analyse compte courant associé - ${getLibelle(row)}</code>,
       debit: "—",
       credit: "—",
       amount: getAmount(row) || "À contrôler",
       justification:
-`Compte courant d'associé détecté.
-
+<code class="user-message-inline-code">Compte courant d'associé détecté.
+</code>
 Compte : ${getCompte(row) || "?"}
 Libellé : ${getLibelle(row)}
 Montant détecté : ${getAmount(row) || "?"} €
@@ -929,8 +930,8 @@ Contrôles à effectuer :
 - vérifier qu'il ne s'agit pas d'un compte d'attente ou d'une écriture temporaire ;
 - vérifier si le solde est débiteur, situation sensible à documenter.
 
-Aucune écriture automatique n'est générée à ce stade.`,
-      confidence: 0.75,
+Aucune écriture automatique n'est générée à ce stade.<code class="user-message-inline-code">,
+</code>      confidence: 0.75,
       source: "balance/grandLivre",
       status: "À valider"
     });
@@ -945,14 +946,14 @@ Aucune écriture automatique n'est générée à ce stade.`,
   
 // Comptes d'attente : 471 / 472 — synthèse unique sans doublons
 if (hasAccount(["471", "472"])) {
-  const rawWaitingRows = [...balanceRows, ...grandLivreRows].filter(row => {
+  const rawWaitingRows = [...balanceRows, ...grandLivreRows].filter(row =&gt; {
     const compte = getCompte(row);
     return compte.startsWith("471") || compte.startsWith("472");
   });
 
   const seenWaiting = new Set();
 
-  const waitingRows = rawWaitingRows.filter(row => {
+  const waitingRows = rawWaitingRows.filter(row =&gt; {
     const key = [
       getCompte(row),
       getLibelle(row),
@@ -965,7 +966,7 @@ if (hasAccount(["471", "472"])) {
   });
 
   const totalWaiting = waitingRows.reduce(
-    (total, row) => total + (getAmount(row) || 0),
+    (total, row) =&gt; total + (getAmount(row) || 0),
     0
   );
 
@@ -978,8 +979,8 @@ if (hasAccount(["471", "472"])) {
  
 
 justification:
-`Comptes d'attente détectés.
-
+<code class="user-message-inline-code">Comptes d'attente détectés.
+</code>
 Nombre de mouvements : ${waitingRows.length}
 Montant cumulé : ${totalWaiting || "?"} €
 
@@ -990,12 +991,12 @@ Contrôles à effectuer :
 • vérifier l'absence d'anciens mouvements ;
 • contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 
-Cliquer sur « Voir » pour afficher le détail des mouvements.`,
-    
+Cliquer sur « Voir » pour afficher le détail des mouvements.<code class="user-message-inline-code">,
+</code>    
     confidence: 0.85,
     source: "balance/grandLivre",
     status: "À valider",
-    details: waitingRows.map(row => ({
+    details: waitingRows.map(row =&gt; ({
       compte: getCompte(row),
       libelle: getLibelle(row),
       amount: getAmount(row) || 0
@@ -1007,18 +1008,18 @@ Cliquer sur « Voir » pour afficher le détail des mouvements.`,
     label: "Compte d'attente détecté",
     level: "warning"
   });
-}
-
+} 
+ 
   // Immobilisations en cours : 23
 if (hasAccount(["23"])) {
-  const constructionRows = [...balanceRows, ...grandLivreRows].filter(row => {
+  const constructionRows = [...balanceRows, ...grandLivreRows].filter(row =&gt; {
     const compte = getCompte(row);
     return compte.startsWith("23");
   });
 
   const seenConstruction = new Set();
 
-  const uniqueConstructionRows = constructionRows.filter(row => {
+  const uniqueConstructionRows = constructionRows.filter(row =&gt; {
     const key = [
       getCompte(row),
       getLibelle(row),
@@ -1031,7 +1032,7 @@ if (hasAccount(["23"])) {
   });
 
   const totalConstruction = uniqueConstructionRows.reduce(
-    (total, row) => total + (getAmount(row) || 0),
+    (total, row) =&gt; total + (getAmount(row) || 0),
     0
   );
 
@@ -1042,8 +1043,8 @@ if (hasAccount(["23"])) {
     credit: "—",
     amount: totalConstruction || "À contrôler",
     justification:
-`Immobilisations en cours détectées.
-
+<code class="user-message-inline-code">Immobilisations en cours détectées.
+</code>
 Nombre de ligne(s) : ${uniqueConstructionRows.length}
 Montant cumulé : ${totalConstruction || "?"} €
 
@@ -1054,11 +1055,11 @@ Contrôles à effectuer :
 • vérifier l'absence d'amortissement avant mise en service ;
 • rapprocher les montants des factures et situations de travaux.
 
-Une immobilisation en cours non justifiée pénalise le score qualité.`,
-    confidence: 0.85,
+Une immobilisation en cours non justifiée pénalise le score qualité.<code class="user-message-inline-code">,
+</code>    confidence: 0.85,
     source: "balance/grandLivre",
     status: "À valider",
-    details: uniqueConstructionRows.map(row => ({
+    details: uniqueConstructionRows.map(row =&gt; ({
       compte: getCompte(row),
       libelle: getLibelle(row),
       amount: getAmount(row) || 0
@@ -1077,11 +1078,11 @@ if (answers.immo === "yes") {
   const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
   const vncRows = findLedgerRowsByPrefixes(grandLivreRows, ["675"]);
 
-  cessionRows.forEach(cessionRow => {
+  cessionRows.forEach(cessionRow =&gt; {
     const assetName = getAssetNameFromText(cessionRow);
     const cessionAmount = getAmount(cessionRow);
 
-    const relatedVncRow = vncRows.find(row =>
+    const relatedVncRow = vncRows.find(row =&gt;
       getRowText(row).includes(normalizeText(assetName))
     ) || vncRows[0];
 
@@ -1089,13 +1090,13 @@ if (answers.immo === "yes") {
 
     const assetRow = findAssetRow(amortissementRows, assetName);
 
-    const bruteRow = balanceRows.find(row =>
-      accountStarts(row, ["21"]) &&
+    const bruteRow = balanceRows.find(row =&gt;
+      accountStarts(row, ["21"]) &amp;&amp;
       getRowText(row).includes(normalizeText(assetName))
     ) || findBalanceRow(balanceRows, ["21"]);
 
-    const amortRow = balanceRows.find(row =>
-      accountStarts(row, ["28"]) &&
+    const amortRow = balanceRows.find(row =&gt;
+      accountStarts(row, ["28"]) &amp;&amp;
       getRowText(row).includes(normalizeText(assetName))
     ) || findBalanceRow(balanceRows, ["28"]);
 
@@ -1109,7 +1110,7 @@ if (answers.immo === "yes") {
 
     const calculatedVnc =
       getAssetValue(assetRow, ["vnc", "valeur nette"]) ||
-      (bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
+      (bruteAmount &amp;&amp; amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
 
     const retainedVnc = vncAmount || calculatedVnc || "À contrôler";
 
@@ -1117,20 +1118,20 @@ if (answers.immo === "yes") {
 let resultAmount = "À contrôler";
 let diff = null;
 
-if (cessionAmount && typeof retainedVnc === "number") {
+if (cessionAmount &amp;&amp; typeof retainedVnc === "number") {
   diff = cessionAmount - retainedVnc;
   resultAmount = Math.abs(diff);
-  resultLabel = diff >= 0 ? "PLUS-VALUE" : "MOINS-VALUE";
+  resultLabel = diff &gt;= 0 ? "PLUS-VALUE" : "MOINS-VALUE";
 }
 
 function formatEuro(value) {
   if (typeof value !== "number") return value || "?";
-  return `${value.toLocaleString("fr-FR")} €`;
+  return <code class="user-message-inline-code">${value.toLocaleString("fr-FR")} €</code>;
 }
 
 const analyseText =
-`Immobilisation : ${assetName}
-
+<code class="user-message-inline-code">Immobilisation : ${assetName}
+</code>
 Valeur brute : ${formatEuro(bruteAmount)}
 Amortissements cumulés : ${formatEuro(amortAmount)}
 VNC : ${formatEuro(retainedVnc)}
@@ -1141,11 +1142,11 @@ Calcul :
 Prix de cession - VNC
 ${formatEuro(cessionAmount)} - ${formatEuro(retainedVnc)} = ${formatEuro(diff)}
 
-${resultLabel} ESTIMÉE : ${formatEuro(resultAmount)}`;
-
+${resultLabel} ESTIMÉE : ${formatEuro(resultAmount)}<code class="user-message-inline-code">;
+</code>
 entries.push({
   journal: "ANALYSE",
-  label: `Analyse cession - ${assetName}`,
+  label: <code class="user-message-inline-code">Analyse cession - ${assetName}</code>,
   debit: "—",
   credit: "—",
   amount: resultAmount,
@@ -1157,7 +1158,7 @@ entries.push({
 
 entries.push({
   journal: "OD",
-  label: `Sortie immobilisation - Reprise amortissements - ${assetName}`,
+  label: <code class="user-message-inline-code">Sortie immobilisation - Reprise amortissements - ${assetName}</code>,
   debit: amortRow ? getCompte(amortRow) : "28xxxx",
   credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
   amount: amortAmount || "À contrôler",
@@ -1169,11 +1170,11 @@ entries.push({
 
 entries.push({
   journal: "OD",
-  label: `Sortie immobilisation - VNC - ${assetName}`,
+  label: <code class="user-message-inline-code">Sortie immobilisation - VNC - ${assetName}</code>,
   debit: "675000",
   credit: bruteRow ? getCompte(bruteRow) : "21xxxx",
   amount: retainedVnc,
-  justification: `Valeur brute : ${bruteAmount || "?"} € / Amortissements cumulés : ${amortAmount || "?"} € / VNC calculée : ${retainedVnc} €. À rapprocher du tableau des immobilisations.`,
+  justification: <code class="user-message-inline-code">Valeur brute : ${bruteAmount || "?"} € / Amortissements cumulés : ${amortAmount || "?"} € / VNC calculée : ${retainedVnc} €. À rapprocher du tableau des immobilisations.</code>,
   confidence: retainedVnc !== "À contrôler" ? 0.8 : 0.55,
   source: assetRow ? "tableau amortissements" : "balance/grandLivre",
   status: "À valider"
@@ -1188,7 +1189,7 @@ controls.push({
   });
 }
  // Paie : congés payés + charges sociales associées
-if (hasAccount(["428"]) && answers.paie === "yes") {
+if (hasAccount(["428"]) &amp;&amp; answers.paie === "yes") {
   const amount428 = getBalanceAmount(["428"]) || 0;
   const payrollRate = detectPayrollRate(balanceRows, grandLivreRows);
   const socialAmount = payrollRate
@@ -1214,7 +1215,7 @@ if (hasAccount(["428"]) && answers.paie === "yes") {
     credit: "438600",
     amount: socialAmount,
     justification: payrollRate
-      ? `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.`
+      ? <code class="user-message-inline-code">Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.</code>
       : "Charges sociales sur congés payés à calculer : comptes 641/645 insuffisants.",
     confidence: payrollRate ? 0.8 : 0.55,
     source: payrollRate ? "balance/grandLivre" : "analyse",
@@ -1224,7 +1225,7 @@ if (hasAccount(["428"]) && answers.paie === "yes") {
 
 // Provisions : lignes détaillées 6815 / 151
 if (answers.provisions === "yes") {
-  const provisionRows = grandLivreRows.filter(row => {
+  const provisionRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -1238,13 +1239,13 @@ if (answers.provisions === "yes") {
     );
   });
 
-  const dotationRows = provisionRows.filter(row => {
+  const dotationRows = provisionRows.filter(row =&gt; {
     const compte = getCompte(row);
     return compte.startsWith("6815");
   });
 
   if (dotationRows.length) {
-    dotationRows.forEach(row => {
+    dotationRows.forEach(row =&gt; {
       let credit = "151000";
       const text = getRowText(row);
 
@@ -1283,7 +1284,7 @@ if (answers.provisions === "yes") {
 }
 // Dépréciations : clients, stocks, immobilisations
 if (answers.provisions === "yes") {
-  const depreciationRows = grandLivreRows.filter(row => {
+  const depreciationRows = grandLivreRows.filter(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -1299,7 +1300,7 @@ if (answers.provisions === "yes") {
     );
   });
 
-  depreciationRows.forEach(row => {
+  depreciationRows.forEach(row =&gt; {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -1353,7 +1354,7 @@ if (answers.provisions === "yes") {
   }
 
 // Emprunts : capital restant dû, intérêts, ICNE
-if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
+if (hasAccount(["164", "661", "1688"]) &amp;&amp; answers.immo === "yes") {
   const loanRow =
     findFirstRowByPrefixes(balanceRows, ["164"]) ||
     findFirstRowByPrefixes(grandLivreRows, ["164"]);
@@ -1383,7 +1384,7 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
     justification: icneAmount
       ? "Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance."
       : calculatedIcne
-        ? `ICNE calculé depuis le tableau d’emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.`
+        ? <code class="user-message-inline-code">ICNE calculé depuis le tableau d’emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.</code>
         : "Compte 1688 absent : ICNE à calculer avec le tableau d’emprunt.",
     confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
     source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
@@ -1397,17 +1398,17 @@ if (hasAccount(["164", "661", "1688"]) && answers.immo === "yes") {
     credit: "—",
     amount: loanEntryAmount,
 justification: icneAmount
-  ? `Emprunt détecté.
-
+  ? <code class="user-message-inline-code">Emprunt détecté.
+</code>
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
 Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
 ICNE repris du compte 1688 : ${icneAmount} €
 
 Le compte 1688 étant présent dans la balance, ce montant est repris directement.
-Aucun recalcul n'est effectué à partir du tableau d'emprunt.`
-  : calculatedIcne
-  ? `Emprunt détecté.
-
+Aucun recalcul n'est effectué à partir du tableau d'emprunt.<code class="user-message-inline-code">
+</code>  : calculatedIcne
+  ? <code class="user-message-inline-code">Emprunt détecté.
+</code>
 Banque : ${calculatedIcne.bank || "?"}
 Référence : ${calculatedIcne.reference || "?"}
 
@@ -1425,15 +1426,15 @@ Calcul automatique des ICNE réalisé à partir du tableau d'emprunt.
 Débit 661100 Intérêts courus
 Crédit 168800 Intérêts courus non échus
 
-Montant retenu : ${loanEntryAmount} €`
-  : `Emprunt détecté.
-
+Montant retenu : ${loanEntryAmount} €<code class="user-message-inline-code">
+</code>  : <code class="user-message-inline-code">Emprunt détecté.
+</code>
 Capital restant dû / compte 164 : ${capitalAmount || "?"} €
 Intérêts comptabilisés / compte 661 : ${interestAmount || "?"} €
 
 Impossible de calculer les ICNE automatiquement.
-Le tableau d’emprunt est absent ou inexploitable.`,
-    confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
+Le tableau d’emprunt est absent ou inexploitable.<code class="user-message-inline-code">,
+</code>    confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
     source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
     status: "À valider"
   });
@@ -1457,7 +1458,7 @@ Le tableau d’emprunt est absent ou inexploitable.`,
 }
 
 exports.parseClosureFiles = onRequest(
-  async (req, res) => {
+  async (req, res) =&gt; {
     res.set("Access-Control-Allow-Origin", "https://compta.axe-dossier.fr");
     res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.set("Access-Control-Allow-Headers", "Content-Type");
