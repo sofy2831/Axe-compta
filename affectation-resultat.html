@@ -176,7 +176,11 @@ function pvHtml(){const company=sanitize($("companyName").value||"Société");co
 
 <p>Nom : ______________________________</p>
 
-<p>Qualité : ___________________________</p><p>Signature : __________________________</p></div><div class="pvFooter">Document généré automatiquement par <b>AXE COMPTA IA</b> — Assistant de clôture comptable.</div></div>`}
+<p>Qualité : ___________________________</p><p>Signature : __________________________</p></div><div class="pvFooter">
+Document généré automatiquement par
+<b>AXE COMPTA IA</b>
+— Assistant de clôture comptable.
+</div></div>`}
 function renderPvPreview(){if(!generatedRows.length)return;$("pvPreview").innerHTML=pvHtml();$("pvPreview").style.display="block"}
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
