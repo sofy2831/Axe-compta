@@ -168,12 +168,14 @@ function renderEntries(){
 
       if(!entry || !Array.isArray(entry.details)) return;
 
-      const total = entry.details.reduce((sum, d) => {
+const total = entry.details.reduce((sum, d) => {
   return sum + (Number(d.amount) || 0);
 }, 0);
 
+const title = String(entry.label || "Détail des mouvements").toUpperCase();
+
 const text =
-`COMPTES D'ATTENTE
+`${title}
 
 ${entry.details.map((d,i)=>
 `${i+1}. ${d.compte || ""}
@@ -181,7 +183,7 @@ ${entry.details.map((d,i)=>
 Libellé : ${d.libelle || ""}
 
 Montant : ${d.amount || 0} €`
-).join("\n\n-------------------------\n\n")}
+).join("\n\n=========================\n\n")}
 
 =========================
 
