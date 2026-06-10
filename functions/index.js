@@ -1222,46 +1222,92 @@ if (hasAccount(["428"]) && answers.paie === "yes") {
   });
 }
 
-  // Provisions multi-lignes
-  if (answers.provisions === "yes") {
-    const provisionRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
+ // Provisions : synthèse unique avec détail
+if (answers.provisions === "yes") {
+  const rawProvisionRows = grandLivreRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
 
-      return compte.startsWith("15") ||
-        compte.startsWith("6815") ||
-        text.includes("provision") ||
-        text.includes("litige") ||
-        text.includes("risque") ||
-        text.includes("client douteux");
+    return (
+      compte.startsWith("15") ||
+      compte.startsWith("6815") ||
+      text.includes("provision") ||
+      text.includes("litige") ||
+      text.includes("risque") ||
+      text.includes("client douteux")
+    );
+  });
+
+  const seenProvision = new Set();
+
+  const provisionRows = rawProvisionRows.filter(row => {
+    const key = [
+      getCompte(row),
+      getLibelle(row),
+      getAmount(row)
+    ].join("|").toLowerCase();
+
+    if (seenProvision.has(key)) return false;
+    seenProvision.add(key);
+    return true;
+  });
+
+  const totalProvision = provisionRows.reduce(
+    (total, row) => total + (getAmount(row) || 0),
+    0
+  );
+
+  if (provisionRows.length) {
+    entries.push({
+      journal: "ANALYSE",
+      label: "Provisions",
+      debit: "—",
+      credit: "—",
+      amount: totalProvision || "À contrôler",
+      justification:
+`Provisions détectées.
+
+Nombre de mouvements : ${provisionRows.length}
+Montant cumulé : ${totalProvision || "?"} €
+
+Contrôles à effectuer :
+
+• vérifier la nature du risque ou de la charge ;
+• contrôler le justificatif disponible ;
+• vérifier le calcul ou l'estimation retenue ;
+• contrôler la reprise éventuelle des anciennes provisions ;
+• vérifier la cohérence avec les événements postérieurs à la clôture.
+
+Cliquer sur « Voir » pour afficher le détail des provisions.`,
+      confidence: 0.8,
+      source: "grandLivre",
+      status: "À valider",
+      details: provisionRows.map(row => ({
+        compte: getCompte(row),
+        libelle: getLibelle(row),
+        amount: getAmount(row) || 0
+      }))
     });
-
-    if (provisionRows.length) {
-      provisionRows
-        .filter(row => getCompte(row).startsWith("6815"))
-        .forEach(row => {
-          entries.push(makeEntryFromRow(row, {
-            label: "Provision",
-            debit: "681500",
-            credit: "151000",
-            justification: "Provision ou risque détecté dans le grand livre.",
-            confidence: 0.8
-          }));
-        });
-    } else {
-      entries.push({
-        journal: "OD",
-        label: "Provision à documenter",
-        debit: "681500",
-        credit: "151000",
-        amount: "À documenter",
-        justification: "Provision déclarée par l'utilisateur, justificatif ou estimation à fournir.",
-        confidence: 0.5,
-        source: "questionnaire",
-        status: "À valider"
-      });
-    }
+  } else {
+    entries.push({
+      journal: "ANALYSE",
+      label: "Provision à documenter",
+      debit: "681500",
+      credit: "151000",
+      amount: "À documenter",
+      justification: "Provision déclarée par l'utilisateur, mais aucune ligne exploitable n'a été détectée dans le grand livre.",
+      confidence: 0.5,
+      source: "questionnaire",
+      status: "À valider"
+    });
   }
+
+  controls.push({
+    type: "provision_detected",
+    label: "Provision ou risque détecté",
+    level: "info"
+  });
+}
 
 // Dépréciations : clients, stocks, immobilisations
 if (answers.provisions === "yes") {
