@@ -239,7 +239,7 @@ function cleanEntryLabel(prefix, row) {
 }
 
 function makeEntryFromRow(row, config) {
-  return {
+  const entry = {
     journal: config.journal || "OD",
     label: cleanEntryLabel(config.label, row),
     debit: config.debit,
@@ -254,10 +254,12 @@ function makeEntryFromRow(row, config) {
   if (config.details !== undefined) {
     entry.details = config.details;
   }
+
+  return entry;
 }
 
 function makeAnalysisEntry(config) {
-  return {
+  const entry = {
     journal: "ANALYSE",
     label: config.label,
     debit: "—",
@@ -272,6 +274,8 @@ function makeAnalysisEntry(config) {
   if (config.details !== undefined) {
     entry.details = config.details;
   }
+
+  return entry;
 }
 
 function dedupeEntries(entries) {
