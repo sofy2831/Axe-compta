@@ -975,7 +975,7 @@ VNC : ${formatEuro(retainedVnc)}
 Prix de cession : ${formatEuro(cessionAmount)}
 
 Calcul : Prix de cession - VNC = ${formatEuro(diff)}
-${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}${userContext}`,
+${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}
         confidence: diff !== null ? 0.95 : 0.55,
         source: "analyse",
       }));
