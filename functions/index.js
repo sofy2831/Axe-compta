@@ -900,7 +900,7 @@ Contrôles à effectuer :
 - vérifier l'absence d'anciens mouvements ;
 - contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 
-Cliquer sur « Voir » pour afficher le détail des mouvements.${userContext}`,
+Cliquer sur « Voir » pour afficher le détail des mouvements.
       confidence: 0.85,
       source: "balance/grandLivre",
       details: waitingRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
