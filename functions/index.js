@@ -1091,27 +1091,32 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     controls = [...controls, ...detected.controls];
     anomalies = [...anomalies, ...detected.anomalies];
 
+    function removeUndefined(obj) {
+  return JSON.parse(
+    JSON.stringify(obj)
+  );
+}
     await closureRef.set(
-      {
-        balance: balanceRows,
-        grandLivre: grandLivreRows,
-        amortissements: amortissementRows,
-        emprunt: empruntRows,
-        controls,
-        anomalies,
-        entries: detected.entries,
-        aiAnalysis: {
-          status: "parsed",
-          model: null,
-          generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          summary: "Fichiers lus et convertis en données exploitables.",
-          warnings: anomalies,
-        },
-        status: "parsed",
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+  removeUndefined({
+    balance: balanceRows,
+    grandLivre: grandLivreRows,
+    amortissements: amortissementRows,
+    emprunt: empruntRows,
+    controls,
+    anomalies,
+    entries: detected.entries,
+    aiAnalysis: {
+      status: "parsed",
+      model: null,
+      generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      summary: "Fichiers lus et convertis en données exploitables.",
+      warnings: anomalies
+    },
+    status: "parsed",
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  }),
+  { merge: true }
+);
 
     res.json({
       ok: true,
