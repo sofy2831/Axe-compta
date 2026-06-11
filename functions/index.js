@@ -899,10 +899,10 @@ Contrôles à effectuer :
 - régulariser avant clôture si possible ;
 - vérifier l'absence d'anciens mouvements ;
 - contrôler qu'il ne s'agit pas d'erreurs d'imputation.
-
-Cliquer sur « Voir » pour afficher le détail des mouvements.
+Cliquer sur « Voir » pour afficher le détail des mouvements.`,
       confidence: 0.85,
-      source: "balance/grandLivre",
+
+           source: "balance/grandLivre",
       details: waitingRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
     controls.push({ type: "waiting_account_detected", label: "Compte d'attente détecté", level: "warning" });
@@ -926,8 +926,9 @@ Contrôles à effectuer :
 - vérifier si les immobilisations sont toujours en cours à la clôture ;
 - transférer en compte 21 si le bien est mis en service ;
 - vérifier l'absence d'amortissement avant mise en service ;
-- rapprocher les montants des factures et situations de travaux.
+- rapprocher les montants des factures et situations de travaux.`,
       confidence: 0.85,
+      
       source: "balance/grandLivre",
       details: constructionRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
