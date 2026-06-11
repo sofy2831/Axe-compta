@@ -684,7 +684,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   const answers = closure.answers || {};
   const details = closure.details || {};
   const usefulInfo = closure.notes || "";
-  const userContext = getUserContext(details, usefulInfo, ["fournisseurs", "cca", "clients", "stocks", "immo", "paie", "provisions"]);
+  const userContext = "";
   const activity = normalizeText(closure.activity || "");
   const allRows = [...balanceRows, ...grandLivreRows];
 
