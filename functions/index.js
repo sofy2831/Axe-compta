@@ -531,7 +531,8 @@ Recommandation : ${recommendation}`,
   controls.push({ type: "subvention_detected", label: "Subvention d'investissement détectée", level: "info" });
 }
 
-function detectLeasing(balanceRows, grandLivreRows, entries, controls) {
+function detectLeasing(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
+  const userContext = getUserContext(details, usefulInfo, ["immo", "cca", "fournisseurs"]);
   const allRows = [...balanceRows, ...grandLivreRows];
 
   const leasingRows = uniqueRows(allRows.filter(row => {
