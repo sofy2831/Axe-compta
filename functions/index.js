@@ -628,7 +628,8 @@ Contrôler le contrat, la période couverte, l'option d'achat et les information
   controls.push({ type: "leasing_detected", label: "Crédit-bail ou leasing détecté", level: "info" });
 }
 
-function detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls) {
+function detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
+  const userContext = getUserContext(details, usefulInfo, ["clients", "fournisseurs", "provisions"]);
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["476", "477", "666", "766"])) return;
 
