@@ -521,7 +521,7 @@ Recommandation : ${recommendation}${userContext}`,
 }
 
 function detectLeasing(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
-  const userContext = getUserContext(details, usefulInfo, ["immo", "cca", "fournisseurs"]);
+  const userContext = getUserContext(details, "", ["immo", "cca"]);
   const allRows = [...balanceRows, ...grandLivreRows];
 
   const leasingRows = uniqueRows(allRows.filter(row => {
