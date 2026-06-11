@@ -209,7 +209,7 @@ function compactJustification(e){
 }
 
 function detailsButtonHtml(e,index){
-  if(isAnalysisEntry(e) || hasDetails(e) || hasLongJustification(e)){
+  if(isAnalysisEntry(e)){
     return `<button class="viewBtn" type="button" data-view-index="${index}">Voir</button>`;
   }
   return "";
