@@ -853,9 +853,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     }
   }
 
-  detectSubventions(balanceRows, grandLivreRows, entries, controls);
-  detectLeasing(balanceRows, grandLivreRows, entries, controls);
-  detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls);
+  detectSubventions(balanceRows, grandLivreRows, entries, controls, details, usefulInfo);
+detectLeasing(balanceRows, grandLivreRows, entries, controls, details, usefulInfo);
+detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls, details, usefulInfo);
 
   // Comptes courants 455
   if (hasAcc(["455"])) {
