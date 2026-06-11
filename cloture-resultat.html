@@ -111,6 +111,50 @@ function formatAmount(v){
   return safe(v || "—");
 }
 
+function getRelevantContextKeys(entry){
+  const text = `${entry.label || ""} ${entry.justification || ""}`.toLowerCase();
+
+  if(text.includes("stock")) return ["stocks"];
+  if(text.includes("fnp") || text.includes("facture non parvenue") || text.includes("408") || text.includes("cap") || text.includes("charge à payer") || text.includes("charge a payer")) return ["fournisseurs"];
+  if(text.includes("cca") || text.includes("charge constatée") || text.includes("charge constatee") || text.includes("486")) return ["cca"];
+  if(text.includes("pca") || text.includes("487")) return ["cca", "clients"];
+  if(text.includes("fae") || text.includes("facture à établir") || text.includes("facture a etablir") || text.includes("418") || text.includes("par") || text.includes("produit à recevoir") || text.includes("produit a recevoir")) return ["clients"];
+  if(text.includes("crédit-bail") || text.includes("credit-bail") || text.includes("leasing") || text.includes("emprunt") || text.includes("amortissement") || text.includes("immobilisation") || text.includes("subvention") || text.includes("cession") || text.includes("vnc")) return ["immo"];
+  if(text.includes("paie") || text.includes("congés") || text.includes("conges") || text.includes("428") || text.includes("438")) return ["paie"];
+  if(text.includes("provision") || text.includes("dépréciation") || text.includes("depreciation") || text.includes("litige") || text.includes("risque")) return ["provisions"];
+  if(text.includes("change") || text.includes("476") || text.includes("477") || text.includes("666") || text.includes("766")) return ["clients", "fournisseurs"];
+  return [];
+}
+
+function filterUserContext(text, entry){
+  const raw = String(text || "");
+  const marker = "Informations fournies par l'utilisateur";
+  const parts = raw.split(marker);
+  if(parts.length < 2) return raw;
+
+  const main = parts[0].trim();
+  const context = parts.slice(1).join(marker);
+  const keys = getRelevantContextKeys(entry);
+
+  const dossierMatch = context.match(/Informations utiles du dossier\s*:\s*([\s\S]*?)(?=\n\s*Précision utilisateur|\s*$)/i);
+  const blocks = [];
+
+  if(dossierMatch && dossierMatch[1].trim()){
+    blocks.push(`Informations utiles du dossier :\n${dossierMatch[1].trim()}`);
+  }
+
+  keys.forEach(key => {
+    const re = new RegExp(`Précision utilisateur \\(${key}\\)\\s*:\\s*([\\s\\S]*?)(?=\\n\\s*Précision utilisateur|\\s*$)`, "i");
+    const m = context.match(re);
+    if(m && m[1].trim()){
+      blocks.push(`Précision utilisateur (${key}) :\n${m[1].trim()}`);
+    }
+  });
+
+  if(!blocks.length) return main;
+  return `${main}\n\n${marker} :\n\n${blocks.join("\n\n")}`;
+}
+
 function stripUserContext(text){
   return String(text || "").split("Informations fournies par l'utilisateur")[0].trim();
 }
@@ -218,7 +262,7 @@ function openDetailsModal(entry){
   modalJournal.textContent = entryJournal(entry);
   modalAmount.textContent = formatAmount(entry.amount);
   modalStatus.textContent = entryStatus(entry);
-  modalJustification.textContent = entry.justification || "Aucune justification détaillée disponible.";
+  modalJustification.textContent = filterUserContext(entry.justification || "Aucune justification détaillée disponible.", entry);
 
   if(hasDetails(entry)){
     modalDetailsWrap.style.display = "block";
