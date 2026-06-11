@@ -926,7 +926,7 @@ Contrôles à effectuer :
 - vérifier si les immobilisations sont toujours en cours à la clôture ;
 - transférer en compte 21 si le bien est mis en service ;
 - vérifier l'absence d'amortissement avant mise en service ;
-- rapprocher les montants des factures et situations de travaux.${userContext}`,
+- rapprocher les montants des factures et situations de travaux.
       confidence: 0.85,
       source: "balance/grandLivre",
       details: constructionRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
