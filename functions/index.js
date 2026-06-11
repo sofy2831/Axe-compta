@@ -249,8 +249,11 @@ function makeEntryFromRow(row, config) {
     confidence: config.confidence || 0.9,
     source: config.source || "grandLivre",
     status: config.status || "À valider",
-    details: config.details || undefined,
   };
+
+  if (config.details !== undefined) {
+    entry.details = config.details;
+  }
 }
 
 function makeAnalysisEntry(config) {
@@ -264,8 +267,11 @@ function makeAnalysisEntry(config) {
     confidence: config.confidence || 0.75,
     source: config.source || "analyse",
     status: config.status || "À valider",
-    details: config.details || undefined,
   };
+
+  if (config.details !== undefined) {
+    entry.details = config.details;
+  }
 }
 
 function dedupeEntries(entries) {
@@ -276,6 +282,24 @@ function dedupeEntries(entries) {
     seen.add(key);
     return true;
   });
+}
+
+function cleanFirestoreObject(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => cleanFirestoreObject(item));
+  }
+
+  if (value && typeof value === "object") {
+    const clean = {};
+    Object.keys(value).forEach(key => {
+      if (value[key] !== undefined) {
+        clean[key] = cleanFirestoreObject(value[key]);
+      }
+    });
+    return clean;
+  }
+
+  return value;
 }
 
 function getCell(row, names) {
@@ -1091,32 +1115,27 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     controls = [...controls, ...detected.controls];
     anomalies = [...anomalies, ...detected.anomalies];
 
-    function removeUndefined(obj) {
-  return JSON.parse(
-    JSON.stringify(obj)
-  );
-}
     await closureRef.set(
-  removeUndefined({
-    balance: balanceRows,
-    grandLivre: grandLivreRows,
-    amortissements: amortissementRows,
-    emprunt: empruntRows,
-    controls,
-    anomalies,
-    entries: detected.entries,
-    aiAnalysis: {
-      status: "parsed",
-      model: null,
-      generatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      summary: "Fichiers lus et convertis en données exploitables.",
-      warnings: anomalies
-    },
-    status: "parsed",
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-  }),
-  { merge: true }
-);
+      {
+        balance: balanceRows,
+        grandLivre: grandLivreRows,
+        amortissements: amortissementRows,
+        emprunt: empruntRows,
+        controls,
+        anomalies,
+        entries: detected.entries.map(entry => cleanFirestoreObject(entry)),
+        aiAnalysis: {
+          status: "parsed",
+          model: null,
+          generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          summary: "Fichiers lus et convertis en données exploitables.",
+          warnings: anomalies,
+        },
+        status: "parsed",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
 
     res.json({
       ok: true,
