@@ -241,6 +241,13 @@ function cleanEntryLabel(prefix, row) {
     .replace(/mise au rebut/gi, "")
     .replace(/valeur nette comptable/gi, "")
     .replace(/vnc/gi, "")
+    .replace(/variation stock matières premières/gi, "")
+.replace(/variation stock matieres premieres/gi, "")
+.replace(/variation stock marchandises/gi, "")
+.replace(/production stockée travaux en cours/gi, "")
+.replace(/production stockee travaux en cours/gi, "")
+.replace(/production stockée produits finis/gi, "")
+.replace(/production stockee produits finis/gi, "")
     .replace(/\s+/g, " ")
     .replace(/^[-–—:\s]+/, "")
     .trim();
