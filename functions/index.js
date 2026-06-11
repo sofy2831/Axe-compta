@@ -434,7 +434,7 @@ function getUserContext(details, usefulInfo, keys = []) {
 }
 
 function detectSubventions(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
-  const userContext = getUserContext(details, usefulInfo, ["immo", "provisions"]);
+  const userContext = getUserContext(details, "", []);
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["131", "139", "777"])) return;
 
