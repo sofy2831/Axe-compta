@@ -665,6 +665,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   const controls = [];
   const anomalies = [];
   const answers = closure.answers || {};
+  const details = closure.details || {};
+  const usefulInfo = closure.notes || "";
   const activity = normalizeText(closure.activity || "");
   const allRows = [...balanceRows, ...grandLivreRows];
 
