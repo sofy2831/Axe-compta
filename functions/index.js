@@ -476,7 +476,7 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
       debit: "139000",
       credit: "777000",
       amount: repriseAmount,
-      justification: "Compte 139 détecté sans compte 777 correspondant. Proposition de comptabilisation de la quote-part de subvention au résultat.",
+      justification: "Compte 139 détecté sans compte 777 correspondant. Proposition de comptabilisation de la quote-part de subvention au résultat.${userContext}",
       confidence: 0.75,
       source: "analyse",
       status: "À valider",
@@ -490,7 +490,7 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
       debit: "139000",
       credit: "777000",
       amount: quotePartAmount,
-      justification: "Compte 777 détecté sans compte 139 correspondant. Proposition à valider avec le plan de reprise de la subvention.",
+      justification: "Compte 777 détecté sans compte 139 correspondant. Proposition à valider avec le plan de reprise de la subvention.${userContext}",
       confidence: 0.7,
       source: "analyse",
       status: "À valider",
@@ -576,7 +576,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "CCA crédit-bail",
         debit: "486000",
         credit: "612000",
-        justification: "Loyer de crédit-bail couvrant une période postérieure à la clôture : charge constatée d'avance à comptabiliser.",
+        justification: "Loyer de crédit-bail couvrant une période postérieure à la clôture : charge constatée d'avance à comptabiliser.${userContext}",
         confidence: 0.85,
       }));
     } else if (hasFnp) {
@@ -586,7 +586,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "FNP crédit-bail",
         debit: "612000",
         credit: "408100",
-        justification: "Loyer de crédit-bail relatif à l'exercice, mais facture non parvenue : charge à rattacher à la clôture.",
+        justification: "Loyer de crédit-bail relatif à l'exercice, mais facture non parvenue : charge à rattacher à la clôture.${userContext}",
         confidence: 0.85,
       }));
     } else if (hasOption) {
@@ -596,7 +596,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "Levée option crédit-bail",
         debit: "218000",
         credit: "404000",
-        justification: "Levée d'option détectée : le bien doit être immobilisé au prix de rachat, sous réserve du justificatif.",
+        justification: "Levée d'option détectée : le bien doit être immobilisé au prix de rachat, sous réserve du justificatif.${userContext}",
         confidence: 0.8,
       }));
     }
@@ -652,7 +652,7 @@ function detectExchangeDifferences(balanceRows, grandLivreRows, entries, control
       debit: "686500",
       credit: "151500",
       amount: amount476,
-      justification: "Différence de conversion actif détectée en 476 : une provision pour perte de change latente doit être contrôlée et éventuellement comptabilisée.",
+      justification: "Différence de conversion actif détectée en 476 : une provision pour perte de change latente doit être contrôlée et éventuellement comptabilisée.${userContext}",
       confidence: 0.75,
       source: "analyse",
       status: "À valider",
@@ -719,11 +719,11 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         label: "FNP",
         debit: "607000",
         credit: "408100",
-        justification: "Facture fournisseur non parvenue détectée dans le grand livre.",
+        justification: "Facture fournisseur non parvenue détectée dans le grand livre.${userContext}",
         confidence: 0.9,
       })));
     } else {
-      entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: "Compte 408 détecté : facture fournisseur non parvenue à vérifier.", confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: "Compte 408 détecté : facture fournisseur non parvenue à vérifier.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
@@ -736,9 +736,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     });
 
     if (ccaRows.length) {
-      ccaRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "CCA", debit: "486000", credit: "616000", justification: "Charge constatée d'avance détectée dans le grand livre.", confidence: 0.9 })));
+      ccaRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "CCA", debit: "486000", credit: "616000", justification: "Charge constatée d'avance détectée dans le grand livre.${userContext}", confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "CCA", debit: "486000", credit: "616000", amount: getBalanceAmount(["486"]) || "À contrôler", justification: "Compte 486 détecté : charge couvrant une période postérieure à la clôture.", confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "CCA", debit: "486000", credit: "616000", amount: getBalanceAmount(["486"]) || "À contrôler", justification: "Compte 486 détecté : charge couvrant une période postérieure à la clôture.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
@@ -751,9 +751,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     });
 
     if (pcaRows.length) {
-      pcaRows.filter(row => getCompte(row).startsWith("487")).forEach(row => entries.push(makeEntryFromRow(row, { label: "PCA", debit: "706000", credit: "487000", justification: "Produit constaté d'avance détecté dans le grand livre.", confidence: 0.9 })));
+      pcaRows.filter(row => getCompte(row).startsWith("487")).forEach(row => entries.push(makeEntryFromRow(row, { label: "PCA", debit: "706000", credit: "487000", justification: "Produit constaté d'avance détecté dans le grand livre.${userContext}", confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "PCA", debit: "706000", credit: "487000", amount: getBalanceAmount(["487"]) || "À contrôler", justification: "Compte 487 détecté : produit rattaché à l'exercice suivant.", confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "PCA", debit: "706000", credit: "487000", amount: getBalanceAmount(["487"]) || "À contrôler", justification: "Compte 487 détecté : produit rattaché à l'exercice suivant.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
@@ -766,9 +766,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     });
 
     if (faeRows.length) {
-      faeRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "FAE", debit: "418100", credit: "706000", justification: "Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l'exercice.", confidence: 0.9 })));
+      faeRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "FAE", debit: "418100", credit: "706000", justification: "Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l'exercice.${userContext}", confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "FAE", debit: "418100", credit: "706000", amount: getBalanceAmount(["4181"]) || "À contrôler", justification: "Compte 418100 détecté : facture à établir à vérifier.", confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "FAE", debit: "418100", credit: "706000", amount: getBalanceAmount(["4181"]) || "À contrôler", justification: "Compte 418100 détecté : facture à établir à vérifier.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
@@ -783,10 +783,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     if (parRows.length) {
       parRows.forEach(row => {
         const compte = getCompte(row);
-        entries.push(makeEntryFromRow(row, { label: "PAR", debit: compte.startsWith("4687") ? "468700" : "418700", credit: "706000", justification: "Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l'exercice.", confidence: 0.9 }));
+        entries.push(makeEntryFromRow(row, { label: "PAR", debit: compte.startsWith("4687") ? "468700" : "418700", credit: "706000", justification: "Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l'exercice.${userContext}", confidence: 0.9 }));
       });
     } else {
-      entries.push({ journal: "OD", label: "PAR", debit: "418700", credit: "706000", amount: getBalanceAmount(["4187", "4687"]) || "À contrôler", justification: "Produit à recevoir détecté dans la balance. Vérifier le justificatif.", confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "PAR", debit: "418700", credit: "706000", amount: getBalanceAmount(["4187", "4687"]) || "À contrôler", justification: "Produit à recevoir détecté dans la balance. Vérifier le justificatif.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
@@ -811,7 +811,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       if (text.includes("urssaf") || text.includes("social")) debit = "645000";
       if (compte.startsWith("448") || text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
 
-      entries.push(makeEntryFromRow(row, { label: "CAP", debit, credit, justification: "Charge à payer détectée dans le grand livre. Vérifier la facture ou l'avis correspondant.", confidence: 0.85 }));
+      entries.push(makeEntryFromRow(row, { label: "CAP", debit, credit, justification: "Charge à payer détectée dans le grand livre. Vérifier la facture ou l'avis correspondant.${userContext}", confidence: 0.85 }));
     });
   }
 
@@ -828,7 +828,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     stockConfigs.forEach(config => {
       grandLivreRows.filter(row => config.prefixes.some(prefix => getCompte(row).startsWith(prefix))).forEach(row => {
         stockFound = true;
-        entries.push({ journal: "OD", label: cleanEntryLabel(config.label, row), debit: config.debit, credit: config.credit, amount: getAmount(row) || "À contrôler", justification: "Variation de stock détectée dans le grand livre.", confidence: 0.9, source: "grandLivre", status: "À valider" });
+        entries.push({ journal: "OD", label: cleanEntryLabel(config.label, row), debit: config.debit, credit: config.credit, amount: getAmount(row) || "À contrôler", justification: "Variation de stock détectée dans le grand livre.${userContext}", confidence: 0.9, source: "grandLivre", status: "À valider" });
       });
     });
 
@@ -846,13 +846,13 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     if (amortRows.length) {
       amortRows.filter(row => getCompte(row).startsWith("681")).forEach(row => {
         const credit = activity.includes("location meuble") ? "281300" : "281830";
-        entries.push(makeEntryFromRow(row, { label: "Dotation amortissement", debit: "681120", credit, justification: "Dotation amortissement détectée dans le grand livre. Vérifier le tableau d'amortissement.", confidence: 0.9 }));
+        entries.push(makeEntryFromRow(row, { label: "Dotation amortissement", debit: "681120", credit, justification: "Dotation amortissement détectée dans le grand livre. Vérifier le tableau d'amortissement.${userContext}", confidence: 0.9 }));
       });
     } else {
       const amortRow = findBalanceRow(balanceRows, ["681"]) || findBalanceRow(balanceRows, ["281"]);
       const amount = amortRow ? getAmount(amortRow) : 0;
       const credit = activity.includes("location meuble") ? "281300" : "281830";
-      entries.push({ journal: "OD", label: "Dotation amortissement", debit: "681120", credit, amount: amount || "À contrôler", justification: "Amortissement détecté dans la balance. Vérifier le tableau d'amortissement.", confidence: amount ? 0.9 : 0.65, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "Dotation amortissement", debit: "681120", credit, amount: amount || "À contrôler", justification: "Amortissement détecté dans la balance. Vérifier le tableau d'amortissement.${userContext}", confidence: amount ? 0.9 : 0.65, source: "balance", status: "À valider" });
     }
   }
 
@@ -988,7 +988,7 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
         source: "analyse",
       }));
 
-      entries.push({ journal: "OD", label: `Sortie immobilisation - Reprise amortissements - ${assetName}`, debit: amortRow ? getCompte(amortRow) : "28xxxx", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: amortAmount || "À contrôler", justification: "Amortissements cumulés repris du tableau des immobilisations. La sortie d'actif nécessite l'annulation des amortissements constatés.", confidence: amortAmount ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: `Sortie immobilisation - Reprise amortissements - ${assetName}`, debit: amortRow ? getCompte(amortRow) : "28xxxx", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: amortAmount || "À contrôler", justification: "Amortissements cumulés repris du tableau des immobilisations. La sortie d'actif nécessite l'annulation des amortissements constatés.${userContext}", confidence: amortAmount ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance", status: "À valider" });
       entries.push({ journal: "OD", label: `Sortie immobilisation - VNC - ${assetName}`, debit: "675000", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: retainedVnc, justification: `Valeur brute : ${formatEuro(bruteAmount)} / Amortissements cumulés : ${formatEuro(amortAmount)} / VNC retenue : ${formatEuro(retainedVnc)}. À rapprocher du tableau des immobilisations.`, confidence: retainedVnc !== "À contrôler" ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance/grandLivre", status: "À valider" });
 
       controls.push({ type: "fixed_asset_disposal_detected", label: "Sortie d'immobilisation détectée", level: "warning" });
@@ -1001,7 +1001,7 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
     const payrollRate = detectPayrollRate(balanceRows, grandLivreRows);
     const socialAmount = payrollRate ? Math.round(amount428 * payrollRate) : "À contrôler";
 
-    entries.push({ journal: "OD", label: "Congés payés à payer - charge salariale", debit: "641000", credit: "428200", amount: amount428 || "À contrôler", justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.", confidence: 0.85, source: "balance", status: "À valider" });
+    entries.push({ journal: "OD", label: "Congés payés à payer - charge salariale", debit: "641000", credit: "428200", amount: amount428 || "À contrôler", justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
     entries.push({ journal: "OD", label: "Charges sociales sur congés payés", debit: "645000", credit: "438600", amount: socialAmount, justification: payrollRate ? `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.` : "Charges sociales sur congés payés à calculer : comptes 641/645 insuffisants.", confidence: payrollRate ? 0.8 : 0.55, source: payrollRate ? "balance/grandLivre" : "analyse", status: "À valider" });
   }
 
@@ -1021,10 +1021,10 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
         let credit = "151000";
         if (text.includes("prudhom") || text.includes("prud'hom")) credit = "151100";
         if (text.includes("commercial") || text.includes("autre risque")) credit = "151800";
-        entries.push(makeEntryFromRow(row, { label: "Provision", debit: "681500", credit, justification: "Provision ou risque détecté dans le grand livre.", confidence: 0.8 }));
+        entries.push(makeEntryFromRow(row, { label: "Provision", debit: "681500", credit, justification: "Provision ou risque détecté dans le grand livre.${userContext}", confidence: 0.8 }));
       });
     } else {
-      entries.push({ journal: "OD", label: "Provision à documenter", debit: "681500", credit: "151000", amount: "À documenter", justification: "Provision déclarée par l'utilisateur, mais aucune dotation 6815 exploitable n'a été détectée dans le grand livre.", confidence: 0.5, source: "questionnaire", status: "À valider" });
+      entries.push({ journal: "OD", label: "Provision à documenter", debit: "681500", credit: "151000", amount: "À documenter", justification: "Provision déclarée par l'utilisateur, mais aucune dotation 6815 exploitable n'a été détectée dans le grand livre.${userContext}", confidence: 0.5, source: "questionnaire", status: "À valider" });
     }
 
     controls.push({ type: "provision_detected", label: "Provision ou risque détecté", level: "info" });
@@ -1047,14 +1047,14 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
       if (compte.startsWith("68174") || text.includes("client douteux")) { label = "Dépréciation client douteux"; debit = "681740"; credit = "491000"; }
       if (compte.startsWith("68173") || text.includes("stock obsolete") || text.includes("stock obsolète")) { label = "Dépréciation stock"; debit = "681730"; credit = "397000"; }
       if (compte.startsWith("68162") || text.includes("immobilisation")) { label = "Dépréciation immobilisation"; debit = "681620"; credit = "290000"; }
-      entries.push(makeEntryFromRow(row, { label, debit, credit, justification: "Dépréciation détectée dans le grand livre.", confidence: 0.8 }));
+      entries.push(makeEntryFromRow(row, { label, debit, credit, justification: "Dépréciation détectée dans le grand livre.${userContext}", confidence: 0.8 }));
     });
   }
 
   // TVA
   if (hasAcc(["44551"])) {
     controls.push({ type: "vat_due_detected", label: "TVA à décaisser détectée", level: "info" });
-    entries.push({ journal: "OD", label: "TVA à décaisser à contrôler", debit: "445710", credit: "445510", amount: getBalanceAmount(["44551"]) || "À contrôler", justification: "Compte 445510 détecté : TVA à décaisser.", confidence: 0.85, source: "balance", status: "À valider" });
+    entries.push({ journal: "OD", label: "TVA à décaisser à contrôler", debit: "445710", credit: "445510", amount: getBalanceAmount(["44551"]) || "À contrôler", justification: "Compte 445510 détecté : TVA à décaisser.${userContext}", confidence: 0.85, source: "balance", status: "À valider" });
   }
 
   // Emprunts / ICNE
