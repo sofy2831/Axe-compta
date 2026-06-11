@@ -1069,7 +1069,7 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
       label: "Analyse emprunt",
       amount: loanEntryAmount,
       justification: icneAmount
-        ? `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.
+        ? `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.`
         : calculatedIcne
           ? `Emprunt détecté.\n\nBanque : ${calculatedIcne.bank || "?"}\nRéférence : ${calculatedIcne.reference || "?"}\n\nPériode : ${calculatedIcne.start.toLocaleDateString("fr-FR")} → ${calculatedIcne.due.toLocaleDateString("fr-FR")}\nJours courus : ${calculatedIcne.elapsedDays}\nJours période : ${calculatedIcne.periodDays}\nIntérêts de l'échéance : ${formatEuro(calculatedIcne.interest)}\nICNE calculé : ${formatEuro(calculatedIcne.icne)}\n\nÉcriture proposée : débit 661100 / crédit 168800.${userContext}`
           : `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\n\nImpossible de calculer les ICNE automatiquement. Le tableau d'emprunt est absent ou inexploitable.
