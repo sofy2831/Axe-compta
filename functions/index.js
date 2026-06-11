@@ -556,7 +556,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
 
   if (!leasingRows.length) return;
 
-  const details = [];
+  const leasingDetails = [];
 
   leasingRows.forEach(row => {
     const compte = getCompte(row);
@@ -601,17 +601,17 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
       }));
     }
 
-    details.push({ compte, libelle: getLibelle(row), amount, caseLabel, recommendation });
+    leasingDetails.push({ compte, libelle: getLibelle(row), amount, caseLabel, recommendation });
   });
 
   entries.push(makeAnalysisEntry({
     label: "Analyse crédit-bail / leasing",
-    amount: details.reduce((s, d) => s + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
+    amount: leasingDetails.reduce((s, d) => s + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
     justification:
 `Crédit-bail / leasing détecté.
 
 Diagnostic automatisé :
-${details.map(d => `- ${d.compte || "?"} | ${d.libelle} | ${formatEuro(d.amount)} | ${d.caseLabel}`).join("\n")}
+${leasingDetails.map(d => `- ${d.compte || "?"} | ${d.libelle} | ${formatEuro(d.amount)} | ${d.caseLabel}`).join("\n")}
 
 Règles appliquées :
 - loyer simple en 612 : aucune écriture de clôture si la période est correctement rattachée ;
@@ -622,7 +622,7 @@ Règles appliquées :
 Contrôler le contrat, la période couverte, l'option d'achat et les informations à mentionner en annexe.`,
     confidence: 0.8,
     source: "balance/grandLivre",
-    details,
+    details: leasingDetails,
   }));
 
   controls.push({ type: "leasing_detected", label: "Crédit-bail ou leasing détecté", level: "info" });
