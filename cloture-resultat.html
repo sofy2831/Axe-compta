@@ -106,20 +106,33 @@ function isAnalysisEntry(e){return entryJournal(e).toUpperCase()==="ANALYSE";}
 function hasDetails(e){return Array.isArray(e.details) && e.details.length > 0;}
 function hasLongJustification(e){return String(e.justification || "").length > 120;}
 
+function formatAmount(v){
+  if(typeof v === "number") return v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+  return safe(v || "—");
+}
+
+function stripUserContext(text){
+  return String(text || "").split("Informations fournies par l'utilisateur")[0].trim();
+}
+
+function compactJustification(e){
+  const text = stripUserContext(e.justification || "");
+  const proposed = text.match(/Écriture proposée\s*:\s*([\s\S]*?)(\n\n|$)/i);
+  if(proposed && proposed[1]){
+    return `<span class="analysisHint">Écriture proposée disponible.</span><br>${safe(proposed[1].trim()).replaceAll("\n","<br>")}<br><span class="muted">Cliquer sur « Voir » pour le détail.</span>`;
+  }
+  if(isAnalysisEntry(e)){
+    return `<span class="analysisHint">Analyse détaillée disponible.</span><br><span class="muted">Cliquer sur « Voir » pour afficher le détail.</span>`;
+  }
+  if(text.length <= 160) return safe(text);
+  return `${safe(text.slice(0,160))}...<br><span class="muted">Cliquer sur « Voir » pour lire la suite.</span>`;
+}
+
 function detailsButtonHtml(e,index){
   if(isAnalysisEntry(e) || hasDetails(e) || hasLongJustification(e)){
     return `<button class="viewBtn" type="button" data-view-index="${index}">Voir</button>`;
   }
   return "";
-}
-
-function shortJustification(e){
-  if(isAnalysisEntry(e)){
-    return `<span class="analysisHint">Analyse détaillée disponible.</span><br><span class="muted">Cliquer sur « Voir » pour afficher le détail.</span>`;
-  }
-  const text = String(e.justification || "");
-  if(text.length <= 220) return safe(text);
-  return `${safe(text.slice(0,220))}...<br><span class="muted">Cliquer sur « Voir » pour lire la suite.</span>`;
 }
 
 function countCycles(c){
@@ -133,7 +146,6 @@ function countDocs(entries){
     const amount = String(e.amount || "").toLowerCase();
     const label = String(e.label || "").toLowerCase();
     const justification = String(e.justification || "").toLowerCase();
-
     return (
       amount.includes("à contrôler") ||
       amount.includes("à documenter") ||
@@ -148,17 +160,26 @@ function countDocs(entries){
   }).length;
 }
 
+function cleanDisplayLabel(label){
+  const s = String(label || "");
+  const parts = s.split(" - ");
+  if(parts.length === 2 && parts[0].trim().toLowerCase() === parts[1].trim().toLowerCase()){
+    return parts[0].trim();
+  }
+  return s;
+}
+
 function rowHtml(e,index){
   const s = entryStatus(e);
   const done = s === "Validée";
 
   return `<tr>
     <td>${safe(entryJournal(e))}</td>
-    <td>${safe(e.label)}</td>
+    <td>${safe(cleanDisplayLabel(e.label))}</td>
     <td>${safe(e.debit)}</td>
     <td>${safe(e.credit)}</td>
     <td>${safe(e.amount)}</td>
-    <td class="justificationShort">${shortJustification(e)}</td>
+    <td class="justificationShort">${compactJustification(e)}</td>
     <td>
       <button class="statusBtn ${done ? "done" : ""}" type="button" data-entry-index="${index}">
         ${done ? "Validée" : "À valider"}
@@ -175,16 +196,11 @@ function unlockResult(){paymentBlock.style.display="none";entriesWrapper.classLi
 function fileBaseName(){const company=(currentClosure?.companyName||"cloture").replace(/[^\w\-]+/g,"_");const end=(currentClosure?.endDate||"").replaceAll("-","");return `axe-compta-${company}-${end||"resultat"}`;}
 function downloadBlob(content,mime,filename){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`;}
-function exportCsv(){const headers=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];const lines=[headers.map(csvEscape).join(";")];currentEntries.forEach(e=>lines.push([entryJournal(e),e.label,e.debit,e.credit,e.amount,e.justification,entryStatus(e)].map(csvEscape).join(";")));downloadBlob("\ufeff"+lines.join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv");}
-function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(e.label)}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");const file=`<html><head><meta charset="UTF-8"></head><body><h1>Résultat de clôture</h1><p>${safe(currentClosure?.companyName||"")} — ${safe(currentClosure?.startDate||"")} → ${safe(currentClosure?.endDate||"")}</p><table border="1"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody>${body}</tbody></table></body></html>`;downloadBlob(file,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls");}
+function exportCsv(){const headers=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];const lines=[headers.map(csvEscape).join(";")];currentEntries.forEach(e=>lines.push([entryJournal(e),cleanDisplayLabel(e.label),e.debit,e.credit,e.amount,e.justification,entryStatus(e)].map(csvEscape).join(";")));downloadBlob("\ufeff"+lines.join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv");}
+function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");const file=`<html><head><meta charset="UTF-8"></head><body><h1>Résultat de clôture</h1><p>${safe(currentClosure?.companyName||"")} — ${safe(currentClosure?.startDate||"")} → ${safe(currentClosure?.endDate||"")}</p><table border="1"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody>${body}</tbody></table></body></html>`;downloadBlob(file,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls");}
 function exportPdf(){window.print();}
 
 async function saveEntriesStatus(){if(!currentUser||!id)return;await updateDoc(doc(db,"users",currentUser.uid,"closures",id),{entries:currentEntries,updatedAt:serverTimestamp()});}
-
-function formatAmount(v){
-  if(typeof v === "number") return v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
-  return safe(v || "—");
-}
 
 function renderDetailCard(d,index){
   const title = `${safe(d.compte || "—")} ${safe(d.libelle || "")}`.trim();
@@ -197,7 +213,7 @@ function renderDetailCard(d,index){
 }
 
 function openDetailsModal(entry){
-  modalTitle.textContent = entry.label || "Détail";
+  modalTitle.textContent = cleanDisplayLabel(entry.label) || "Détail";
   modalSubtitle.textContent = isAnalysisEntry(entry) ? "Analyse détaillée" : "Justification détaillée";
   modalJournal.textContent = entryJournal(entry);
   modalAmount.textContent = formatAmount(entry.amount);
@@ -215,9 +231,7 @@ function openDetailsModal(entry){
   detailsModal.classList.add("open");
 }
 
-function closeDetailsModal(){
-  detailsModal.classList.remove("open");
-}
+function closeDetailsModal(){detailsModal.classList.remove("open");}
 
 function renderEntries(){
   entriesRows.innerHTML = currentEntries.length
@@ -257,31 +271,19 @@ async function startCheckout(plan){if(!currentUser){window.location.href="connex
 
 onAuthStateChanged(auth, async user => {
   try {
-    if (!user) {
-      window.location.href = "connexion.html";
-      return;
-    }
-
+    if (!user) { window.location.href = "connexion.html"; return; }
     currentUser = user;
-
-    if (!id) {
-      window.location.href = "tableau-de-bord.html";
-      return;
-    }
+    if (!id) { window.location.href = "tableau-de-bord.html"; return; }
 
     const closureSnap = await getDoc(doc(db, "users", user.uid, "closures", id));
     const userSnap = await getDoc(doc(db, "users", user.uid));
 
-    if (!closureSnap.exists()) {
-      window.location.href = "tableau-de-bord.html";
-      return;
-    }
+    if (!closureSnap.exists()) { window.location.href = "tableau-de-bord.html"; return; }
 
     const c = closureSnap.data();
     const u = userSnap.exists() ? userSnap.data() : {};
 
     currentClosure = c;
-
     closureInfo.textContent = `${c.companyName || "Société"} — ${c.startDate || "—"} → ${c.endDate || "—"}`;
     backLink.href = `cloture-analyse.html?id=${id}`;
 
