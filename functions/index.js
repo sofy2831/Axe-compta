@@ -620,7 +620,7 @@ Contrôler le contrat, la période couverte, l'option d'achat et les information
 }
 
 function detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
-  const userContext = getUserContext(details, usefulInfo, ["clients", "fournisseurs", "provisions"]);
+  const userContext = "";
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["476", "477", "666", "766"])) return;
 
