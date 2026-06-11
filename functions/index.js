@@ -421,6 +421,29 @@ function formatEuro(value) {
   return `${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 }
 
+function getUserContext(details, usefulInfo, keys = []) {
+  const parts = [];
+
+  if (usefulInfo && usefulInfo.trim()) {
+    parts.push(
+      `Informations utiles du dossier :\n${usefulInfo.trim()}`
+    );
+  }
+
+  keys.forEach(key => {
+    if (details[key] && details[key].trim()) {
+      parts.push(
+        `Précision utilisateur (${key}) :\n${details[key].trim()}`
+      );
+    }
+  });
+
+  if (!parts.length) return "";
+
+  return "\n\nInformations fournies par l'utilisateur :\n\n" +
+         parts.join("\n\n");
+}
+
 function detectSubventions(balanceRows, grandLivreRows, entries, controls) {
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["131", "139", "777"])) return;
