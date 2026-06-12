@@ -173,8 +173,93 @@ $("wordBtn").addEventListener("click",()=>{
   `;
   download(fileBase()+"-pv-ag.doc",`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")
 });
-async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extourneBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPvPreview()}}
-onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
+async function loadClosure(user){
+  if(!closureId){
+    $("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';
+    $("extourneBtn").href="extournes-automatiques.html";
+    return;
+  }
+
+  $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;
+  $("extourneBtn").href=`extournes-automatiques.html?id=${closureId}`;
+
+  const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));
+
+  if(!snap.exists()){
+    $("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';
+    return;
+  }
+
+  currentClosure=snap.data();
+  set("companyName",currentClosure.companyName||"Société sans nom");
+  set("fiscalYear",fiscalYear(currentClosure));
+
+  const r=findResult(currentClosure);
+
+  if(r){
+    resultType=r.type;
+    resultAmount=r.amount;
+    $("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>';
+  }else{
+    resultType="profit";
+    resultAmount=0;
+    $("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>';
+  }
+
+  showMode();
+
+  const saved=currentClosure.affectationResult;
+
+  if(saved){
+    set("pvDate",saved.pvDate||"");
+    set("reserveAmount",saved.reserveAmount||0);
+    set("carryForwardAmount",saved.carryForwardAmount||0);
+    set("dividendAmount",saved.dividendAmount||0);
+    set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
+    generatedRows=Array.isArray(saved.entries)?saved.entries:[];
+  }else{
+    const today=new Date();
+    set("pvDate",`${today.getFullYear()}-06-30`);
+    applyStrategy(resultType==="loss"?"loss":"prudent");
+  }
+
+  updateSummary();
+
+  if(generatedRows.length){
+    renderEntries(generatedRows);
+    $("saveBtn").disabled=false;
+    $("pvBtn").disabled=false;
+    $("exportBar").style.display="block";
+    renderPvPreview();
+  }
+}
+
+$("extourneBtn").addEventListener("click", e=>{
+  e.preventDefault();
+
+  if(!closureId){
+    alert("Aucune clôture sélectionnée.");
+    return;
+  }
+
+  window.location.href=`extournes-automatiques.html?id=${closureId}`;
+});
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    window.location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+
+  try{
+    await loadClosure(user);
+  }catch(e){
+    console.error(e);
+    $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';
+  }
+});
 </script>
 </body>
 </html>
