@@ -273,22 +273,115 @@ function renderPvPreview(){if(!generatedRows.length)return;$("pvPreview").innerH
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
 const pvExportCss = `
-@page{size:A4;margin:10mm 12mm}
-body{font-family:Arial,sans-serif;margin:0;color:#111;line-height:1.25;font-size:11px}
-.pvDoc{padding:0}
-.pvHeader{text-align:center;border-bottom:2px solid #163b66;padding-bottom:8px;margin-bottom:10px}
-.pvLogo{display:none}
-.pvTitle{font-size:18px;font-weight:800;text-transform:uppercase}
-.pvSub{font-size:12px;color:#333}
-.pvInfo,table{width:100%;border-collapse:collapse;margin:8px 0}
-.pvInfo td,td,th{border:1px solid #ccd3dc;padding:5px}
-.pvInfo td:first-child,th{font-weight:700;background:#f3f6fa}
-h2{font-size:14px;margin:12px 0 6px}
-p{margin:6px 0}
-.pvOk{border-left:4px solid #2fbf8f;background:#eefbf6;padding:7px;margin:8px 0;font-weight:700}
-.pvSign{margin-top:14px}
-.pvSign br{display:none}
-.pvFooter{text-align:center;font-size:9px;color:#666;border-top:1px solid #cfcfcf;padding-top:5px;margin-top:10px}
+@page{
+  size:A4;
+  margin:18mm 16mm 16mm 16mm;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:#fff;
+  color:#111;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:12pt;
+  line-height:1.35;
+}
+
+.pvDoc{
+  min-height:260mm;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+}
+
+.pvHeader{
+  text-align:center;
+  border-bottom:3px solid #163b66;
+  padding-bottom:10px;
+  margin-bottom:16px;
+}
+
+.pvLogo{
+  max-height:48px;
+  margin-bottom:8px;
+}
+
+.pvTitle{
+  font-size:19pt;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+
+.pvSub{
+  font-size:11pt;
+  color:#444;
+  margin-top:2px;
+}
+
+.pvInfo,
+.pvDoc table{
+  width:100%;
+  border-collapse:collapse;
+  margin:12px 0 14px;
+}
+
+.pvInfo td,
+.pvDoc th,
+.pvDoc td{
+  border:1px solid #c8d0da;
+  padding:7px 8px;
+  vertical-align:top;
+}
+
+.pvInfo td:first-child{
+  width:32%;
+  font-weight:700;
+  background:#f3f6fa;
+}
+
+.pvDoc th{
+  background:#f3f6fa;
+  font-weight:700;
+  text-transform:uppercase;
+  font-size:10.5pt;
+}
+
+.pvDoc h2{
+  font-size:13.5pt;
+  margin:14px 0 8px;
+  color:#111;
+}
+
+.pvDoc p{
+  margin:7px 0;
+}
+
+.pvOk{
+  border-left:5px solid #2fbf8f;
+  background:#eefbf6;
+  padding:10px 12px;
+  margin:14px 0;
+  font-weight:700;
+}
+
+.pvSign{
+  margin-top:22px;
+}
+
+.pvSign p{
+  margin:8px 0;
+}
+
+.pvFooter{
+  margin-top:auto;
+  text-align:center;
+  font-size:9pt;
+  color:#666;
+  border-top:1px solid #cfcfcf;
+  padding-top:8px;
+}
 `;
 $("pvBtn").addEventListener("click",()=>{renderPvPreview();download(fileBase()+"-pv-ag.html",`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG</title><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,"text/html;charset=utf-8")});
 $("printBtn").addEventListener("click",()=>{renderPvPreview();window.print()});
