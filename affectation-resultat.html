@@ -59,10 +59,7 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-s
 }
 @media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{
-  @page{
-    size:A4;
-    margin:14mm 14mm 16mm 14mm;
-  }
+  @page{size:A4;margin:8mm 10mm}
 
   body{
     background:#fff!important;
@@ -91,59 +88,65 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-s
   }
 
   .pvDoc{
-    font-size:11.5pt;
+    font-size:9.5pt!important;
+    line-height:1.18!important;
     min-height:auto!important;
     padding:0!important;
     position:static!important;
   }
 
-  .pvHeader{
-    page-break-after:avoid;
-    break-after:avoid;
-    margin-bottom:18px;
+  .pvLogo{
+    display:none!important;
   }
 
-  .pvLogo{
-    max-height:46px;
+  .pvHeader{
+    padding-bottom:5px!important;
+    margin-bottom:7px!important;
+    border-bottom:2px solid #163b66!important;
   }
 
   .pvTitle{
-    font-size:23px;
+    font-size:16px!important;
   }
 
-  .pvDoc h2,
+  .pvSub{
+    font-size:10px!important;
+  }
+
   .pvInfo,
-  .pvOk,
-  .pvSign,
-  table,
-  tr{
-    page-break-inside:avoid;
-    break-inside:avoid;
+  .pvDoc table{
+    margin:6px 0!important;
   }
 
   .pvDoc h2{
-    font-size:18px;
-    margin-top:20px;
+    font-size:12.5px!important;
+    margin:8px 0 4px!important;
   }
 
-  .pvDoc table{
-    margin-top:10px;
+  .pvDoc p{
+    margin:4px 0!important;
   }
 
   .pvDoc th,
   .pvDoc td,
   .pvInfo td{
-    padding:8px;
+    padding:4px 5px!important;
+  }
+
+  .pvOk{
+    padding:5px!important;
+    margin:6px 0!important;
   }
 
   .pvSign{
-    margin-top:30px;
+    margin-top:8px!important;
   }
 
   .pvFooter{
     position:static!important;
-    margin-top:28px!important;
-    padding-top:8px!important;
+    margin-top:8px!important;
+    padding-top:5px!important;
+    font-size:8.5px!important;
   }
 }
 
