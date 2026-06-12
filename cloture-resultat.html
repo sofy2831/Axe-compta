@@ -372,6 +372,8 @@ onAuthStateChanged(auth, async user => {
     currentClosure = c;
     closureInfo.textContent = `${c.companyName || "Société"} — ${c.startDate || "—"} → ${c.endDate || "—"}`;
     backLink.href = `cloture-analyse.html?id=${id}`;
+    affectationLink.href = `affectation-resultat.html?id=${id}`;
+    
 
     currentEntries = Array.isArray(c.entries) && c.entries.length ? c.entries : buildEntries(c.answers || {});
     currentEntries = currentEntries.map(e => ({ journal: e.journal || "OD", ...e, status: e.status || "À valider" }));
