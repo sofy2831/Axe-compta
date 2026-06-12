@@ -103,7 +103,11 @@ const params=new URLSearchParams(window.location.search);const closureId=params.
 let currentUser=null,currentClosure=null,resultType="profit",resultAmount=0,generatedRows=[];
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
-function euro(v){return nf.format(Number(v||0))+" €"}function n(id){return Number($(id).value||0)}function set(id,v){$(id).value=v??""}
+function euro(v){return nf.format(Number(v||0))+" €"}
+function money(v){return euro(v)}
+function totalAllocated(){return totals().allocated}
+function csvContent(){return ["Journal;Libellé;Débit;Crédit;Montant",...generatedRows.map(r=>`${r.journal};${String(r.label||"").replaceAll(";",",")};${r.debit||""};${r.credit||""};${String(r.amount||0).replace(".",",")}`)].join("\n")}
+function n(id){return Number($(id).value||0)}function set(id,v){$(id).value=v??""}
 function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 function getCompte(row){return String(row.Compte||row.compte||"").replace(/\s/g,"")}
 function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const n=Number(raw);return Number.isNaN(n)?0:n}
@@ -161,7 +165,7 @@ function pvBody(){
   const fiscalYear = sanitize($("fiscalYear").value || "exercice concerné");
   const pvDate = sanitize(docDateFr($("pvDate").value));
   const nature = resultType === "profit" ? "bénéfice" : "perte";
-  const resultText = money(detectedAmount);
+  const resultText = money(resultAmount);
   const decision = resultType === "profit"
     ? `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`
     : `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;
@@ -267,11 +271,11 @@ function csvContent(){
   const header = Object.keys(rows[0] || {Journal:"",Libelle:"",Debit:"",Credit:"",Montant:""});
   return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
 }
-$("printBtn").addEventListener("click",openPrintDoc);
+$("printBtn") && $("printBtn").addEventListener("click",openPrintDoc);
 $("pdfBtn").addEventListener("click",openPrintDoc);
-$("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
-$("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
-$("wordBtn").addEventListener("click",()=>{
+$("csvBtn") && $("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
+$("excelBtn") && $("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
+$("wordBtn") && $("wordBtn").addEventListener("click",()=>{
   const wordCss = pvCss + `
     .dataTable th{background:#e8edf4!important;color:#111!important;}
     .infoTable td:first-child{background:#e8edf4!important;color:#111!important;}
@@ -285,8 +289,8 @@ $("wordBtn").addEventListener("click",()=>{
   const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body>${pvBody()}</body></html>`;
   download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`, body, "application/msword;charset=utf-8");
 });
-$("pvBtn").addEventListener("click",()=>download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8"));
-async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block"}}
+$("pvBtn") && $("pvBtn").addEventListener("click",()=>download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8"));
+async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;if($("extournesExportBtn")) $("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block"}}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
 </body>
