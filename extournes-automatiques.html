@@ -9,8 +9,8 @@
 :root{--bg:#102847;--panel:#1c4371;--panel2:#14365f;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}
-a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px;white-space:nowrap}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.amountCell{text-align:right;white-space:nowrap}.exportBar{display:none}.printArea{display:none}
-@media(max-width:900px){.grid,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
+a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.exportBar{display:none}.printArea{display:none}.fileHint{color:var(--muted);font-size:12px;margin-top:6px}.doc{font-family:Arial,sans-serif;line-height:1.25;background:#fff;color:#111}.doc *{color:#111}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:42px;margin-bottom:8px}.docTitle{font-size:22px;font-weight:800;text-transform:uppercase}.docSub{font-size:13px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #d6dce3;padding:7px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.doc th,.doc td{border:1px solid #ccd3dc;padding:5px 6px;font-size:9.3pt;white-space:nowrap}.doc th{background:#f3f6fa;color:#111}.doc .labelCell{white-space:normal}.doc .amountCell{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px;margin:12px 0;font-weight:700}.docFooter{margin-top:28px;border-top:1px solid #ccd3dc;padding-top:9px;font-size:10px;text-align:center;color:#555}@media(max-width:900px){.grid,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
+@media print{@page{size:A4;margin:12mm 10mm 12mm 10mm}body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important;margin:0!important}.topbar,.box:not(.printable),.exportBar{display:none!important}.printArea{display:block!important;padding:0!important;margin:0!important;border-radius:0!important;background:#fff!important}.doc{font-size:10pt!important;line-height:1.18!important;min-height:270mm!important;display:flex!important;flex-direction:column!important}.docHeader{padding-bottom:8px!important;margin-bottom:10px!important}.docLogo{max-height:34px!important}.docTitle{font-size:17pt!important}.docSub{font-size:10pt!important}.docInfo{margin:8px 0!important}.docInfo td{padding:4px 6px!important;font-size:9.2pt!important}.doc th,.doc td{padding:3px 4px!important;font-size:7.5pt!important}.doc .labelCell{max-width:105mm;white-space:normal!important}.docOk{padding:6px 8px!important;margin:8px 0!important}.docFooter{margin-top:auto!important;font-size:8pt!important}}
 </style>
 </head>
 <body>
@@ -19,7 +19,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div>
       <img src="images/axe-compta.png" alt="Axe Compta IA" class="logo" onerror="this.style.display='none'">
       <h1>Extournes automatiques N+1</h1>
-      <p class="muted">Assistant de contrepassation des écritures de clôture : FNP, CCA, PCA, FAE, PAR, CAP, ICNE et autres OD à extourner.</p>
+      <p class="muted">Rechargez si besoin une balance et un grand livre corrigés, puis générez les contrepassations N+1.</p>
     </div>
     <div class="navActions">
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
@@ -43,14 +43,33 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   </section>
 
   <section class="box">
-    <h2>2. Paramètres d’extourne</h2>
+    <h2>2. Recharger les fichiers corrigés</h2>
+    <div class="grid">
+      <div>
+        <label>Balance corrigée</label>
+        <input id="balanceFile" type="file" accept=".xlsx,.xls,.csv">
+        <div class="fileHint">Facultatif. À charger seulement si la balance a été corrigée.</div>
+      </div>
+      <div>
+        <label>Grand livre corrigé</label>
+        <input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv">
+        <div class="fileHint">Facultatif. À charger seulement si le grand livre a été corrigé.</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn warn" type="button" id="reloadFilesBtn">Enregistrer les fichiers corrigés et relire</button>
+    </div>
+    <div id="reloadBox" class="notice">Rechargez la balance et/ou le grand livre corrigé avant de générer les extournes.</div>
+  </section>
+
+  <section class="box">
+    <h2>3. Paramètres d’extourne</h2>
     <div class="grid">
       <div><label>Date d’extourne</label><input id="extourneDate" type="date"></div>
       <div><label>Journal</label><input id="journalCode" value="OD"></div>
     </div>
     <div class="actions">
-      <button class="btn warn" type="button" id="reloadFilesBtn">Relire balance + grand livre</button>
-      <button class="btn" type="button" id="generateBtn">Générer les extournes</button>
+      <button class="btn warn" type="button" id="generateBtn">Générer les extournes</button>
       <button class="btn secondary" type="button" id="saveBtn" disabled>Enregistrer les extournes</button>
       <button class="btn secondary" type="button" id="aiBtn">IA — contrôler les extournes</button>
     </div>
@@ -59,7 +78,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   </section>
 
   <section class="box exportBar" id="exportBar">
-    <h2>3. Exports</h2>
+    <h2>4. Exports</h2>
     <div class="actions" style="margin-top:0">
       <button class="btn secondary" type="button" id="printBtn">Imprimer / PDF</button>
       <button class="btn secondary" type="button" id="csvBtn">CSV</button>
@@ -71,186 +90,51 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 </div>
 
 <script type="module">
-import { auth, db } from "./firebase-config.js";
+import { auth, db, storage } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 
 const PARSE_CLOSURE_URL = "https://europe-west9-axe-compta.cloudfunctions.net/parseClosureFiles";
-const params = new URLSearchParams(location.search);
-const closureId = params.get("id");
-let currentUser = null;
-let currentClosure = null;
-let sourceEntries = [];
-let extourneRows = [];
-
-const $ = id => document.getElementById(id);
-const nf = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-function euro(v){ return nf.format(Number(v || 0)) + " €"; }
-function sanitize(s){ return String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
-function set(id,v){ $(id).value = v ?? ""; }
-function fiscalYear(c){ if(c?.startDate && c?.endDate) return `${c.startDate} → ${c.endDate}`; if(c?.endDate) return String(c.endDate).slice(0,4); return c?.fiscalYear || c?.exercice || ""; }
-function isoToFr(v){ if(!v) return "—"; const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : v; }
-function nextDayAfterEnd(c){ const raw=c?.endDate; if(!raw) return ""; const d=new Date(raw); if(Number.isNaN(d.getTime())) return ""; d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
-function amountNumber(v){ if(typeof v === "number") return v; const n=Number(String(v ?? "").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"")); return Number.isNaN(n) ? 0 : n; }
-function account(v){ return String(v ?? "").replace(/\s/g,""); }
-
-function isExtournable(entry){
-  const label = String(entry?.label || entry?.libelle || "").toLowerCase();
-  const journal = String(entry?.journal || "").toUpperCase();
-  if(journal === "ANALYSE") return false;
-  if(!entry?.debit && !entry?.credit) return false;
-
-  const debit = account(entry.debit);
-  const credit = account(entry.credit);
-  const accounts = `${debit} ${credit}`;
-
-  const labelPatterns = [
-    "fnp","cca","pca","fae","par","cap","intérêts courus","interets courus","icne",
-    "congés payés","conges payes","charges sociales sur congés","charges sociales sur conges",
-    "tva à décaisser","tva a decaisser","provision","dépréciation","depreciation"
-  ];
-  const accountPrefixes = ["408","486","487","418","4686","4687","428","438","1688","151","15","29","39","49"];
-
-  return labelPatterns.some(p => label.includes(p)) || accountPrefixes.some(p => debit.startsWith(p) || credit.startsWith(p));
-}
-
-function extourneLabel(label){ return `Extourne N+1 - ${String(label || "écriture de clôture")}`; }
-function makeExtourne(entry){
-  return {
-    journal: $("journalCode").value || "OD",
-    date: $("extourneDate").value || "",
-    label: extourneLabel(entry.label),
-    debit: entry.credit || "",
-    credit: entry.debit || "",
-    amount: amountNumber(entry.amount),
-    sourceLabel: entry.label || "",
-    sourceDebit: entry.debit || "",
-    sourceCredit: entry.credit || "",
-    status: "À valider"
-  };
-}
-function computeExtournes(){
-  sourceEntries = Array.isArray(currentClosure?.entries) ? currentClosure.entries : [];
-  return sourceEntries.filter(isExtournable).map(makeExtourne).filter(r => r.amount > 0);
-}
-function totalAmount(rows){ return rows.reduce((t,r) => t + amountNumber(r.amount), 0); }
-function updateMetrics(){
-  $("sourceCount").textContent = String(sourceEntries.length || 0);
-  $("extourneCount").textContent = String(extourneRows.length || 0);
-  $("dateLabel").textContent = isoToFr($("extourneDate").value);
-  $("amountLabel").textContent = euro(totalAmount(extourneRows));
-}
-function renderRows(rows){
-  if(!rows.length){
-    $("entriesBox").innerHTML = "";
-    $("noticeBox").innerHTML = '<b class="warnText">Aucune extourne automatique détectée.</b><br>Relisez balance + grand livre, puis générez les extournes après avoir vérifié que les écritures de clôture existent bien.';
-    return;
-  }
-  $("entriesBox").innerHTML = `<table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amountCell">Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="amountCell">${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`;
-  $("noticeBox").innerHTML = `<b class="ok">${rows.length} extourne(s) proposée(s).</b><br>Les écritures sont inversées automatiquement à la date N+1. Contrôle conseillé avant export.`;
-}
-function generate(){
-  extourneRows = computeExtournes();
-  renderRows(extourneRows);
-  updateMetrics();
-  $("saveBtn").disabled = !extourneRows.length;
-  $("exportBar").style.display = extourneRows.length ? "block" : "none";
-}
-
-async function reloadClosureFromFirestore(){
-  const snap = await getDoc(doc(db, "users", currentUser.uid, "closures", closureId));
-  if(!snap.exists()) throw new Error("Clôture introuvable.");
-  currentClosure = snap.data();
-  set("companyName", currentClosure.companyName || "Société sans nom");
-  set("fiscalYear", fiscalYear(currentClosure));
-  if(!$("extourneDate").value) set("extourneDate", nextDayAfterEnd(currentClosure) || "");
-  sourceEntries = Array.isArray(currentClosure.entries) ? currentClosure.entries : [];
-  $("statusLine").innerHTML = '<span class="ok">Clôture chargée. Les écritures extournables peuvent être générées.</span>';
-  updateMetrics();
-}
-
-async function reparseFiles(){
-  if(!currentUser || !closureId) return alert("Clôture non sélectionnée.");
-  const btn = $("reloadFilesBtn");
-  btn.disabled = true;
-  btn.textContent = "Relecture en cours...";
-  try{
-    const response = await fetch(PARSE_CLOSURE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uid: currentUser.uid, closureId })
-    });
-    const data = await response.json().catch(() => ({}));
-    if(!response.ok) throw new Error(data.error || "Erreur lors de la relecture des fichiers.");
-    await reloadClosureFromFirestore();
-    extourneRows = [];
-    generate();
-    $("noticeBox").innerHTML = `<b class="ok">Balance et grand livre relus.</b><br>${data.entries ?? 0} écriture(s) de clôture détectée(s), ${extourneRows.length} extourne(s) proposée(s).`;
-  }catch(e){
-    console.error(e);
-    alert(e.message || "Erreur de relecture.");
-  }finally{
-    btn.disabled = false;
-    btn.textContent = "Relire balance + grand livre";
-  }
-}
-
-$("generateBtn").addEventListener("click", generate);
-$("reloadFilesBtn").addEventListener("click", reparseFiles);
-$("journalCode").addEventListener("input",()=>{ if(extourneRows.length) generate(); });
-$("extourneDate").addEventListener("input",()=>{ if(extourneRows.length) generate(); else updateMetrics(); });
+const params=new URLSearchParams(window.location.search);const closureId=params.get("id");
+let currentUser=null,currentClosure=null,sourceEntries=[],extourneRows=[];
+const $=id=>document.getElementById(id);
+const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+function euro(v){return nf.format(Number(v||0))+" €"}
+function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+function set(id,v){$(id).value=v??""}
+function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
+function isoToFr(v){if(!v)return "—";const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:v}
+function nextDayAfterEnd(c){const raw=c?.endDate;if(!raw)return "";const d=new Date(raw);if(Number.isNaN(d.getTime()))return "";d.setDate(d.getDate()+1);return d.toISOString().slice(0,10)}
+function amountNumber(v){if(typeof v==="number")return v;const n=Number(String(v??"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,""));return Number.isNaN(n)?0:n}
+function cleanFileName(name){return String(name||"fichier").replace(/[^\w.\-]+/g,"_")}
+function isAllowedFile(file){if(!file)return true;const n=file.name.toLowerCase();return n.endsWith(".xlsx")||n.endsWith(".xls")||n.endsWith(".csv")}
+function fileInfo(file,path){return {name:file.name,size:file.size,type:file.type||"",storagePath:path,uploadedAt:new Date().toISOString()}}
+function isExtournable(entry){const label=String(entry?.label||entry?.libelle||"").toLowerCase();const journal=String(entry?.journal||"").toUpperCase();if(journal==="ANALYSE")return false;if(!entry?.debit&&!entry?.credit)return false;const patterns=["fnp","cca","pca","fae","par","cap","intérêts courus","interets courus","icne","congés payés","conges payes","charges sociales sur congés","charges sociales sur conges","tva à décaisser","tva a decaisser","provision","dépréciation","depreciation"];return patterns.some(p=>label.includes(p))}
+function extourneLabel(label){return `Extourne N+1 - ${String(label||"écriture de clôture")}`}
+function makeExtourne(entry){return{journal:$("journalCode").value||"OD",date:$("extourneDate").value||"",label:extourneLabel(entry.label),debit:entry.credit||"",credit:entry.debit||"",amount:amountNumber(entry.amount),sourceLabel:entry.label||"",sourceDebit:entry.debit||"",sourceCredit:entry.credit||"",status:"À valider"}}
+function computeExtournes(){sourceEntries=Array.isArray(currentClosure?.entries)?currentClosure.entries:[];return sourceEntries.filter(isExtournable).map(makeExtourne).filter(r=>r.amount>0)}
+function totalAmount(rows){return rows.reduce((t,r)=>t+amountNumber(r.amount),0)}
+function updateMetrics(){const total=totalAmount(extourneRows);$("sourceCount").textContent=String(sourceEntries.length||0);$("extourneCount").textContent=String(extourneRows.length||0);$("dateLabel").textContent=isoToFr($("extourneDate").value);$("amountLabel").textContent=euro(total)}
+function renderRows(rows){if(!rows.length){$("entriesBox").innerHTML="";$("noticeBox").innerHTML='<b class="warnText">Aucune extourne automatique détectée.</b><br>Rechargez les fichiers corrigés si nécessaire, puis générez à nouveau.';return}$("entriesBox").innerHTML=`<table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td style="white-space:nowrap;text-align:right">${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`;$("noticeBox").innerHTML=`<b class="ok">${rows.length} extourne(s) proposée(s).</b><br>Les écritures sont inversées automatiquement à la date N+1. Contrôle conseillé avant export.`}
+function generate(){extourneRows=computeExtournes();renderRows(extourneRows);updateMetrics();$("saveBtn").disabled=!extourneRows.length;$("exportBar").style.display=extourneRows.length?"block":"none";renderPrint()}
+async function reloadClosureData(){const snap=await getDoc(doc(db,"users",currentUser.uid,"closures",closureId));if(!snap.exists())throw new Error("Clôture introuvable.");currentClosure=snap.data();sourceEntries=Array.isArray(currentClosure.entries)?currentClosure.entries:[];set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));if(!$("extourneDate").value)set("extourneDate",nextDayAfterEnd(currentClosure)||"");updateMetrics()}
+async function uploadCorrectedFilesAndParse(){if(!currentUser||!closureId)return;const balance=$("balanceFile").files[0]||null;const ledger=$("ledgerFile").files[0]||null;if(!balance&&!ledger){$("reloadBox").innerHTML='<b class="warnText">Aucun fichier sélectionné.</b><br>Sélectionnez une balance corrigée et/ou un grand livre corrigé.';return}if(!isAllowedFile(balance)||!isAllowedFile(ledger)){alert("Formats acceptés uniquement : XLSX, XLS ou CSV.");return}const btn=$("reloadFilesBtn");btn.disabled=true;btn.textContent="Relecture en cours...";try{const updates={};if(balance){const path=`closures/${currentUser.uid}/${closureId}/balance-${Date.now()}-${cleanFileName(balance.name)}`;await uploadBytes(ref(storage,path),balance);updates["files.balance"]=fileInfo(balance,path)}if(ledger){const path=`closures/${currentUser.uid}/${closureId}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;await uploadBytes(ref(storage,path),ledger);updates["files.grandLivre"]=fileInfo(ledger,path)}updates.extournesN1=null;updates.updatedAt=serverTimestamp();await updateDoc(doc(db,"users",currentUser.uid,"closures",closureId),updates);const response=await fetch(PARSE_CLOSURE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Erreur pendant la relecture des fichiers.");await reloadClosureData();extourneRows=[];$("entriesBox").innerHTML="";$("exportBar").style.display="none";$("saveBtn").disabled=true;$("reloadBox").innerHTML=`<b class="ok">Fichiers relus.</b><br>${data.entries||0} écriture(s) détectée(s). Vous pouvez maintenant générer les extournes.`;$("noticeBox").innerHTML='Cliquez sur “Générer les extournes” pour proposer automatiquement les contrepassations N+1.';}catch(e){console.error(e);$("reloadBox").innerHTML=`<b class="err">Erreur.</b><br>${sanitize(e.message||"Impossible de relire les fichiers.")}`;}finally{btn.disabled=false;btn.textContent="Enregistrer les fichiers corrigés et relire"}}
+$("reloadFilesBtn").addEventListener("click",uploadCorrectedFilesAndParse);
+$("generateBtn").addEventListener("click",generate);$("journalCode").addEventListener("input",()=>{if(extourneRows.length)generate()});$("extourneDate").addEventListener("input",()=>{if(extourneRows.length)generate();else updateMetrics()});
 $("aiBtn").addEventListener("click",()=>alert("Module IA prévu : il contrôlera les extournes proposées, signalera les écritures non extournables et expliquera les risques de double comptabilisation."));
-
-async function saveExtournes(){
-  if(!currentUser || !closureId) return alert("Clôture non sélectionnée.");
-  if(!extourneRows.length) generate();
-  await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{
-    extournesN1:{date:$("extourneDate").value,journal:$("journalCode").value||"OD",entries:extourneRows,status:"generated",updatedAt:new Date().toISOString()},
-    updatedAt:serverTimestamp()
-  },{merge:true});
-  alert("Extournes enregistrées.");
-}
+async function saveExtournes(){if(!currentUser||!closureId)return alert("Clôture non sélectionnée.");if(!extourneRows.length)generate();await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{extournesN1:{date:$("extourneDate").value,journal:$("journalCode").value||"OD",entries:extourneRows,status:"generated",updatedAt:new Date().toISOString()},updatedAt:serverTimestamp()},{merge:true});alert("Extournes enregistrées.")}
 $("saveBtn").addEventListener("click",()=>saveExtournes().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
-
-function rowsHtml(){return extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("");}
-function docHtml(){
-  const company=sanitize($("companyName").value||"Société");
-  const fy=sanitize($("fiscalYear").value||"exercice concerné");
-  return `<div class="doc"><div class="docHeader"><div class="brand">AXE COMPTA IA</div><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${extourneRows.length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(extourneRows))}</div><table class="docRows"><thead><tr><th>Date</th><th>Jal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><p>Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. Elles doivent être contrôlées avant import définitif en comptabilité.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
-}
-const exportCss = `@page{size:A4;margin:13mm 12mm 14mm 12mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:8.5pt;line-height:1.16}.doc{min-height:270mm;display:flex;flex-direction:column}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:8px;margin-bottom:12px}.brand{font-size:8pt;color:#777;font-weight:700;letter-spacing:.08em}.docTitle{font-size:17pt;font-weight:800;text-transform:uppercase}.docSub{font-size:9pt;color:#333}.docInfo{width:68%;border-collapse:collapse;margin:10px 0 12px}.docInfo td{border:1px solid #c8d0da;padding:5px 7px}.docInfo td:first-child{width:34%;font-weight:700;background:#f3f6fa}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:8px 10px;margin:10px 0;font-weight:700}.docRows{width:100%;border-collapse:collapse;margin:8px 0 10px;table-layout:fixed}.docRows th,.docRows td{border-bottom:1px solid #c8d0da;padding:4px 5px;vertical-align:top;word-break:normal}.docRows th{background:#f3f6fa;color:#111;text-transform:uppercase;font-size:7.7pt}.docRows th:nth-child(1),.docRows td:nth-child(1){width:12%}.docRows th:nth-child(2),.docRows td:nth-child(2){width:6%}.docRows th:nth-child(3),.docRows td:nth-child(3){width:48%}.docRows th:nth-child(4),.docRows td:nth-child(4){width:10%}.docRows th:nth-child(5),.docRows td:nth-child(5){width:10%}.docRows th:nth-child(6),.docRows td:nth-child(6){width:14%;text-align:right;white-space:nowrap}.amount{text-align:right;white-space:nowrap}p{margin:8px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;text-align:center;color:#555;font-size:8pt}`;
-function printPdf(){
-  const w = window.open("", "_blank");
-  w.document.open();
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Extournes N+1</title><style>${exportCss}</style></head><body>${docHtml()}<script>window.onload=function(){window.focus();window.print();};<\/script></body></html>`);
-  w.document.close();
-}
-function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
-function fileBase(){return `extournes-n1-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`;}
-$("printBtn").addEventListener("click",()=>{ if(!extourneRows.length) generate(); printPdf(); });
-$("csvBtn").addEventListener("click",()=>{const csv=["Date;Journal;Libellé;Débit;Crédit;Montant",...extourneRows.map(r=>`${isoToFr(r.date)};${r.journal};${r.label};${r.debit};${r.credit};${String(r.amount).replace(".",",")}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8");});
-$("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td>${r.amount}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8");});
-
-async function loadClosure(user){
-  if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return;}
-  $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;
-  await reloadClosureFromFirestore();
-  const d=nextDayAfterEnd(currentClosure);
-  set("extourneDate", d || "");
-  const saved=currentClosure.extournesN1;
-  if(saved?.entries?.length){
-    set("extourneDate", saved.date || d);
-    set("journalCode", saved.journal || "OD");
-    extourneRows=saved.entries;
-    renderRows(extourneRows);
-    $("saveBtn").disabled=false;
-    $("exportBar").style.display="block";
-  }else{
-    $("noticeBox").innerHTML='Cliquez sur “Relire balance + grand livre” si les fichiers viennent d’être modifiés, puis sur “Générer les extournes”.';
-  }
-  updateMetrics();
-}
-onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';}});
+function rowsHtml(){return extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td class="labelCell">${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="amountCell">${euro(r.amount)}</td></tr>`).join("")}
+function docHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${extourneRows.length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(extourneRows))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><p>Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. Elles doivent être contrôlées avant import définitif en comptabilité.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
+function renderPrint(){if(!extourneRows.length)return;$("printArea").innerHTML=docHtml()}
+function openPrintWindow(){renderPrint();const w=window.open("","_blank");w.document.open();w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Extournes N+1</title><style>${document.querySelector("style").innerHTML}</style></head><body><section class="printArea printable" style="display:block">${docHtml()}</section><script>window.onload=function(){window.focus();window.print();};<\/script></body></html>`);w.document.close()}
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}function fileBase(){return `extournes-n1-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
+$("printBtn").addEventListener("click",openPrintWindow);
+$("csvBtn").addEventListener("click",()=>{const csv=["Date;Journal;Libellé;Débit;Crédit;Montant",...extourneRows.map(r=>`${isoToFr(r.date)};${r.journal};${r.label};${r.debit};${r.credit};${String(r.amount).replace(".",",")}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8")});
+$("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td>${r.amount}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8")});
+async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const d=nextDayAfterEnd(currentClosure);set("extourneDate",d||"");sourceEntries=Array.isArray(currentClosure.entries)?currentClosure.entries:[];$("statusLine").innerHTML='<span class="ok">Clôture chargée. Rechargez les fichiers corrigés si nécessaire, puis générez les extournes.</span>';const saved=currentClosure.extournesN1;if(saved?.entries?.length){set("extourneDate",saved.date||d);set("journalCode",saved.journal||"OD");extourneRows=saved.entries;renderRows(extourneRows);$("saveBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}else{$("noticeBox").innerHTML='Cliquez sur “Générer les extournes” pour proposer automatiquement les contrepassations N+1.'}updateMetrics()}
+onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
 </body>
 </html>
