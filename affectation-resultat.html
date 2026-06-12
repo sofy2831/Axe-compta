@@ -117,6 +117,9 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/f
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const params=new URLSearchParams(window.location.search);const closureId=params.get("id");
+  if (closureId) {
+  $("extourneBtn").href = `extournes-automatiques.html?id=${closureId}`;
+}
 let currentUser=null,currentClosure=null,resultType="profit",resultAmount=0,generatedRows=[];
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
