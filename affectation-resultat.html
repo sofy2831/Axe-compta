@@ -59,12 +59,13 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-s
 }
 @media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{
-  @page{size:A4;margin:8mm 10mm}
+  @page{size:A4;margin:18mm 16mm 16mm 16mm}
 
-  body{
+  html,body{
     background:#fff!important;
     color:#111!important;
     margin:0!important;
+    padding:0!important;
   }
 
   .wrap{
@@ -88,68 +89,106 @@ th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-s
   }
 
   .pvDoc{
-    font-size:9.5pt!important;
-    line-height:1.18!important;
-    min-height:auto!important;
+    font-family:Arial, Helvetica, sans-serif!important;
+    font-size:12pt!important;
+    line-height:1.35!important;
+    min-height:260mm!important;
+    display:flex!important;
+    flex-direction:column!important;
     padding:0!important;
-    position:static!important;
-  }
-
-  .pvLogo{
-    display:none!important;
+    color:#111!important;
   }
 
   .pvHeader{
-    padding-bottom:5px!important;
-    margin-bottom:7px!important;
-    border-bottom:2px solid #163b66!important;
+    text-align:center!important;
+    border-bottom:3px solid #163b66!important;
+    padding-bottom:10px!important;
+    margin-bottom:16px!important;
+  }
+
+  .pvLogo{
+    max-height:48px!important;
+    margin-bottom:8px!important;
   }
 
   .pvTitle{
-    font-size:16px!important;
+    font-size:19pt!important;
+    font-weight:800!important;
+    text-transform:uppercase!important;
+    letter-spacing:.02em!important;
   }
 
   .pvSub{
-    font-size:10px!important;
+    font-size:11pt!important;
+    color:#444!important;
+    margin-top:2px!important;
   }
 
   .pvInfo,
   .pvDoc table{
-    margin:6px 0!important;
+    width:100%!important;
+    border-collapse:collapse!important;
+    margin:12px 0 14px!important;
+  }
+
+  .pvInfo td,
+  .pvDoc th,
+  .pvDoc td{
+    border:1px solid #c8d0da!important;
+    padding:7px 8px!important;
+    vertical-align:top!important;
+  }
+
+  .pvInfo td:first-child{
+    width:32%!important;
+    font-weight:700!important;
+    background:#f3f6fa!important;
+  }
+
+  .pvDoc th{
+    background:#f3f6fa!important;
+    font-weight:700!important;
+    text-transform:uppercase!important;
+    font-size:10.5pt!important;
+    color:#111!important;
   }
 
   .pvDoc h2{
-    font-size:12.5px!important;
-    margin:8px 0 4px!important;
+    font-size:13.5pt!important;
+    margin:14px 0 8px!important;
+    color:#111!important;
   }
 
   .pvDoc p{
-    margin:4px 0!important;
-  }
-
-  .pvDoc th,
-  .pvDoc td,
-  .pvInfo td{
-    padding:4px 5px!important;
+    margin:7px 0!important;
   }
 
   .pvOk{
-    padding:5px!important;
-    margin:6px 0!important;
+    border-left:5px solid #2fbf8f!important;
+    background:#eefbf6!important;
+    padding:10px 12px!important;
+    margin:14px 0!important;
+    font-weight:700!important;
   }
 
   .pvSign{
-    margin-top:8px!important;
+    margin-top:22px!important;
+  }
+
+  .pvSign p{
+    margin:8px 0!important;
   }
 
   .pvFooter{
-    position:static!important;
-    margin-top:8px!important;
-    padding-top:5px!important;
-    font-size:8.5px!important;
+    margin-top:auto!important;
+    text-align:center!important;
+    font-size:9pt!important;
+    color:#666!important;
+    border-top:1px solid #cfcfcf!important;
+    padding-top:8px!important;
+    background:#fff!important;
   }
 }
-
 </style>
 </head>
 <body>
@@ -248,7 +287,7 @@ function getCompte(row){return String(row.Compte||row.compte||"").replace(/\s/g,
 function findResultFromBalance(c){const rows=Array.isArray(c?.balance)?c.balance:[];const row=rows.find(r=>getCompte(r).startsWith("120")||getCompte(r).startsWith("129"));if(!row)return null;const amount=Math.abs(getAmount(row));if(!amount)return null;return{type:getCompte(row).startsWith("129")?"loss":"profit",amount}}
 function findResult(c){for(const k of ["resultAmount","accountingResult","netIncome","result","resultat"]){if(c?.[k]!==undefined&&c?.[k]!==null&&!Number.isNaN(Number(c[k]))){const v=Number(c[k]);return{type:v<0?"loss":"profit",amount:Math.abs(v)}}}return findResultFromBalance(c)}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
-function endDateLabel(){const fy=$("fiscalYear").value;const m=fy.match(/(\d{4})-(\d{2})-(\d{2})\s*$/);return m?`${m[3]}/${m[2]}/${m[1]}`:fy}
+function endDateLabel(){const fy=$("fiscalYear").value;const matches=fy.match(/(\d{4})-(\d{2})-(\d{2})/g);if(matches&&matches.length){const last=matches[matches.length-1];const [y,m,d]=last.split("-");return `${d}/${m}/${y}`}return fy}
 function showMode(){const profit=resultType==="profit";$("profitInputs").style.display=profit?"block":"none";$("lossInputs").style.display=profit?"none":"block";$("resultNature").textContent=profit?"Bénéfice":"Perte"}
 function totals(){const allocated=resultType==="profit"?n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");const remaining=+(resultAmount-allocated).toFixed(2);return{allocated,remaining}}
 function updateSummary(){const t=totals();$("resultAmountLabel").textContent=euro(resultAmount);$("allocatedLabel").textContent=euro(t.allocated);$("remainingLabel").textContent=euro(t.remaining);const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;$("progressBar").style.width=pct+"%";if(Math.abs(t.remaining)<=0.01){$("balanceBox").innerHTML='<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.'}else if(t.remaining>0){$("balanceBox").innerHTML=`<b class="warnText">Affectation en cours.</b><br>Il reste ${euro(t.remaining)} à affecter.`}else{$("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`}generatedRows=[];$("entriesBox").innerHTML="";$("saveBtn").disabled=true;$("pvBtn").disabled=true;$("exportBar").style.display="none";$("pvPreview").style.display="none"}
@@ -263,15 +302,11 @@ async function saveAffectation(){if(!currentUser||!closureId)return alert("Clôt
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 function affectationRows(){return generatedRows.filter(r=>r.affectation).map(r=>`<tr><td>${sanitize(r.affectation)}</td><td>${r.credit||r.debit}</td><td>${euro(r.amount)}</td></tr>`).join("")}
 function entriesRows(){return generatedRows.map(r=>`<tr><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${euro(r.amount)}</td></tr>`).join("")}
-function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHeader"><img src="images/axe-compta.png" class="pvLogo" onerror="this.style.display='none'"><div class="pvTitle">Procès-verbal d’Assemblée Générale Ordinaire</div><div class="pvSub">Affectation du résultat</div></div><table class="pvInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="pvOk">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSign">
-<p>Fait à ____________________ le ____________________</p>
-<p><b>Le représentant légal</b></p>
-<p>Nom : ____________________  Qualité : ____________________</p>
-<p>Signature : ____________________</p>
-</div><div class="pvFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
+function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHeader"><img src="images/axe-compta.png" class="pvLogo" onerror="this.style.display='none'"><div class="pvTitle">Procès-verbal d’Assemblée Générale Ordinaire</div><div class="pvSub">Affectation du résultat</div></div><table class="pvInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="pvOk">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSign"><p>Fait à ____________________ le ____________________</p><p><b>Le représentant légal</b></p><p>Nom : ____________________  Qualité : ____________________</p><p>Signature : ____________________</p></div><div class="pvFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderPvPreview(){if(!generatedRows.length)return;$("pvPreview").innerHTML=pvHtml();$("pvPreview").style.display="block"}
 function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
+
 const pvExportCss = `
 @page{
   size:A4;
@@ -383,11 +418,76 @@ html,body{
   padding-top:8px;
 }
 `;
-$("pvBtn").addEventListener("click",()=>{renderPvPreview();download(fileBase()+"-pv-ag.html",`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG</title><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,"text/html;charset=utf-8")});
-$("printBtn").addEventListener("click",()=>{renderPvPreview();window.print()});
+
+$("pvBtn").addEventListener("click",()=>{
+  if(!generatedRows.length) generatedRows = buildEntries();
+  renderPvPreview();
+
+  download(
+    fileBase()+"-pv-ag.html",
+    `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - Affectation du résultat</title><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,
+    "text/html;charset=utf-8"
+  );
+});
+
+$("printBtn").addEventListener("click",()=>{
+  if(!generatedRows.length) generatedRows = buildEntries();
+  renderPvPreview();
+
+  const w = window.open("", "_blank");
+  w.document.open();
+  w.document.write(`
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8">
+      <title>PV AG - Affectation du résultat</title>
+      <style>${pvExportCss}</style>
+    </head>
+    <body>
+      ${pvHtml()}
+      <script>
+        window.onload = function(){
+          window.focus();
+          window.print();
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+  w.document.close();
+});
+
 $("csvBtn").addEventListener("click",()=>{const csv=["Journal;Libellé;Débit;Crédit;Montant",...generatedRows.map(r=>`${r.journal};${r.label};${r.debit||""};${r.credit||""};${String(r.amount).replace(".",",")}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8")});
 $("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${generatedRows.map(r=>`<tr><td>${r.journal}</td><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${r.amount}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8")});
-$("wordBtn").addEventListener("click",()=>{download(fileBase()+"-pv-ag.doc",`<html><head><meta charset="UTF-8"><style>${pvExportCss}</style></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")});
+
+$("wordBtn").addEventListener("click",()=>{
+  if(!generatedRows.length) generatedRows = buildEntries();
+
+  const wordCss = pvExportCss + `
+    body{mso-line-height-rule:exactly;}
+    .pvDoc{min-height:260mm;}
+    table{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+  `;
+
+  download(
+    fileBase()+"-pv-ag.doc",
+    `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <title>PV AG</title>
+      <style>${wordCss}</style>
+    </head>
+    <body>${pvHtml()}</body>
+    </html>
+    `,
+    "application/msword;charset=utf-8"
+  );
+});
+
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPvPreview()}}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
