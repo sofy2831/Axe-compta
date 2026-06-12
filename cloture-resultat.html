@@ -60,7 +60,13 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <div id="entriesWrapper">
 <table id="entriesTable"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="7" class="muted">Chargement...</td></tr></tbody></table>
 <div class="notice">Avant comptabilisation, chaque écriture doit être rapprochée des factures, contrats, tableaux ou justificatifs disponibles.</div>
-<div class="actions"><button class="btn primary" type="button" id="exportPdfBtn">Exporter PDF</button><button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button><button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button><a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a></div>
+<div class="actions">
+  <button class="btn primary" type="button" id="exportPdfBtn">Exporter PDF</button>
+  <button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button>
+  <button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button>
+  <a class="btn primary" id="affectationLink" href="affectation-resultat.html">Affectation du résultat</a>
+  <a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a>
+</div>
 </div></div></div></main>
 
 <div class="modalOverlay" id="detailsModal">
