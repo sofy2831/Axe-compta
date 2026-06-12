@@ -106,7 +106,6 @@ const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionD
 function euro(v){return nf.format(Number(v||0))+" €"}
 function money(v){return euro(v)}
 function totalAllocated(){return totals().allocated}
-function csvContent(){return ["Journal;Libellé;Débit;Crédit;Montant",...generatedRows.map(r=>`${r.journal};${String(r.label||"").replaceAll(";",",")};${r.debit||""};${r.credit||""};${String(r.amount||0).replace(".",",")}`)].join("\n")}
 function n(id){return Number($(id).value||0)}function set(id,v){$(id).value=v??""}
 function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 function getCompte(row){return String(row.Compte||row.compte||"").replace(/\s/g,"")}
@@ -272,7 +271,7 @@ function csvContent(){
   return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
 }
 $("printBtn") && $("printBtn").addEventListener("click",openPrintDoc);
-$("pdfBtn").addEventListener("click",openPrintDoc);
+$("pdfBtn") && $("pdfBtn").addEventListener("click",openPrintDoc);
 $("csvBtn") && $("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
 $("excelBtn") && $("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
 $("wordBtn") && $("wordBtn").addEventListener("click",()=>{
