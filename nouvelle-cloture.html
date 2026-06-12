@@ -28,26 +28,11 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <main><div class="wrap"><h1>Créer une clôture</h1><p class="muted">Renseignez l’exercice, importez les fichiers comptables puis lancez les questions de contrôle.</p>
 <div class="layout"><div class="box"><h2>1. Informations du dossier</h2><label>Nom de l’entreprise</label><input id="companyName" type="text" placeholder="Ex : SARL Exemple" required><div class="inline"><div><label>Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div><div><label>Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div></div><label>Activité</label><select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select><label>Régime TVA</label><select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select>
 <h2 style="margin-top:24px">2. Fichiers comptables</h2>
-  
-  <label>Balance générale</label>
-  <input id="balanceFile" type="file" accept=".xlsx,.xls,.csv">
-  <div class="hint">Formats acceptés : Excel .xlsx, .xls ou CSV.</div>
-  
-  <label>Grand livre</label>
-  <input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv">
-  <div class="hint">Le grand livre doit être fourni en Excel ou CSV pour permettre l’analyse automatique.</div>
-
-  <label>Tableau des immobilisations / amortissements</label>
-<input id="amortFile" type="file" accept=".xlsx,.xls,.csv">
-<div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
-
-<label>Tableau d’amortissement de l’emprunt</label>
-<input id="loanFile" type="file" accept=".xlsx,.xls,.csv">
-<div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
-  
-  <label>Informations utiles</label>
-  <textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
-  
+<label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Formats acceptés : Excel .xlsx, .xls ou CSV.</div>
+<label>Grand livre</label><input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Le grand livre doit être fourni en Excel ou CSV pour permettre l’analyse automatique.</div>
+<label>Tableau des immobilisations / amortissements</label><input id="amortFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
+<label>Tableau d’amortissement de l’emprunt</label><input id="loanFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
+<label>Informations utiles</label><textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
 <div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="notice" id="saveMsg" style="display:none"></div></div>
 <aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import balance + grand livre</b><span>Les fichiers sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div></aside></div>
 </div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
@@ -56,122 +41,119 @@ import { auth, db, storage } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+
 let currentUser=null;
+
+const companyNameEl=document.getElementById("companyName");
+const startDateEl=document.getElementById("startDate");
+const endDateEl=document.getElementById("endDate");
+const activityEl=document.getElementById("activity");
+const vatEl=document.getElementById("vat");
+const balanceFileEl=document.getElementById("balanceFile");
+const ledgerFileEl=document.getElementById("ledgerFile");
+const amortFileEl=document.getElementById("amortFile");
+const loanFileEl=document.getElementById("loanFile");
+const notesEl=document.getElementById("notes");
+const saveBtnEl=document.getElementById("saveBtn");
+const saveMsgEl=document.getElementById("saveMsg");
+const logoutBtnEl=document.getElementById("logoutBtn");
+const periodLabelEl=document.getElementById("periodLabel");
+
 function formatDateFr(v){if(!v)return"";const [y,m,d]=v.split("-");return `${d}/${m}/${y}`;}
-function updatePeriod(){document.getElementById("periodLabel").textContent=`Exercice analysé : ${formatDateFr(startDate.value)} → ${formatDateFr(endDate.value)}`;}
+function updatePeriod(){periodLabelEl.textContent=`Exercice analysé : ${formatDateFr(startDateEl.value)} → ${formatDateFr(endDateEl.value)}`;}
 function cleanFileName(name){return String(name||"fichier").replace(/[^\w.\-]+/g,"_");}
 function fileInfo(file,path){if(!file)return null;return {name:file.name,size:file.size,type:file.type||"",storagePath:path,uploadedAt:new Date().toISOString()};}
-startDate.addEventListener("change",updatePeriod);endDate.addEventListener("change",updatePeriod);updatePeriod();
+function isAllowedFile(file){if(!file)return true;const name=file.name.toLowerCase();return name.endsWith(".xlsx")||name.endsWith(".xls")||name.endsWith(".csv");}
+
+startDateEl.addEventListener("change",updatePeriod);
+endDateEl.addEventListener("change",updatePeriod);
+updatePeriod();
+
 onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;});
-document.getElementById("logoutBtn").addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
-function isAllowedFile(file){
-  if(!file) return true;
+logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 
-  const name=file.name.toLowerCase();
+saveBtnEl.addEventListener("click",async()=>{
+  saveMsgEl.style.display="block";
+  saveMsgEl.textContent="";
+  if(!currentUser)return;
 
-  return (
-    name.endsWith(".xlsx") ||
-    name.endsWith(".xls") ||
-    name.endsWith(".csv")
-  );
-}
-  document.getElementById("saveBtn").addEventListener("click",async()=>{
-const msg=document.getElementById("saveMsg");const btn=document.getElementById("saveBtn");msg.style.display="block";msg.textContent="";
-if(!currentUser)return;
-const companyName=document.getElementById("companyName").value.trim();
-if(!companyName){msg.textContent="Indiquez le nom de l’entreprise.";return;}
-const balance = balanceFile.files[0] || null;
-const ledger = ledgerFile.files[0] || null;
-const amort = amortFile.files[0] || null;
-const loan = loanFile.files[0] || null;
+  const companyName=companyNameEl.value.trim();
+  if(!companyName){saveMsgEl.textContent="Indiquez le nom de l’entreprise.";return;}
 
-if(
-  !isAllowedFile(balance) ||
-  !isAllowedFile(ledger) ||
-  !isAllowedFile(amort) ||
-  !isAllowedFile(loan)
-){
-  msg.textContent = "Formats acceptés uniquement : XLSX, XLS ou CSV.";
-  return;
-}
+  const balance=balanceFileEl.files[0]||null;
+  const ledger=ledgerFileEl.files[0]||null;
+  const amort=amortFileEl.files[0]||null;
+  const loan=loanFileEl.files[0]||null;
 
-btn.disabled = true;
-btn.textContent = "Enregistrement...";
-
-try {
-  const docRef = await addDoc(collection(db, "users", currentUser.uid, "closures"), {
-    companyName,
-    startDate: startDate.value,
-    endDate: endDate.value,
-    activity: activity.value,
-    vatRegime: vat.value,
-    notes: notes.value,
-    status: "draft",
-    paid: false,
-    paymentMode: null,
-    files: {
-      balance: null,
-      grandLivre: null,
-      amortissements: null,
-      emprunt: null
-    },
-    balance: [],
-    grandLivre: [],
-    amortissements: [],
-    emprunt: [],
-    entries: [],
-    controls: [],
-    anomalies: [],
-    aiAnalysis: {
-      status: "not_started",
-      model: null,
-      generatedAt: null,
-      summary: "",
-      warnings: []
-    },
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-
-  const updates = {};
-
-  if(balance){
-    const balancePath = `closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;
-    await uploadBytes(ref(storage, balancePath), balance);
-    updates["files.balance"] = fileInfo(balance, balancePath);
+  if(!isAllowedFile(balance)||!isAllowedFile(ledger)||!isAllowedFile(amort)||!isAllowedFile(loan)){
+    saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
+    return;
   }
 
-  if(ledger){
-    const ledgerPath = `closures/${currentUser.uid}/${docRef.id}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;
-    await uploadBytes(ref(storage, ledgerPath), ledger);
-    updates["files.grandLivre"] = fileInfo(ledger, ledgerPath);
+  saveBtnEl.disabled=true;
+  saveBtnEl.textContent="Enregistrement...";
+
+  try{
+    const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
+      companyName,
+      startDate:startDateEl.value,
+      endDate:endDateEl.value,
+      activity:activityEl.value,
+      vatRegime:vatEl.value,
+      notes:notesEl.value,
+      status:"draft",
+      paid:false,
+      paymentMode:null,
+      files:{balance:null,grandLivre:null,amortissements:null,emprunt:null},
+      balance:[],
+      grandLivre:[],
+      amortissements:[],
+      emprunt:[],
+      entries:[],
+      controls:[],
+      anomalies:[],
+      aiAnalysis:{status:"not_started",model:null,generatedAt:null,summary:"",warnings:[]},
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+
+    const updates={};
+
+    if(balance){
+      const balancePath=`closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;
+      await uploadBytes(ref(storage,balancePath),balance);
+      updates["files.balance"]=fileInfo(balance,balancePath);
+    }
+
+    if(ledger){
+      const ledgerPath=`closures/${currentUser.uid}/${docRef.id}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;
+      await uploadBytes(ref(storage,ledgerPath),ledger);
+      updates["files.grandLivre"]=fileInfo(ledger,ledgerPath);
+    }
+
+    if(amort){
+      const amortPath=`closures/${currentUser.uid}/${docRef.id}/amortissements-${Date.now()}-${cleanFileName(amort.name)}`;
+      await uploadBytes(ref(storage,amortPath),amort);
+      updates["files.amortissements"]=fileInfo(amort,amortPath);
+    }
+
+    if(loan){
+      const loanPath=`closures/${currentUser.uid}/${docRef.id}/emprunt-${Date.now()}-${cleanFileName(loan.name)}`;
+      await uploadBytes(ref(storage,loanPath),loan);
+      updates["files.emprunt"]=fileInfo(loan,loanPath);
+    }
+
+    if(Object.keys(updates).length){
+      updates.updatedAt=serverTimestamp();
+      await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);
+    }
+
+    window.location.href=`cloture-analyse.html?id=${docRef.id}`;
+  }catch(e){
+    console.error(e);
+    saveMsgEl.textContent="Erreur lors de l’enregistrement du dossier.";
+    saveBtnEl.disabled=false;
+    saveBtnEl.textContent="Enregistrer et continuer";
   }
-
-  if(amort){
-    const amortPath = `closures/${currentUser.uid}/${docRef.id}/amortissements-${Date.now()}-${cleanFileName(amort.name)}`;
-    await uploadBytes(ref(storage, amortPath), amort);
-    updates["files.amortissements"] = fileInfo(amort, amortPath);
-  }
-
-  if(loan){
-    const loanPath = `closures/${currentUser.uid}/${docRef.id}/emprunt-${Date.now()}-${cleanFileName(loan.name)}`;
-    await uploadBytes(ref(storage, loanPath), loan);
-    updates["files.emprunt"] = fileInfo(loan, loanPath);
-  }
-
-        if(Object.keys(updates).length){
-    updates.updatedAt = serverTimestamp();
-    await updateDoc(doc(db, "users", currentUser.uid, "closures", docRef.id), updates);
-  }
-
-  window.location.href = `cloture-analyse.html?id=${docRef.id}`;
-
-}catch(e){
-  console.error(e);
-  msg.textContent = "Erreur lors de l’enregistrement du dossier.";
-  btn.disabled = false;
-  btn.textContent = "Enregistrer et continuer";
-}
 });
 </script></body></html>
-
