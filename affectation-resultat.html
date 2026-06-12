@@ -23,7 +23,7 @@ h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.
 .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
 label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}
 input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}
-input[readonly]{opacity:.92}l
+input[readonly]{opacity:.92}
 .metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}
 .metric span{display:block;color:#c8d7ea;font-size:12px}
 .metric b{display:block;font-size:21px;margin-top:4px}
@@ -42,8 +42,21 @@ table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(-
 th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}
 .exportBar{display:none}
 .pvPreview{display:none;background:#fff;color:#111;border-radius:18px;padding:28px;margin-top:18px}.pvPreview *{color:#111}
-.pvDoc{font-family:Arial,sans-serif;line-height:1.55;position:relative;min-height:96vh;padding-bottom:70px}
-.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td{border:1px solid #d6dce3;padding:10px}.pvInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.pvDoc h2{font-size:21px;margin-top:26px}.pvDoc table{border-collapse:collapse;width:100%;margin-top:14px}.pvDoc th,.pvDoc td{border:1px solid #ccd3dc;padding:10px}.pvDoc th{background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{eft:0;right:0;bottom:0;text-align:center;font-size:11px;color:#666;border-top:1px solid #cfcfcf;padding:8px 0;background:#fff}
+.pvDoc{
+  font-family:Arial,sans-serif;
+  line-height:1.55;
+  position:relative;
+  padding-bottom:0;
+}
+.pvHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:18px;margin-bottom:22px}.pvLogo{max-height:62px;margin-bottom:12px}.pvTitle{font-size:28px;font-weight:800;text-transform:uppercase}.pvSub{font-size:15px;color:#333}.pvInfo{width:100%;border-collapse:collapse;margin:18px 0}.pvInfo td{border:1px solid #d6dce3;padding:10px}.pvInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.pvDoc h2{font-size:21px;margin-top:26px}.pvDoc table{border-collapse:collapse;width:100%;margin-top:14px}.pvDoc th,.pvDoc td{border:1px solid #ccd3dc;padding:10px}.pvDoc th{background:#f3f6fa}.pvOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:12px;margin:16px 0;font-weight:700}.pvSign{margin-top:48px}.pvFooter{
+  text-align:center;
+  font-size:11px;
+  color:#666;
+  border-top:1px solid #cfcfcf;
+  padding:8px 0 0;
+  margin-top:32px;
+  background:#fff;
+}
 @media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{
   @page{
