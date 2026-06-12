@@ -183,11 +183,7 @@ function pvBody(){
 
   return `<main class="pvDoc">
     <header class="pvHeader">
-      <div class="brandBlock">
-        <strong>AXE COMPTA IA</strong>
-        <span>Assistant de clôture comptable</span>
-      </div>
-      <div class="topRule"></div>
+      <div class="brandBanner">AXE COMPTA IA</div>
       <h1>Procès-verbal d’Assemblée Générale Ordinaire</h1>
       <div class="sub">Affectation du résultat</div>
       <div class="titleRule"></div>
@@ -241,32 +237,29 @@ function pvBody(){
 }
 const pvCss = `
 @page{size:A4;margin:13mm 14mm 13mm 14mm}
-html,body{margin:0;padding:0;background:#fff;color:#101010;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.32;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pvDoc{width:182mm;min-height:271mm;margin:0 auto;display:flex;flex-direction:column;color:#101010;background:#fff}
-.pvHeader{margin-bottom:11px;color:#101010}
-.brandBlock{text-align:left;margin:0 0 10px 0;line-height:1.25}
-.brandBlock strong{display:block;font-size:10.5pt;letter-spacing:.06em;color:#173f6f;font-weight:800}
-.brandBlock span{display:block;font-size:9.6pt;color:#2a2f36;margin-top:2px}
-.topRule{height:0;border-top:3px solid #173f6f;margin:9px 0 22px 0}
-.pvHeader h1{font-size:20pt;line-height:1.12;margin:0;text-align:center;text-transform:uppercase;color:#173f6f;font-weight:900;letter-spacing:-.02em}
-.sub{text-align:center;font-size:13pt;color:#5d6f86;margin-top:6px}
-.titleRule{width:28mm;border-top:1.5px solid #173f6f;margin:12px auto 0 auto}
-.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:9px 0 13px;table-layout:fixed}
-.infoTable td,.dataTable th,.dataTable td{border:1px solid #91a4ba;padding:7px 9px;vertical-align:middle;color:#101010!important}
-.infoTable td{font-size:10.4pt;line-height:1.22}
+html,body{margin:0;padding:0;background:#fff;color:#101010;font-family:Arial,Helvetica,sans-serif;font-size:10.2pt;line-height:1.24;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pvDoc{width:182mm;min-height:271mm;margin:0 auto;color:#101010;background:#fff}
+.pvHeader{margin-bottom:10px;color:#101010}
+.brandBanner{background:#173f6f;color:#fff;font-weight:900;letter-spacing:.07em;font-size:10pt;padding:7px 10px;margin:0 0 14px 0;text-transform:uppercase}
+.pvHeader h1{font-size:18pt;line-height:1.08;margin:0;text-align:center;text-transform:uppercase;color:#173f6f;font-weight:900;letter-spacing:-.02em}
+.sub{text-align:center;font-size:11.4pt;color:#5d6f86;margin-top:5px}
+.titleRule{width:24mm;border-top:1.5px solid #173f6f;margin:9px auto 0 auto}
+.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:7px 0 10px;table-layout:fixed}
+.infoTable td,.dataTable th,.dataTable td{border:1px solid #91a4ba;padding:4px 7px;vertical-align:middle;color:#101010!important}
+.infoTable td{font-size:9.7pt;line-height:1.12}
 .infoTable td:first-child{width:27%;font-weight:800;background:#f1f4f8;color:#101010!important}
-.dataTable th{background:#e6ebf2;color:#101010!important;font-weight:900;text-transform:uppercase;font-size:9.8pt;text-align:center;letter-spacing:.02em}
-.dataTable td{font-size:10.2pt;line-height:1.22}
+.dataTable th{background:#e6ebf2;color:#101010!important;font-weight:900;text-transform:uppercase;font-size:9pt;text-align:center;letter-spacing:.02em}
+.dataTable td{font-size:9.6pt;line-height:1.12}
 .dataTable .amount{text-align:right;white-space:nowrap}
-.resolution h2,.entries h2{font-size:13.2pt;margin:17px 0 8px;color:#173f6f;text-transform:uppercase;letter-spacing:.01em;line-height:1.2;font-weight:900}
-p{margin:6px 0}
-.resolution p{font-size:10.8pt;line-height:1.32;margin-bottom:9px}
-.okBlock{border-left:4px solid #16a37e;background:#eaf7f1;padding:9px 11px;margin:10px 0 16px;font-size:10.5pt;color:#101010}
-.legalText{font-size:10.4pt;margin:9px 0 17px;line-height:1.32}
-.signBlock{margin-top:20px;font-size:11pt;line-height:1.55;page-break-inside:avoid;color:#101010}
-.signBlock p{margin:7px 0}
-.pvFooter{margin-top:auto;border-top:3px solid #173f6f;padding-top:10px;text-align:center;font-size:10pt;color:#444;line-height:1.25}
-.pvFooter strong{color:#173f6f;font-size:10.5pt;letter-spacing:.04em}
+.resolution h2,.entries h2{font-size:12pt;margin:12px 0 6px;color:#173f6f;text-transform:uppercase;letter-spacing:.01em;line-height:1.15;font-weight:900}
+p{margin:4px 0}
+.resolution p{font-size:10pt;line-height:1.24;margin-bottom:7px}
+.okBlock{border-left:4px solid #16a37e;background:#eaf7f1;padding:6px 9px;margin:7px 0 12px;font-size:9.8pt;color:#101010}
+.legalText{font-size:9.8pt;margin:7px 0 18px;line-height:1.28}
+.signBlock{margin-top:26px;font-size:10.2pt;line-height:1.85;page-break-inside:avoid;color:#101010}
+.signBlock p{margin:8px 0}
+.pvFooter{margin-top:30px;border-top:3px solid #173f6f;padding-top:8px;text-align:center;font-size:9.3pt;color:#444;line-height:1.25;page-break-inside:avoid}
+.pvFooter strong{color:#173f6f;font-size:10pt;letter-spacing:.04em}
 @media print{html,body{width:210mm;height:auto}.pvDoc{width:182mm;min-height:271mm;margin:0 auto}.noPrint{display:none!important}}
 `;
 function pvHtml(){
@@ -305,24 +298,27 @@ $("excelBtn") && $("excelBtn").addEventListener("click",()=>{try{ensureGenerated
 $("wordBtn") && $("wordBtn").addEventListener("click",()=>{
   try{ensureGenerated()}catch(e){alert(e.message);return}
   const wordCss = pvCss + `
-    @page WordSection1{size:595.3pt 841.9pt;margin:36pt 40pt 36pt 40pt;}
+    @page WordSection1{size:595.3pt 841.9pt;margin:32pt 38pt 32pt 38pt;}
     div.WordSection1{page:WordSection1;}
-    body{mso-line-height-rule:exactly;}
+    body{mso-line-height-rule:exactly;font-size:10.2pt;line-height:1.24;}
     .pvDoc{width:100%;min-height:auto;margin:0;}
-    .brandBlock strong{color:#173f6f!important;}
-    .topRule{border-top:3px solid #173f6f!important;}
-    .pvHeader h1{font-size:20pt;color:#173f6f!important;text-align:center!important;}
-    .sub{text-align:center!important;color:#5d6f86!important;}
-    .titleRule{border-top:1.5px solid #173f6f!important;}
-    .dataTable th{background:#e6ebf2!important;color:#101010!important;mso-shading:#e6ebf2;}
-    .infoTable td:first-child{background:#f1f4f8!important;color:#101010!important;mso-shading:#f1f4f8;}
-    .infoTable td,.dataTable th,.dataTable td{padding:7px 9px!important;color:#101010!important;border:1px solid #91a4ba!important;}
-    .resolution h2,.entries h2{color:#173f6f!important;text-transform:uppercase!important;}
-    .okBlock{background:#eaf7f1!important;mso-shading:#eaf7f1;border-left:4px solid #16a37e!important;}
-    .pvFooter{border-top:3px solid #173f6f!important;}
+    .brandBanner{background:#173f6f!important;color:#ffffff!important;mso-shading:#173f6f;font-weight:900;padding:7px 10px!important;margin-bottom:14px!important;}
+    .pvHeader h1{font-size:18pt;color:#173f6f!important;text-align:center!important;margin:0!important;}
+    .sub{text-align:center!important;color:#5d6f86!important;font-size:11.4pt!important;margin-top:5px!important;}
+    .titleRule{border-top:1.5px solid #173f6f!important;margin:9px auto 0 auto!important;}
+    .infoTable,.dataTable{margin:7px 0 10px!important;border-collapse:collapse!important;}
+    .dataTable th{background:#e6ebf2!important;color:#101010!important;mso-shading:#e6ebf2;font-size:9pt!important;padding:4px 7px!important;}
+    .infoTable td:first-child{background:#f1f4f8!important;color:#101010!important;mso-shading:#f1f4f8;font-weight:800!important;}
+    .infoTable td,.dataTable td{padding:4px 7px!important;color:#101010!important;border:1px solid #91a4ba!important;line-height:1.12!important;font-size:9.6pt!important;}
+    .resolution h2,.entries h2{color:#173f6f!important;text-transform:uppercase!important;font-size:12pt!important;margin:12px 0 6px!important;}
+    .resolution p{font-size:10pt!important;line-height:1.24!important;margin-bottom:7px!important;}
+    .okBlock{background:#eaf7f1!important;mso-shading:#eaf7f1;border-left:4px solid #16a37e!important;padding:6px 9px!important;margin:7px 0 12px!important;}
+    .legalText{font-size:9.8pt!important;margin:7px 0 18px!important;}
+    .signBlock{margin-top:26px!important;line-height:1.85!important;page-break-inside:avoid!important;}
+    .signBlock p{margin:8px 0!important;}
+    .pvFooter{margin-top:30px!important;border-top:3px solid #173f6f!important;padding-top:8px!important;page-break-inside:avoid!important;}
     .pvFooter strong{color:#173f6f!important;}
-  `;
-  const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body><div class="WordSection1">${pvBody()}</div></body></html>`;
+  `;  const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body><div class="WordSection1">${pvBody()}</div></body></html>`;
   download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`, body, "application/msword;charset=utf-8");
 });
 $("pvBtn") && $("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8")}catch(e){alert(e.message)}});
