@@ -64,7 +64,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
   <button class="btn primary" type="button" id="exportPdfBtn">Exporter PDF</button>
   <button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button>
   <button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button>
-  <a class="btn primary" id="affectationLink" href="affectation-resultat.html">Affectation du résultat</a>
+  <a class="btn primary" id="affectationBtn" href="affectation-resultat.html">Affectation du résultat</a>
   <a class="btn" href="tableau-de-bord.html">Retour tableau de bord</a>
 </div>
 </div></div></div></main>
@@ -101,6 +101,9 @@ import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com
 
 const CREATE_CHECKOUT_URL = "https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const id = new URLSearchParams(location.search).get("id");
+  if (id) {
+  document.getElementById("affectationBtn").href = `affectation-resultat.html?id=${id}`;
+}
 let currentUser = null;
 let currentClosure = null;
 let currentEntries = [];
