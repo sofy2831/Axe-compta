@@ -124,14 +124,163 @@ async function saveAffectation(){if(!currentUser||!closureId)return alert("Clôt
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 function affectationRows(){return generatedRows.filter(r=>r.affectation).map(r=>`<tr><td>${sanitize(r.affectation)}</td><td>${r.credit||r.debit}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}
 function entriesRows(){return generatedRows.map(r=>`<tr><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}
-function pvHtml(){const company=sanitize($("companyName").value||"Société");const fy=sanitize($("fiscalYear").value||"exercice concerné");const pv=sanitize($("pvDate").value||"date à compléter");const nature=resultType==="profit"?"bénéfice":"perte";const resultText=euro(resultAmount);const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(endDateLabel())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte en report à nouveau débiteur.`;return `<div class="pvDoc"><div class="pvHead"><div class="pvLogoText">AXE COMPTA IA</div><h1>Procès-verbal d’Assemblée Générale Ordinaire</h1><p>Affectation du résultat</p></div><table class="info"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${fy}</td></tr><tr><td>Date de l’assemblée</td><td>${pv}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr></table><h2>Première résolution — Affectation du résultat</h2><p>${decision}</p><table class="data"><thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead><tbody>${affectationRows()}</tbody></table><div class="okBox">Total affecté : ${euro(totals().allocated)}<br>✓ Affectation équilibrée et conforme au résultat détecté.</div><h2>Écriture comptable résultant de la présente décision</h2><table class="data"><thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${entriesRows()}</tbody></table><p class="smallp">La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="sign"><p>Fait à <span></span> le <span></span></p><p><strong>Le représentant légal</strong></p><p>Nom : <span class="short"></span> Qualité : <span class="short"></span></p><p>Signature : <span class="short"></span></p></div><div class="footer"><strong>AXE COMPTA IA</strong><br>Assistant de clôture comptable</div></div>`}
-const cabinetCss=`@page{size:A4;margin:15mm 16mm 13mm 16mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.26}.pvDoc{min-height:269mm;display:flex;flex-direction:column}.pvHead{text-align:center;border-bottom:2px solid #173b66;padding-bottom:8px;margin-bottom:11px}.pvLogoText{display:inline-block;background:#173b66;color:#fff;font-weight:700;font-size:8pt;letter-spacing:.06em;padding:5px 8px;margin-bottom:7px}.pvHead h1{font-size:18pt;line-height:1.05;margin:0;text-transform:uppercase;letter-spacing:.01em}.pvHead p{margin:2px 0 0;font-size:10pt;color:#333}.info,.data{width:100%;border-collapse:collapse;margin:7px 0 10px}.info td,.data th,.data td{border:1px solid #bfc8d4;padding:4px 6px;vertical-align:middle}.info td:first-child{width:32%;font-weight:700;background:#eef2f6}.data th{background:#173b66;color:#fff;text-transform:uppercase;font-size:9.5pt;letter-spacing:.03em}.data td{font-size:10pt}.amount{text-align:right;white-space:nowrap}h2{font-size:12.5pt;margin:10px 0 5px;color:#111}p{margin:5px 0}.smallp{font-size:10pt}.okBox{border-left:4px solid #168461;background:#eaf7f1;padding:7px 10px;margin:8px 0;font-weight:700}.sign{margin-top:14px;line-height:1.75;page-break-inside:avoid}.sign span{display:inline-block;border-bottom:1px solid #111;min-width:118px;height:14px}.sign span.short{min-width:105px}.footer{margin-top:auto;text-align:center;font-size:8pt;color:#555;border-top:1px solid #cfcfcf;padding-top:6px}`;
-function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
-function fileBase(){return `affectation-resultat-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
-function htmlDoc(){return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - Affectation du résultat</title><style>${cabinetCss}</style></head><body>${pvHtml()}</body></html>`}
-$("pvBtn").addEventListener("click",()=>{if(!generatedRows.length)generatedRows=buildEntries();download(fileBase()+"-pv-ag.html",htmlDoc(),"text/html;charset=utf-8")});
-$("printBtn").addEventListener("click",()=>{if(!generatedRows.length)generatedRows=buildEntries();const w=window.open("","_blank");w.document.open();w.document.write(htmlDoc()+`<script>window.onload=function(){window.focus();window.print();};<\/script>`);w.document.close()});
-$("wordBtn").addEventListener("click",()=>{if(!generatedRows.length)generatedRows=buildEntries();const wordCss=cabinetCss+`body{mso-line-height-rule:exactly}.data th{mso-background-source:auto;mso-pattern:auto}.pvDoc{min-height:267mm}`;download(fileBase()+"-pv-ag.doc",`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><style>${wordCss}</style></head><body>${pvHtml()}</body></html>`,"application/msword;charset=utf-8")});
+function docDateFr(v){
+  if(!v) return "à compléter";
+  const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
+}
+function exerciceEndFr(){
+  const fy = $("fiscalYear").value || "";
+  const dates = fy.match(/\d{4}-\d{2}-\d{2}/g);
+  if(dates && dates.length){
+    const last = dates[dates.length - 1].split("-");
+    return `${last[2]}/${last[1]}/${last[0]}`;
+  }
+  return fy || "l'exercice";
+}
+function allocationRowsHtml(){
+  const rows = generatedRows.filter(r => !String(r.label || "").toLowerCase().includes("affectation du résultat"));
+  return rows.map(r=>{
+    const account = r.credit || r.debit || "";
+    return `<tr><td>${sanitize(r.label)}</td><td>${sanitize(account)}</td><td class="amount">${money(r.amount)}</td></tr>`;
+  }).join("");
+}
+function accountingRowsHtml(){
+  return generatedRows.map(r=>`
+    <tr>
+      <td>${sanitize(r.label)}</td>
+      <td>${sanitize(r.debit || "")}</td>
+      <td>${sanitize(r.credit || "")}</td>
+      <td class="amount">${money(r.amount)}</td>
+    </tr>`).join("");
+}
+function pvBody(){
+  const company = sanitize($("companyName").value || "Société");
+  const fiscalYear = sanitize($("fiscalYear").value || "exercice concerné");
+  const pvDate = sanitize(docDateFr($("pvDate").value));
+  const nature = resultType === "profit" ? "bénéfice" : "perte";
+  const resultText = money(detectedAmount);
+  const decision = resultType === "profit"
+    ? `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`
+    : `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;
+
+  return `<main class="pvDoc">
+    <header class="pvHeader">
+      <div class="brand">AXE COMPTA IA</div>
+      <h1>Procès-verbal d’Assemblée Générale Ordinaire</h1>
+      <div class="sub">Affectation du résultat</div>
+    </header>
+
+    <table class="infoTable">
+      <tbody>
+        <tr><td>Société</td><td>${company}</td></tr>
+        <tr><td>Exercice concerné</td><td>${fiscalYear}</td></tr>
+        <tr><td>Date de l’assemblée</td><td>${pvDate}</td></tr>
+        <tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr>
+        <tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr>
+      </tbody>
+    </table>
+
+    <section class="resolution">
+      <h2>Première résolution — Affectation du résultat</h2>
+      <p>${decision}</p>
+
+      <table class="dataTable">
+        <thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead>
+        <tbody>${allocationRowsHtml()}</tbody>
+      </table>
+
+      <div class="okBlock">
+        <strong>Total affecté : ${money(totalAllocated())}</strong><br>
+        Affectation équilibrée et conforme au résultat détecté.
+      </div>
+    </section>
+
+    <section class="entries">
+      <h2>Écriture comptable résultant de la présente décision</h2>
+      <table class="dataTable">
+        <thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
+        <tbody>${accountingRowsHtml()}</tbody>
+      </table>
+      <p class="legalText">La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p>
+    </section>
+
+    <section class="signBlock">
+      <p>Fait à ____________________________ le ____________________________</p>
+      <p><strong>Le représentant légal</strong></p>
+      <p>Nom : ____________________________ Qualité : ____________________________</p>
+      <p>Signature : ____________________________</p>
+    </section>
+
+    <footer class="pvFooter">
+      <strong>AXE COMPTA IA</strong><br>Assistant de clôture comptable
+    </footer>
+  </main>`;
+}
+const pvCss = `
+@page{size:A4;margin:15mm 15mm 13mm 15mm}
+html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:10.6pt;line-height:1.22}
+.pvDoc{min-height:267mm;display:flex;flex-direction:column;color:#111}
+.pvHeader{text-align:center;border-bottom:2px solid #163b66;padding-bottom:7px;margin-bottom:9px}
+.brand{font-size:8pt;letter-spacing:.08em;color:#5f6b78;font-weight:700;margin-bottom:4px}
+.pvHeader h1{font-size:17pt;line-height:1.05;margin:0;text-transform:uppercase;color:#111;font-weight:800}
+.sub{font-size:9pt;color:#333;margin-top:2px}
+.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:7px 0 9px}
+.infoTable td,.dataTable th,.dataTable td{border:1px solid #bfc9d5;padding:3px 6px;vertical-align:middle;color:#111}
+.infoTable td{font-size:9.7pt;line-height:1.08}
+.infoTable td:first-child{width:33%;font-weight:700;background:#eef2f7;color:#111}
+.dataTable th{background:#eef2f7;color:#111;font-weight:800;text-transform:uppercase;font-size:9pt;text-align:center;letter-spacing:.02em}
+.dataTable td{font-size:9.4pt;line-height:1.08}
+.dataTable .amount{text-align:right;white-space:nowrap}
+h2{font-size:12pt;margin:10px 0 5px;color:#111}
+p{margin:4px 0}
+.okBlock{border-left:4px solid #1fa77e;background:#eaf8f2;padding:6px 8px;margin:7px 0 9px;font-size:9.6pt;color:#111}
+.legalText{font-size:9.4pt;margin-top:5px}
+.signBlock{margin-top:18px;font-size:9.8pt;line-height:1.45;page-break-inside:avoid}
+.signBlock p{margin:5px 0}
+.pvFooter{margin-top:auto;border-top:1px solid #c5ccd5;padding-top:6px;text-align:center;font-size:8pt;color:#555}
+@media print{html,body{width:210mm}.pvDoc{min-height:267mm}.noPrint{display:none!important}}
+`;
+function pvHtml(){
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - Affectation du résultat</title><style>${pvCss}</style></head><body>${pvBody()}</body></html>`;
+}
+function exportHtmlDoc(title){
+  return pvHtml();
+}
+function openPrintDoc(){
+  if(!generatedRows.length) generatedRows = buildEntries();
+  const w = window.open("", "_blank");
+  w.document.open();
+  w.document.write(pvHtml().replace("</body>","<script>window.onload=function(){window.focus();window.print();};<\/script></body>"));
+  w.document.close();
+}
+function download(filename, content, type){
+  const blob = new Blob([content],{type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function csvContent(){
+  const rows = getExportRows();
+  const header = Object.keys(rows[0] || {Journal:"",Libelle:"",Debit:"",Credit:"",Montant:""});
+  return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
+}
+$("printBtn").addEventListener("click",openPrintDoc);
+$("pdfBtn").addEventListener("click",openPrintDoc);
+$("csvBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8"));
+$("excelBtn").addEventListener("click",()=>download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc("Affectation du résultat"), "application/vnd.ms-excel;charset=utf-8"));
+$("wordBtn").addEventListener("click",()=>{
+  const wordCss = pvCss + `
+    body{mso-line-height-rule:exactly;}
+    .dataTable th{background:#eef2f7!important;color:#111!important;mso-shading:#eef2f7;}
+    .infoTable td:first-child{background:#eef2f7!important;color:#111!important;mso-shading:#eef2f7;}
+    .infoTable td,.dataTable th,.dataTable td{padding:2px 5px;}
+    .dataTable{margin:5px 0 7px;}
+  `;
+  const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body>${pvBody()}</body></html>`;
+  download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`, body, "application/msword;charset=utf-8");
+});
+$("pvBtn").addEventListener("click",()=>download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8"));
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block"}}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
