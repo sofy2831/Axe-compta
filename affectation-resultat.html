@@ -310,7 +310,7 @@ function fileBase(){return `affectation-resultat-${($("companyName").value||"soc
 const pvExportCss = `
 @page{
   size:A4;
-  margin:18mm 16mm 16mm 16mm;
+  margin:16mm 15mm 14mm 15mm;
 }
 
 html,body{
@@ -319,12 +319,12 @@ html,body{
   background:#fff;
   color:#111;
   font-family:Arial, Helvetica, sans-serif;
-  font-size:12pt;
-  line-height:1.35;
+  font-size:11pt;
+  line-height:1.22;
 }
 
 .pvDoc{
-  min-height:260mm;
+  min-height:267mm;
   display:flex;
   flex-direction:column;
   padding:0;
@@ -332,25 +332,25 @@ html,body{
 
 .pvHeader{
   text-align:center;
-  border-bottom:3px solid #163b66;
-  padding-bottom:10px;
-  margin-bottom:16px;
+  border-bottom:2px solid #163b66;
+  padding-bottom:8px;
+  margin-bottom:12px;
 }
 
+/* On masque le logo dans les exports pour éviter le carré rouge Word si l'image relative n'est pas trouvée. */
 .pvLogo{
-  max-height:48px;
-  margin-bottom:8px;
+  display:none!important;
 }
 
 .pvTitle{
-  font-size:19pt;
+  font-size:17pt;
   font-weight:800;
   text-transform:uppercase;
-  letter-spacing:.02em;
+  letter-spacing:.01em;
 }
 
 .pvSub{
-  font-size:11pt;
+  font-size:10pt;
   color:#444;
   margin-top:2px;
 }
@@ -359,15 +359,15 @@ html,body{
 .pvDoc table{
   width:100%;
   border-collapse:collapse;
-  margin:12px 0 14px;
+  margin:9px 0 11px;
 }
 
 .pvInfo td,
 .pvDoc th,
 .pvDoc td{
   border:1px solid #c8d0da;
-  padding:7px 8px;
-  vertical-align:top;
+  padding:4px 6px;
+  vertical-align:middle;
 }
 
 .pvInfo td:first-child{
@@ -380,42 +380,45 @@ html,body{
   background:#f3f6fa;
   font-weight:700;
   text-transform:uppercase;
-  font-size:10.5pt;
+  font-size:9.5pt;
 }
 
 .pvDoc h2{
-  font-size:13.5pt;
-  margin:14px 0 8px;
+  font-size:12.5pt;
+  margin:11px 0 6px;
   color:#111;
 }
 
 .pvDoc p{
-  margin:7px 0;
+  margin:5px 0;
 }
 
 .pvOk{
-  border-left:5px solid #2fbf8f;
+  border-left:4px solid #2fbf8f;
   background:#eefbf6;
-  padding:10px 12px;
-  margin:14px 0;
+  padding:7px 10px;
+  margin:9px 0;
   font-weight:700;
 }
 
 .pvSign{
-  margin-top:22px;
+  margin-top:18px;
+  line-height:1.55;
+  page-break-inside:avoid;
 }
 
 .pvSign p{
-  margin:8px 0;
+  margin:6px 0;
 }
 
 .pvFooter{
   margin-top:auto;
   text-align:center;
-  font-size:9pt;
+  font-size:8pt;
   color:#666;
   border-top:1px solid #cfcfcf;
-  padding-top:8px;
+  padding-top:6px;
+  page-break-inside:avoid;
 }
 `;
 
@@ -466,7 +469,9 @@ $("wordBtn").addEventListener("click",()=>{
 
   const wordCss = pvExportCss + `
     body{mso-line-height-rule:exactly;}
-    .pvDoc{min-height:260mm;}
+    .pvDoc{min-height:267mm;}
+    .pvInfo td, .pvDoc th, .pvDoc td{padding:3px 5px;}
+    .pvDoc table{margin:7px 0 9px;}
     table{mso-table-lspace:0pt;mso-table-rspace:0pt;}
   `;
 
