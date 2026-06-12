@@ -183,9 +183,14 @@ function pvBody(){
 
   return `<main class="pvDoc">
     <header class="pvHeader">
-      <div class="brand">AXE COMPTA IA</div>
+      <div class="brandBlock">
+        <strong>AXE COMPTA IA</strong>
+        <span>Assistant de clôture comptable</span>
+      </div>
+      <div class="topRule"></div>
       <h1>Procès-verbal d’Assemblée Générale Ordinaire</h1>
       <div class="sub">Affectation du résultat</div>
+      <div class="titleRule"></div>
     </header>
 
     <table class="infoTable">
@@ -236,26 +241,32 @@ function pvBody(){
 }
 const pvCss = `
 @page{size:A4;margin:13mm 14mm 13mm 14mm}
-html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pvDoc{width:182mm;min-height:271mm;margin:0 auto;display:flex;flex-direction:column;color:#111;background:#fff}
-.pvHeader{text-align:center;border-bottom:2px solid #173f6f;padding-bottom:8px;margin-bottom:11px}
-.brand{font-size:8.5pt;letter-spacing:.08em;color:#5f6b78;font-weight:700;margin-bottom:4px}
-.pvHeader h1{font-size:17pt;line-height:1.1;margin:0;text-transform:uppercase;color:#111;font-weight:800;letter-spacing:-.01em}
-.sub{font-size:9.5pt;color:#333;margin-top:3px}
-.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:8px 0 11px;table-layout:fixed}
-.infoTable td,.dataTable th,.dataTable td{border:1px solid #aebaca;padding:4px 7px;vertical-align:middle;color:#111!important}
-.infoTable td{font-size:9.8pt;line-height:1.25}
-.infoTable td:first-child{width:34%;font-weight:700;background:#eef2f7;color:#111!important}
-.dataTable th{background:#e8edf4;color:#111!important;font-weight:800;text-transform:uppercase;font-size:9.2pt;text-align:center;letter-spacing:.02em}
-.dataTable td{font-size:9.7pt;line-height:1.25}
+html,body{margin:0;padding:0;background:#fff;color:#101010;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.32;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pvDoc{width:182mm;min-height:271mm;margin:0 auto;display:flex;flex-direction:column;color:#101010;background:#fff}
+.pvHeader{margin-bottom:11px;color:#101010}
+.brandBlock{text-align:left;margin:0 0 10px 0;line-height:1.25}
+.brandBlock strong{display:block;font-size:10.5pt;letter-spacing:.06em;color:#173f6f;font-weight:800}
+.brandBlock span{display:block;font-size:9.6pt;color:#2a2f36;margin-top:2px}
+.topRule{height:0;border-top:3px solid #173f6f;margin:9px 0 22px 0}
+.pvHeader h1{font-size:20pt;line-height:1.12;margin:0;text-align:center;text-transform:uppercase;color:#173f6f;font-weight:900;letter-spacing:-.02em}
+.sub{text-align:center;font-size:13pt;color:#5d6f86;margin-top:6px}
+.titleRule{width:28mm;border-top:1.5px solid #173f6f;margin:12px auto 0 auto}
+.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:9px 0 13px;table-layout:fixed}
+.infoTable td,.dataTable th,.dataTable td{border:1px solid #91a4ba;padding:7px 9px;vertical-align:middle;color:#101010!important}
+.infoTable td{font-size:10.4pt;line-height:1.22}
+.infoTable td:first-child{width:27%;font-weight:800;background:#f1f4f8;color:#101010!important}
+.dataTable th{background:#e6ebf2;color:#101010!important;font-weight:900;text-transform:uppercase;font-size:9.8pt;text-align:center;letter-spacing:.02em}
+.dataTable td{font-size:10.2pt;line-height:1.22}
 .dataTable .amount{text-align:right;white-space:nowrap}
-h2{font-size:12.2pt;margin:12px 0 6px;color:#111;line-height:1.2}
-p{margin:5px 0}
-.okBlock{border-left:4px solid #1fa77e;background:#eaf8f2;padding:8px 10px;margin:8px 0 11px;font-size:9.8pt;color:#111}
-.legalText{font-size:9.6pt;margin-top:6px}
-.signBlock{margin-top:22px;font-size:10pt;line-height:1.55;page-break-inside:avoid}
-.signBlock p{margin:6px 0}
-.pvFooter{margin-top:auto;border-top:1px solid #c5ccd5;padding-top:8px;text-align:center;font-size:8pt;color:#555}
+.resolution h2,.entries h2{font-size:13.2pt;margin:17px 0 8px;color:#173f6f;text-transform:uppercase;letter-spacing:.01em;line-height:1.2;font-weight:900}
+p{margin:6px 0}
+.resolution p{font-size:10.8pt;line-height:1.32;margin-bottom:9px}
+.okBlock{border-left:4px solid #16a37e;background:#eaf7f1;padding:9px 11px;margin:10px 0 16px;font-size:10.5pt;color:#101010}
+.legalText{font-size:10.4pt;margin:9px 0 17px;line-height:1.32}
+.signBlock{margin-top:20px;font-size:11pt;line-height:1.55;page-break-inside:avoid;color:#101010}
+.signBlock p{margin:7px 0}
+.pvFooter{margin-top:auto;border-top:3px solid #173f6f;padding-top:10px;text-align:center;font-size:10pt;color:#444;line-height:1.25}
+.pvFooter strong{color:#173f6f;font-size:10.5pt;letter-spacing:.04em}
 @media print{html,body{width:210mm;height:auto}.pvDoc{width:182mm;min-height:271mm;margin:0 auto}.noPrint{display:none!important}}
 `;
 function pvHtml(){
@@ -298,11 +309,18 @@ $("wordBtn") && $("wordBtn").addEventListener("click",()=>{
     div.WordSection1{page:WordSection1;}
     body{mso-line-height-rule:exactly;}
     .pvDoc{width:100%;min-height:auto;margin:0;}
-    .pvHeader h1{font-size:16pt;}
-    .dataTable th{background:#e8edf4!important;color:#111!important;mso-shading:#e8edf4;}
-    .infoTable td:first-child{background:#eef2f7!important;color:#111!important;mso-shading:#eef2f7;}
-    .infoTable td,.dataTable th,.dataTable td{padding:3px 6px!important;color:#111!important;}
-    .dataTable{margin:7px 0 9px;}
+    .brandBlock strong{color:#173f6f!important;}
+    .topRule{border-top:3px solid #173f6f!important;}
+    .pvHeader h1{font-size:20pt;color:#173f6f!important;text-align:center!important;}
+    .sub{text-align:center!important;color:#5d6f86!important;}
+    .titleRule{border-top:1.5px solid #173f6f!important;}
+    .dataTable th{background:#e6ebf2!important;color:#101010!important;mso-shading:#e6ebf2;}
+    .infoTable td:first-child{background:#f1f4f8!important;color:#101010!important;mso-shading:#f1f4f8;}
+    .infoTable td,.dataTable th,.dataTable td{padding:7px 9px!important;color:#101010!important;border:1px solid #91a4ba!important;}
+    .resolution h2,.entries h2{color:#173f6f!important;text-transform:uppercase!important;}
+    .okBlock{background:#eaf7f1!important;mso-shading:#eaf7f1;border-left:4px solid #16a37e!important;}
+    .pvFooter{border-top:3px solid #173f6f!important;}
+    .pvFooter strong{color:#173f6f!important;}
   `;
   const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body><div class="WordSection1">${pvBody()}</div></body></html>`;
   download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`, body, "application/msword;charset=utf-8");
