@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin feedback | Axe Compta IA</title>
+<meta name="robots" content="noindex,nofollow"/>
+<style>
+:root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--radius:22px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}
+a{color:inherit;text-decoration:none}.wrap{width:min(1280px,calc(100% - 36px));margin:0 auto}
+header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}.btn.warn{color:#06121e;border-color:transparent;background:linear-gradient(135deg,#ffe082,#72e0c5)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}
+main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}.muted{color:var(--muted)}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}.metric,.box{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}select,input,textarea{border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:12px 14px;font:inherit;outline:none}input{min-width:260px}textarea{width:100%;min-height:110px;resize:vertical;margin-top:8px}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25);white-space:nowrap}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.pill.dev{background:rgba(74,163,255,.12);color:#9fd0ff;border-color:rgba(74,163,255,.30)}.pill.dark{background:rgba(255,255,255,.08);color:#d8d8d8;border-color:rgba(255,255,255,.16)}.pill.err{background:rgba(255,139,139,.10);color:#ffbcbc;border-color:rgba(255,139,139,.28)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}.errText{color:var(--danger)}.okText{color:var(--ok)}
+.feedbackTitle{font-weight:900;color:#fff}.feedbackMsg{max-width:420px;color:#dbe6f4}.rowMeta{color:var(--muted);font-size:12px;margin-top:6px}
+.modalOverlay{position:fixed;inset:0;background:rgba(3,12,24,.74);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}.modalOverlay.open{display:flex}.modal{width:min(900px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#173b66,#102847);border:1px solid rgba(255,255,255,.18);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);padding:24px}.modalHead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:14px;margin-bottom:16px}.modalTitle{font-size:24px;font-weight:900}.closeBtn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer}
+footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}table{display:block;overflow-x:auto;white-space:nowrap}.toolbar input{min-width:100%;width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a>
+    <div class="navRight">
+      <a class="btn" href="tableau-de-bord.html">Tableau de bord</a>
+      <a class="btn primary" href="admin-feedback.html">Admin feedback</a>
+      <button class="btn danger" type="button" id="logoutBtn">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<main><div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Admin feedback</h1>
+      <p class="muted">Back-office interne : suggestions, bugs, demandes utilisateurs et suivi produit.</p>
+      <p id="statusLine" class="muted">Vérification de l’accès...</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="metric"><b id="totalCount">0</b><span>retours total</span></div>
+    <div class="metric"><b id="suggestionCount">0</b><span>suggestions</span></div>
+    <div class="metric"><b id="bugCount">0</b><span>signalements</span></div>
+    <div class="metric"><b id="openCount">0</b><span>à traiter</span></div>
+  </div>
+
+  <section class="box">
+    <h2>Filtres</h2>
+    <div class="toolbar">
+      <select id="typeFilter">
+        <option value="all">Tous les types</option>
+        <option value="suggestion">Suggestions</option>
+        <option value="bug">Signalements</option>
+      </select>
+      <select id="statusFilter">
+        <option value="all">Tous les statuts</option>
+        <option value="a_etudier">À l'étude</option>
+        <option value="ouvert">Ouvert</option>
+        <option value="en_developpement">En développement</option>
+        <option value="disponible">Disponible</option>
+        <option value="non_retenue">Non retenue</option>
+        <option value="corrige">Corrigé</option>
+      </select>
+      <input id="searchInput" placeholder="Recherche titre, message, email...">
+      <button class="btn primary" type="button" id="refreshBtn">Rafraîchir</button>
+    </div>
+    <div class="notice">Principe : tu changes le statut ici, le client le voit ensuite dans “Mes suggestions”.</div>
+  </section>
+
+  <section class="box">
+    <h2>Retours utilisateurs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Utilisateur</th>
+          <th>Demande</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="feedbackRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody>
+    </table>
+  </section>
+</div></main>
+
+<div class="modalOverlay" id="detailsModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <div>
+        <div class="modalTitle" id="modalTitle">Détail</div>
+        <div class="muted" id="modalSubtitle"></div>
+      </div>
+      <button class="closeBtn" type="button" id="closeModalBtn">Fermer</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<footer><div class="wrap">© Axe Compta IA — Administration interne.</div></footer>
+
+<script type="module">
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { collection, query, orderBy, limit, getDocs, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const ADMIN_EMAILS = ["s.dumas974@gmail.com", "contact@axe-dossier.fr"];
+let currentUser=null;
+let feedbackList=[];
+
+const $=id=>document.getElementById(id);
+function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function dateFr(ts){return ts?.toDate ? ts.toDate().toLocaleString("fr-FR") : "—";}
+function normalize(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
+
+function statusLabel(status,type){
+  if(status==="en_developpement") return "En développement";
+  if(status==="disponible") return "Disponible";
+  if(status==="non_retenue") return "Non retenue";
+  if(status==="corrige") return "Corrigé";
+  if(status==="ouvert") return "Ouvert";
+  return type==="bug" ? "Ouvert" : "À l'étude";
+}
+
+function statusPill(status,type){
+  const label=statusLabel(status,type);
+  if(status==="en_developpement") return `<span class="pill dev">🔵 ${label}</span>`;
+  if(status==="disponible" || status==="corrige") return `<span class="pill">🟢 ${label}</span>`;
+  if(status==="non_retenue") return `<span class="pill dark">⚫ ${label}</span>`;
+  if(status==="ouvert") return `<span class="pill err">🔴 ${label}</span>`;
+  return `<span class="pill warn">🟡 ${label}</span>`;
+}
+
+function typeLabel(type){
+  return type==="bug" ? "🐞 Problème" : "💡 Suggestion";
+}
+
+function isAdmin(user){
+  return user && ADMIN_EMAILS.includes(String(user.email||"").toLowerCase());
+}
+
+async function loadFeedback(){
+  $("feedbackRows").innerHTML=`<tr><td colspan="6" class="muted">Chargement...</td></tr>`;
+  const snap=await getDocs(query(collection(db,"feedback"),orderBy("createdAt","desc"),limit(500)));
+  feedbackList=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  renderStats();
+  renderRows();
+}
+
+function renderStats(){
+  const total=feedbackList.length;
+  const suggestions=feedbackList.filter(x=>x.type==="suggestion").length;
+  const bugs=feedbackList.filter(x=>x.type==="bug").length;
+  const open=feedbackList.filter(x=>["a_etudier","ouvert","en_developpement"].includes(x.status)).length;
+  $("totalCount").textContent=total;
+  $("suggestionCount").textContent=suggestions;
+  $("bugCount").textContent=bugs;
+  $("openCount").textContent=open;
+}
+
+function filteredList(){
+  const type=$("typeFilter").value;
+  const status=$("statusFilter").value;
+  const search=normalize($("searchInput").value);
+  return feedbackList.filter(x=>{
+    if(type!=="all" && x.type!==type) return false;
+    if(status!=="all" && x.status!==status) return false;
+    if(search){
+      const hay=normalize([x.title,x.message,x.userEmail,x.category,x.statusLabel,x.adminNote].join(" "));
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderRows(){
+  const list=filteredList();
+  if(!list.length){
+    $("feedbackRows").innerHTML=`<tr><td colspan="6" class="muted">Aucun retour correspondant aux filtres.</td></tr>`;
+    return;
+  }
+
+  $("feedbackRows").innerHTML=list.map(x=>`
+    <tr>
+      <td>${dateFr(x.createdAt)}</td>
+      <td>${typeLabel(x.type)}<div class="rowMeta">${safe(x.category||"")}</div></td>
+      <td>${safe(x.userEmail||"—")}<div class="rowMeta">${safe(x.uid||"")}</div></td>
+      <td>
+        <div class="feedbackTitle">${safe(x.title||"Sans titre")}</div>
+        <div class="feedbackMsg">${safe((x.message||"").slice(0,220))}${(x.message||"").length>220?"...":""}</div>
+        ${x.page?`<div class="rowMeta">${safe(x.page)}</div>`:""}
+      </td>
+      <td>${statusPill(x.status,x.type)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn small" type="button" data-view="${x.id}">Voir</button>
+          <button class="btn small warn" type="button" data-edit="${x.id}">Modifier</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  document.querySelectorAll("[data-view]").forEach(btn=>btn.addEventListener("click",()=>openView(btn.dataset.view)));
+  document.querySelectorAll("[data-edit]").forEach(btn=>btn.addEventListener("click",()=>openEdit(btn.dataset.edit)));
+}
+
+function openModal(title,subtitle,html){
+  $("modalTitle").textContent=title;
+  $("modalSubtitle").textContent=subtitle;
+  $("modalContent").innerHTML=html;
+  $("detailsModal").classList.add("open");
+}
+
+function closeModal(){
+  $("detailsModal").classList.remove("open");
+}
+
+function findItem(id){
+  return feedbackList.find(x=>x.id===id);
+}
+
+function openView(id){
+  const x=findItem(id);
+  if(!x) return;
+  openModal(x.title||"Détail", `${typeLabel(x.type)} — ${statusLabel(x.status,x.type)}`, `
+    <div class="notice"><b>Utilisateur :</b> ${safe(x.userEmail||"—")}<br><b>Catégorie :</b> ${safe(x.category||"—")}<br><b>Date :</b> ${dateFr(x.createdAt)}</div>
+    <h3>Message</h3>
+    <div class="notice">${safe(x.message||"")}</div>
+    ${x.screenshotName?`<div class="notice"><b>Capture indiquée :</b> ${safe(x.screenshotName)}</div>`:""}
+    ${x.page?`<div class="notice"><b>Page :</b><br>${safe(x.page)}</div>`:""}
+    ${x.adminNote?`<h3>Note admin</h3><div class="notice">${safe(x.adminNote)}</div>`:""}
+  `);
+}
+
+function openEdit(id){
+  const x=findItem(id);
+  if(!x) return;
+  openModal("Modifier le statut", `${safe(x.title||"Sans titre")} — ${safe(x.userEmail||"")}`, `
+    <div class="notice">${safe(x.message||"")}</div>
+    <div class="field">
+      <label>Statut</label>
+      <select id="editStatus">
+        <option value="a_etudier" ${x.status==="a_etudier"?"selected":""}>À l'étude</option>
+        <option value="ouvert" ${x.status==="ouvert"?"selected":""}>Ouvert</option>
+        <option value="en_developpement" ${x.status==="en_developpement"?"selected":""}>En développement</option>
+        <option value="disponible" ${x.status==="disponible"?"selected":""}>Disponible</option>
+        <option value="non_retenue" ${x.status==="non_retenue"?"selected":""}>Non retenue</option>
+        <option value="corrige" ${x.status==="corrige"?"selected":""}>Corrigé</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Note visible côté client</label>
+      <textarea id="editNote" placeholder="Ex : Ajout prévu dans la prochaine version.">${safe(x.adminNote||"")}</textarea>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="button" id="saveEditBtn">Enregistrer</button>
+      <button class="btn secondary" type="button" id="cancelEditBtn">Annuler</button>
+    </div>
+    <div id="editMsg" class="notice" style="display:none"></div>
+  `);
+  $("cancelEditBtn").addEventListener("click",closeModal);
+  $("saveEditBtn").addEventListener("click",()=>saveEdit(id));
+}
+
+async function saveEdit(id){
+  const btn=$("saveEditBtn");
+  const msg=$("editMsg");
+  const status=$("editStatus").value;
+  const adminNote=$("editNote").value.trim();
+
+  btn.disabled=true;
+  btn.textContent="Enregistrement...";
+
+  try{
+    await updateDoc(doc(db,"feedback",id),{
+      status,
+      statusLabel: statusLabel(status, findItem(id)?.type),
+      adminNote,
+      updatedAt: serverTimestamp(),
+      updatedBy: currentUser.email
+    });
+    msg.style.display="block";
+    msg.innerHTML="<b class='okText'>Statut mis à jour.</b>";
+    await loadFeedback();
+    setTimeout(closeModal,500);
+  }catch(e){
+    console.error(e);
+    msg.style.display="block";
+    msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de la mise à jour.")}</b>`;
+    btn.disabled=false;
+    btn.textContent="Enregistrer";
+  }
+}
+
+$("refreshBtn").addEventListener("click",()=>loadFeedback().catch(e=>{
+  console.error(e);
+  $("feedbackRows").innerHTML=`<tr><td colspan="6" class="errText">Erreur de chargement.</td></tr>`;
+}));
+$("typeFilter").addEventListener("change",renderRows);
+$("statusFilter").addEventListener("change",renderRows);
+$("searchInput").addEventListener("input",renderRows);
+$("closeModalBtn").addEventListener("click",closeModal);
+$("detailsModal").addEventListener("click",e=>{if(e.target===$("detailsModal"))closeModal();});
+$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){location.href="connexion.html";return;}
+  currentUser=user;
+
+  if(!isAdmin(user)){
+    $("statusLine").innerHTML="<span class='errText'>Accès refusé. Cette page est réservée à l’administration Axe Compta.</span>";
+    document.querySelectorAll("main .box, main .grid").forEach(el=>el.style.display="none");
+    return;
+  }
+
+  $("statusLine").innerHTML="<span class='okText'>Accès administrateur validé.</span>";
+  try{await loadFeedback();}
+  catch(e){
+    console.error(e);
+    $("feedbackRows").innerHTML=`<tr><td colspan="6" class="errText">Erreur de chargement. Vérifiez les règles Firestore et les index.</td></tr>`;
+  }
+});
+</script>
+</body>
+</html>
