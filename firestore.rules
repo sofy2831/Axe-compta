@@ -3,14 +3,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email in [
+          "s.dumas974@gmail.com",
+          "contact@axe-dossier.fr"
+        ];
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null
+      allow read, write: if isSignedIn()
                           && request.auth.uid == userId;
 
       match /{document=**} {
-        allow read, write: if request.auth != null
+        allow read, write: if isSignedIn()
                             && request.auth.uid == userId;
       }
+    }
+
+    match /feedback/{feedbackId} {
+      // Le client voit uniquement ses propres demandes
+      allow read: if isSignedIn()
+                  && resource.data.uid == request.auth.uid;
+
+      // Admin voit et modifie tout
+      allow read, update, delete: if isAdmin();
+
+      // Création directe bloquée côté client.
+      // Les créations passent par submitFeedback en Cloud Function.
+      allow create: if false;
     }
   }
 }
