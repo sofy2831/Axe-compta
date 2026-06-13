@@ -1181,3 +1181,153 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Erreur parsing fichiers." });
   }
 });
+function extractOpenAiText(data) {
+  if (data.output_text) return data.output_text;
+
+  const parts = [];
+  (data.output || []).forEach(item => {
+    (item.content || []).forEach(content => {
+      if (content.type === "output_text" && content.text) parts.push(content.text);
+      if (content.text) parts.push(content.text);
+    });
+  });
+
+  return parts.join("\n").trim();
+}
+
+function fallbackAffectation(resultType, resultAmount) {
+  const amount = Number(resultAmount || 0);
+
+  if (resultType === "loss") {
+    return {
+      recommendation: "loss",
+      reserveAmount: 0,
+      carryForwardAmount: 0,
+      dividendAmount: 0,
+      lossCarryForwardAmount: amount,
+      explanation: "La perte doit être affectée en report à nouveau débiteur.",
+      warnings: ["Contrôler l'existence éventuelle de pertes antérieures et la situation des capitaux propres."],
+      pvJustification: "L'Assemblée Générale décide d'affecter la perte de l'exercice en report à nouveau débiteur."
+    };
+  }
+
+  const reserve = Math.round(amount * 0.05 * 100) / 100;
+  const carry = Math.round((amount - reserve) * 100) / 100;
+
+  return {
+    recommendation: "prudent",
+    reserveAmount: reserve,
+    carryForwardAmount: carry,
+    dividendAmount: 0,
+    lossCarryForwardAmount: 0,
+    explanation: "Affectation prudente proposée : une part en réserve, le solde en report à nouveau afin de renforcer les capitaux propres.",
+    warnings: ["Vérifier les statuts, les réserves obligatoires et la trésorerie avant toute distribution."],
+    pvJustification: "L'Assemblée Générale décide d'affecter le bénéfice en réserve et en report à nouveau afin de renforcer la situation financière de la société."
+  };
+}
+
+exports.aiAffectationResultat = onRequest(
+  { secrets: ["OPENAI_API_KEY"] },
+  async (req, res) => {
+    setCors(res);
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+    try {
+      const { uid, closureId, resultType, resultAmount, currentAllocation } = req.body || {};
+      if (!uid || !closureId) return res.status(400).json({ error: "uid ou closureId manquant." });
+
+      const db = admin.firestore();
+      const snap = await db.collection("users").doc(uid).collection("closures").doc(closureId).get();
+      if (!snap.exists) return res.status(404).json({ error: "Clôture introuvable." });
+
+      const closure = snap.data() || {};
+      const amount = Number(resultAmount || 0);
+
+      const fallback = fallbackAffectation(resultType, amount);
+      if (!amount) return res.json({ ok: true, ...fallback });
+
+      const prompt = `
+Tu es un assistant de clôture comptable français.
+
+Objectif :
+Proposer une affectation du résultat claire, prudente et exploitable.
+
+Données :
+- Société : ${closure.companyName || "Non renseignée"}
+- Exercice : ${closure.startDate || "?"} au ${closure.endDate || "?"}
+- Nature du résultat : ${resultType === "loss" ? "perte" : "bénéfice"}
+- Montant : ${amount}
+- Affectation actuelle : ${JSON.stringify(currentAllocation || {})}
+
+Contraintes :
+- Réponds uniquement en JSON valide.
+- Ne donne pas de conseil juridique définitif.
+- Ne propose pas de dividendes si la prudence impose de renforcer les capitaux propres.
+- Si perte : affectation en report à nouveau débiteur.
+- Si bénéfice : privilégier une affectation prudente sauf indication contraire.
+
+Format JSON attendu :
+{
+  "recommendation":"prudent|report|distribution|loss",
+  "reserveAmount":0,
+  "carryForwardAmount":0,
+  "dividendAmount":0,
+  "lossCarryForwardAmount":0,
+  "explanation":"texte court",
+  "warnings":["point 1","point 2"],
+  "pvJustification":"phrase professionnelle pour le PV"
+}
+`;
+
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+          input: prompt,
+          text: {
+            format: {
+              type: "json_object"
+            }
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("OpenAI error:", data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      let ai;
+      try {
+        ai = JSON.parse(extractOpenAiText(data));
+      } catch (e) {
+        console.error("AI JSON parse error:", e, data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      return res.json({
+        ok: true,
+        recommendation: ai.recommendation || fallback.recommendation,
+        reserveAmount: Number(ai.reserveAmount || 0),
+        carryForwardAmount: Number(ai.carryForwardAmount || 0),
+        dividendAmount: Number(ai.dividendAmount || 0),
+        lossCarryForwardAmount: Number(ai.lossCarryForwardAmount || 0),
+        explanation: ai.explanation || fallback.explanation,
+        warnings: Array.isArray(ai.warnings) ? ai.warnings : fallback.warnings,
+        pvJustification: ai.pvJustification || fallback.pvJustification
+      });
+
+    } catch (error) {
+      console.error("aiAffectationResultat error:", error);
+      return res.status(500).json({ error: "Erreur IA affectation du résultat." });
+    }
+  }
+);
