@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin | Axe Compta IA</title>
+<meta name="robots" content="noindex,nofollow"/>
+<style>
+:root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--radius:22px}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}.btn.warn{color:#06121e;border-color:transparent;background:linear-gradient(135deg,#ffe082,#72e0c5)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}.muted{color:var(--muted)}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}.adminGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.metric,.box,.adminCard{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}.adminCard{padding:20px;display:flex;flex-direction:column;gap:10px;min-height:190px}.adminCard b{font-size:19px}.adminCard span{color:var(--muted);font-size:14px;display:block}.adminCard .btn{align-self:flex-start;margin-top:auto}
+.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}.errText{color:var(--danger)}.okText{color:var(--ok)}
+footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media(max-width:960px){.grid,.adminGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}@media(max-width:640px){.nav{height:76px}.logoImg{height:44px}.wrap{width:min(100% - 24px,1180px)}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="tableau-de-bord.html">Tableau de bord client</a><a class="btn primary" href="admin.html">Admin</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<main><div class="wrap"><div class="top"><div><h1>Admin Axe Compta</h1><p class="muted">Console interne développeur : retours utilisateurs, tests, suivi produit et accès SaaS.</p><p id="statusLine" class="muted">Vérification de l’accès administrateur...</p></div></div>
+<section id="adminContent" style="display:none">
+<div class="grid"><div class="metric"><b id="roleLabel">—</b><span>rôle</span></div><div class="metric"><b id="planLabel">—</b><span>plan</span></div><div class="metric"><b id="developerLabel">—</b><span>accès développeur</span></div><div class="metric"><b id="activeLabel">—</b><span>compte actif</span></div></div>
+<section class="box"><h2>Accès rapides</h2><div class="adminGrid">
+<div class="adminCard"><b>📬 Feedback utilisateurs</b><span>Suggestions, bugs, erreurs d’analyse, écritures discutables et demandes produit. Changement de statut visible côté client.</span><a class="btn primary" href="admin-feedback.html">Ouvrir</a></div>
+<div class="adminCard"><b>🧪 Tableau de bord client</b><span>Accès direct à ton espace de test SaaS avec les clôtures, affectation, extournes et score qualité.</span><a class="btn" href="tableau-de-bord.html">Ouvrir</a></div>
+<div class="adminCard"><b>📁 Nouvelle clôture test</b><span>Créer un dossier de test avec balance, grand livre, amortissements et emprunt pour vérifier les modules.</span><a class="btn" href="nouvelle-cloture.html">Créer</a></div>
+<div class="adminCard"><b>🆕 Nouveautés</b><span>À brancher ensuite : publier les versions visibles dans le tableau de bord client.</span><button class="btn warn" type="button" disabled>À venir</button></div>
+<div class="adminCard"><b>💳 Abonnements Stripe</b><span>À brancher ensuite : portail client, factures, désabonnement et suivi des formules.</span><button class="btn warn" type="button" disabled>À venir</button></div>
+<div class="adminCard"><b>🤖 IA Axe Compta</b><span>À brancher maintenant : IA affectation, puis extournes, puis score qualité.</span><a class="btn primary" href="tableau-de-bord.html">Tester</a></div>
+</div><div class="notice">Cette page doit rester réservée à l’administration. Les clients ne doivent pas avoir de lien vers cette URL.</div></section>
+<section class="box"><h2>Rappel configuration admin</h2><div class="notice">Dans Firestore, ton document utilisateur doit contenir :<br><br><b>role</b> : admin<br><b>developerAccess</b> : true<br><b>active</b> : true<br><b>plan</b> : developer</div></section>
+</section></div></main>
+<footer><div class="wrap">© Axe Compta IA — Administration interne.</div></footer>
+<script type="module">
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+const ADMIN_EMAILS=["s.dumas974@gmail.com","contact@axe-dossier.fr"];
+const $=id=>document.getElementById(id);
+function isAdminEmail(user){return user&&ADMIN_EMAILS.includes(String(user.email||"").toLowerCase())}
+function setText(id,value){$(id).textContent=value??"—"}
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href="connexion.html";return}
+  if(!isAdminEmail(user)){
+    $("statusLine").innerHTML="<span class='errText'>Accès refusé. Cette page est réservée à l'administration Axe Compta.</span>";
+    setTimeout(()=>{window.location.href="tableau-de-bord.html"},900);
+    return;
+  }
+  try{
+    const snap=await getDoc(doc(db,"users",user.uid));
+    const data=snap.exists()?snap.data():{};
+    const role=data.role||"admin";
+    const plan=data.plan||"—";
+    const developerAccess=data.developerAccess===true;
+    const active=data.active!==false;
+    setText("roleLabel",role);
+    setText("planLabel",plan);
+    setText("developerLabel",developerAccess?"Oui":"Non");
+    setText("activeLabel",active?"Oui":"Non");
+    $("statusLine").innerHTML=`<span class="okText">Accès administrateur validé : ${user.email}</span>`;
+    $("adminContent").style.display="block";
+    if(!developerAccess||role!=="admin"){
+      $("statusLine").innerHTML+=`<div class="notice warnNotice">Ton email est admin, mais ton document utilisateur n'est pas encore complet. Ajoute <b>role: admin</b> et <b>developerAccess: true</b> dans Firestore.</div>`;
+    }
+  }catch(e){
+    console.error(e);
+    $("statusLine").innerHTML="<span class='errText'>Erreur lors du chargement de ton profil admin.</span>";
+  }
+});
+$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html"});
+</script>
+</body>
+</html>
