@@ -1331,3 +1331,64 @@ Format JSON attendu :
     }
   }
 );
+exports.submitFeedback = onRequest(async (req, res) => {
+  setCors(res, "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const {
+      uid,
+      userEmail,
+      type,
+      category,
+      title,
+      message,
+      closureId,
+      page,
+      screenshotName
+    } = req.body || {};
+
+    if (!uid || !userEmail || !type || !title || !message) {
+      return res.status(400).json({ error: "Paramètres manquants." });
+    }
+
+    if (!["suggestion", "bug"].includes(type)) {
+      return res.status(400).json({ error: "Type invalide." });
+    }
+
+    const status = type === "suggestion" ? "a_etudier" : "ouvert";
+
+    const docRef = await admin.firestore().collection("feedback").add({
+      uid,
+      userEmail,
+      type,
+      category: category || "",
+      title: String(title).trim(),
+      message: String(message).trim(),
+      closureId: closureId || "",
+      page: page || "",
+      screenshotName: screenshotName || "",
+      status,
+      statusLabel: type === "suggestion" ? "À l'étude" : "Ouvert",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      adminNote: "",
+      source: "tableau-de-bord"
+    });
+
+    return res.json({
+      ok: true,
+      feedbackId: docRef.id,
+      status,
+      statusLabel: type === "suggestion" ? "À l'étude" : "Ouvert"
+    });
+
+  } catch (error) {
+    console.error("submitFeedback error:", error);
+    return res.status(500).json({ error: "Erreur lors de l’enregistrement du retour." });
+  }
+});
