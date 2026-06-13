@@ -16,8 +16,9 @@ main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-
 .metric,.box,.moduleCard,.menuCard{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}
 .modulesGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.moduleCard{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:176px}.moduleCard b{font-size:18px}.moduleCard span{color:var(--muted);font-size:14px;display:block}.moduleCard .btn{align-self:flex-start;margin-top:auto}
 .menuGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.menuCard{padding:16px;min-height:132px;cursor:pointer;transition:.18s ease}.menuCard:hover{transform:translateY(-2px);background:linear-gradient(180deg,rgba(36,86,140,.9),rgba(22,58,100,.8))}.menuCard b{display:block;margin-bottom:8px}.menuCard span{display:block;color:#d7e4f3;font-size:13px}
-table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.pill.dev{background:rgba(74,163,255,.12);color:#9fd0ff;border-color:rgba(74,163,255,.30)}.pill.dark{background:rgba(255,255,255,.08);color:#d8d8d8;border-color:rgba(255,255,255,.16)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions.inlineActions{margin-top:0}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
-.modalOverlay{position:fixed;inset:0;background:rgba(3,12,24,.74);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}.modalOverlay.open{display:flex}.modal{width:min(900px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#173b66,#102847);border:1px solid rgba(255,255,255,.18);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);padding:24px}.modalHead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:14px;margin-bottom:16px}.modalTitle{font-size:24px;font-weight:900}.closeBtn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer}.field{margin-top:14px}.field label{display:block;margin:0 0 6px;font-size:13px;font-weight:850;color:#dbe6f4}input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:13px 14px;font:inherit;outline:none}textarea{min-height:120px;resize:vertical}.suggestionRow{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;background:rgba(255,255,255,.06);margin-top:10px}.suggestionRow b{display:block;margin-bottom:5px}.suggestionRow p{margin:8px 0;color:#dbe6f4}.versionBox{border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.06);padding:14px;margin-top:12px}.versionBox h3{margin:0 0 8px}.versionBox ul{margin:8px 0 0;padding-left:22px}.contactLink{color:#8df0b3;font-weight:900;text-decoration:underline}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.pill.dev{background:rgba(74,163,255,.12);color:#9fd0ff;border-color:rgba(74,163,255,.30)}.pill.dark{background:rgba(255,255,255,.08);color:#d8d8d8;border-color:rgba(255,255,255,.16)}.pill.err{background:rgba(255,139,139,.10);color:#ffbcbc;border-color:rgba(255,139,139,.28)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions.inlineActions{margin-top:0}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}.okText{color:var(--ok)}.errText{color:var(--danger)}footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+.modalOverlay{position:fixed;inset:0;background:rgba(3,12,24,.74);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}.modalOverlay.open{display:flex}.modal{width:min(900px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#173b66,#102847);border:1px solid rgba(255,255,255,.18);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);padding:24px}.modalHead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:14px;margin-bottom:16px}.modalTitle{font-size:24px;font-weight:900}.closeBtn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer}.field{margin-top:14px}.field label{display:block;margin:0 0 6px;font-size:13px;font-weight:850;color:#dbe6f4}input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:13px 14px;font:inherit;outline:none}input[type=file]{padding:10px}textarea{min-height:120px;resize:vertical}.suggestionRow{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;background:rgba(255,255,255,.06);margin-top:10px}.suggestionRow b{display:block;margin-bottom:5px}.suggestionRow p{margin:8px 0;color:#dbe6f4}.versionBox{border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.06);padding:14px;margin-top:12px}.versionBox h3{margin:0 0 8px}.versionBox ul{margin:8px 0 0;padding-left:22px}.contactLink{color:#8df0b3;font-weight:900;text-decoration:underline}
 @media(max-width:960px){.grid,.modulesGrid,.menuGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media(max-width:640px){.nav{height:76px}.logoImg{height:44px}.wrap{width:min(100% - 24px,1180px)}}
 </style>
@@ -28,7 +29,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
 <div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
 <section class="box"><h2>Mes modules</h2><div class="modulesGrid"><div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" href="nouvelle-cloture.html">Ouvrir</a></div><div class="moduleCard"><b>📊 Affectation du résultat</b><span>Préparer l’affectation 120/129 vers 1068, 110, 119 ou 457 à partir d’une clôture.</span><a class="btn" id="affectationModuleLink" href="affectation-resultat.html">Ouvrir</a></div><div class="moduleCard"><b>🔄 Extournes automatiques</b><span>Générer les OD de contrepassation N+1 : FNP, CCA, PCA, FAE, PAR, CAP et ICNE.</span><a class="btn" id="extournesModuleLink" href="extournes-automatiques.html">Ouvrir</a></div><div class="moduleCard"><b>⭐ Score qualité</b><span>Contrôle global de cohérence : comptes d’attente, justificatifs, anomalies, recontrôles et score /100.</span><a class="btn" id="scoreModuleLink" href="score-qualite.html">Ouvrir</a></div></div></section>
-<section class="box"><h2>Menu Axe Compta</h2><p class="muted">Axe Compta évolue grâce aux retours de ses utilisateurs. Chaque suggestion est étudiée.</p><div class="menuGrid"><div class="menuCard" data-menu-action="suggest"><b>💡 Suggérer une fonctionnalité</b><span>Contrôle manquant, export à ajouter, amélioration métier ou idée de module.</span></div><div class="menuCard" data-menu-action="mySuggestions"><b>📬 Mes suggestions</b><span>Retrouvez vos demandes enregistrées sur ce navigateur et leur statut.</span></div><div class="menuCard" data-menu-action="bug"><b>🐞 Signaler un problème</b><span>Bug, erreur d’analyse, écriture discutable ou problème d’affichage.</span></div><div class="menuCard" data-menu-action="news"><b>🆕 Nouveautés</b><span>Historique réel des améliorations et prochaines mises à jour.</span></div><div class="menuCard" data-menu-action="subscription"><b>👤 Mon abonnement</b><span>Formule actuelle, factures, moyen de paiement et désabonnement.</span></div></div></section>
+<section class="box"><h2>Menu Axe Compta</h2><p class="muted">Axe Compta évolue grâce aux retours de ses utilisateurs. Chaque suggestion est étudiée.</p><div class="menuGrid"><div class="menuCard" data-menu-action="suggest"><b>💡 Suggérer une fonctionnalité</b><span>Contrôle manquant, export à ajouter, amélioration métier ou idée de module.</span></div><div class="menuCard" data-menu-action="mySuggestions"><b>📬 Mes suggestions</b><span>Retrouvez vos demandes et leur statut : à l’étude, en développement, disponible ou non retenue.</span></div><div class="menuCard" data-menu-action="bug"><b>🐞 Signaler un problème</b><span>Bug, erreur d’analyse, écriture discutable ou problème d’affichage.</span></div><div class="menuCard" data-menu-action="news"><b>🆕 Nouveautés</b><span>Historique réel des améliorations et prochaines mises à jour.</span></div><div class="menuCard" data-menu-action="subscription"><b>👤 Mon abonnement</b><span>Formule actuelle, factures, moyen de paiement et désabonnement.</span></div></div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Une clôture archivée reste conservée. Elle peut être désarchivée à tout moment.</div></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
@@ -36,30 +37,165 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 const rows=document.getElementById("closuresRows"),affectationModuleLink=document.getElementById("affectationModuleLink"),extournesModuleLink=document.getElementById("extournesModuleLink"),scoreModuleLink=document.getElementById("scoreModuleLink"),userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn");
 let currentUser=null,currentPlanLabel="À activer";
+
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;affectationModuleLink.href="affectation-resultat.html";extournesModuleLink.href="extournes-automatiques.html";scoreModuleLink.href="score-qualite.html";}
 function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Fichiers analysés";if(status==="paid")return"Activée";return"À compléter";}
 async function toggleArchive(user,closureId,archived){await updateDoc(doc(db,"users",user.uid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(user);}
-async function loadDashboard(user){userEmailEl.textContent=user.email;const userSnap=await getDoc(doc(db,"users",user.uid));let plan="À activer",active=true;if(userSnap.exists()){const data=userSnap.data();plan=data.plan==="monthly"?"149 €/mois":data.plan==="one-shot"?"39 €":"À activer";active=data.active!==false;}currentPlanLabel=plan;planLabelEl.textContent=plan;accountStatusEl.textContent=active?"Actif":"À activer";try{const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));if(snap.empty){activeClosuresEl.textContent="0";exportsCountEl.textContent="0";renderEmpty();return;}rows.innerHTML="";let exports=0,activeCount=0,firstActiveClosureId=null;snap.forEach(docSnap=>{const c=docSnap.data()||{},archived=c.archived===true,paid=c.paid===true||plan==="149 €/mois";if(!archived&&!firstActiveClosureId)firstActiveClosureId=docSnap.id;if(!archived)activeCount++;if(paid&&!archived)exports++;const status=archived?"Archivée":statusLabel(c.status);const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';const archiveLabel=archived?"Désarchiver":"Archiver";rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${safe(status)}</td><td>${payment}</td><td><div class="actions inlineActions"><a class="btn small primary" href="cloture-resultat.html?id=${encodeURIComponent(docSnap.id)}">Ouvrir</a><a class="btn small" href="affectation-resultat.html?id=${encodeURIComponent(docSnap.id)}">Affectation</a><a class="btn small" href="extournes-automatiques.html?id=${encodeURIComponent(docSnap.id)}">Extournes</a><a class="btn small" href="score-qualite.html?id=${encodeURIComponent(docSnap.id)}">Score</a><button class="btn small" type="button" data-archive="${safe(docSnap.id)}" data-state="${archived}">${archiveLabel}</button></div></td></tr>`;});affectationModuleLink.href=firstActiveClosureId?`affectation-resultat.html?id=${encodeURIComponent(firstActiveClosureId)}`:"affectation-resultat.html";extournesModuleLink.href=firstActiveClosureId?`extournes-automatiques.html?id=${encodeURIComponent(firstActiveClosureId)}`:"extournes-automatiques.html";scoreModuleLink.href=firstActiveClosureId?`score-qualite.html?id=${encodeURIComponent(firstActiveClosureId)}`:"score-qualite.html";activeClosuresEl.textContent=activeCount;exportsCountEl.textContent=exports;document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{const closureId=btn.dataset.archive,archived=btn.dataset.state==="true";btn.disabled=true;btn.textContent=archived?"Désarchivage...":"Archivage...";try{await toggleArchive(user,closureId,archived);}catch(e){console.error(e);btn.disabled=false;btn.textContent=archived?"Désarchiver":"Archiver";alert("Impossible de modifier l'archivage.");}}));}catch(e){console.error(e);renderEmpty();}}
-function openModal(title,subtitle,html){document.getElementById("modalTitle").textContent=title;document.getElementById("modalSubtitle").textContent=subtitle;document.getElementById("modalContent").innerHTML=html;document.getElementById("menuModal").classList.add("open");}
+
+async function loadDashboard(user){
+  userEmailEl.textContent=user.email;
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+  let plan="À activer",active=true;
+  if(userSnap.exists()){
+    const data=userSnap.data();
+    plan=data.plan==="monthly"?"149 €/mois":data.plan==="one-shot"?"39 €":"À activer";
+    active=data.active!==false;
+  }
+  currentPlanLabel=plan;
+  planLabelEl.textContent=plan;
+  accountStatusEl.textContent=active?"Actif":"À activer";
+
+  try{
+    const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));
+    if(snap.empty){
+      activeClosuresEl.textContent="0";
+      exportsCountEl.textContent="0";
+      renderEmpty();
+      return;
+    }
+
+    rows.innerHTML="";
+    let exports=0,activeCount=0,firstActiveClosureId=null;
+
+    snap.forEach(docSnap=>{
+      const c=docSnap.data()||{},archived=c.archived===true,paid=c.paid===true||plan==="149 €/mois";
+      if(!archived&&!firstActiveClosureId)firstActiveClosureId=docSnap.id;
+      if(!archived)activeCount++;
+      if(paid&&!archived)exports++;
+
+      const status=archived?"Archivée":statusLabel(c.status);
+      const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';
+      const archiveLabel=archived?"Désarchiver":"Archiver";
+
+      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${safe(status)}</td><td>${payment}</td><td><div class="actions inlineActions"><a class="btn small primary" href="cloture-resultat.html?id=${encodeURIComponent(docSnap.id)}">Ouvrir</a><a class="btn small" href="affectation-resultat.html?id=${encodeURIComponent(docSnap.id)}">Affectation</a><a class="btn small" href="extournes-automatiques.html?id=${encodeURIComponent(docSnap.id)}">Extournes</a><a class="btn small" href="score-qualite.html?id=${encodeURIComponent(docSnap.id)}">Score</a><button class="btn small" type="button" data-archive="${safe(docSnap.id)}" data-state="${archived}">${archiveLabel}</button></div></td></tr>`;
+    });
+
+    affectationModuleLink.href=firstActiveClosureId?`affectation-resultat.html?id=${encodeURIComponent(firstActiveClosureId)}`:"affectation-resultat.html";
+    extournesModuleLink.href=firstActiveClosureId?`extournes-automatiques.html?id=${encodeURIComponent(firstActiveClosureId)}`:"extournes-automatiques.html";
+    scoreModuleLink.href=firstActiveClosureId?`score-qualite.html?id=${encodeURIComponent(firstActiveClosureId)}`:"score-qualite.html";
+    activeClosuresEl.textContent=activeCount;
+    exportsCountEl.textContent=exports;
+
+    document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{
+      const closureId=btn.dataset.archive,archived=btn.dataset.state==="true";
+      btn.disabled=true;
+      btn.textContent=archived?"Désarchivage...":"Archivage...";
+      try{await toggleArchive(user,closureId,archived);}
+      catch(e){console.error(e);btn.disabled=false;btn.textContent=archived?"Désarchiver":"Archiver";alert("Impossible de modifier l'archivage.");}
+    }));
+  }catch(e){
+    console.error(e);
+    renderEmpty();
+  }
+}
+
+function openModal(title,subtitle,html){
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalSubtitle").textContent=subtitle;
+  document.getElementById("modalContent").innerHTML=html;
+  document.getElementById("menuModal").classList.add("open");
+}
 function closeModal(){document.getElementById("menuModal").classList.remove("open");}
-function getSavedRequests(){try{return JSON.parse(localStorage.getItem("axeComptaFeedback")||"[]");}catch(e){return[];}}
-function saveLocalRequest(item){const list=getSavedRequests();list.unshift(item);localStorage.setItem("axeComptaFeedback",JSON.stringify(list.slice(0,100)));}
-function mailto(subject,body){location.href=`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;}
-function renderSuggestForm(){openModal("Suggérer une fonctionnalité","Votre idée sera envoyée à contact@axe-dossier.fr.",`<div class="notice">Axe Compta est développé avec les retours de ses utilisateurs. Chaque suggestion est étudiée.</div><div class="field"><label>Titre de la demande</label><input id="feedbackTitle" placeholder="Ex : Ajouter un contrôle des comptes 467"></div><div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>Contrôle comptable</option><option>Export</option><option>Ergonomie</option><option>Module IA</option><option>Autre</option></select></div><div class="field"><label>Détail</label><textarea id="feedbackMessage" placeholder="Décrivez ce que vous aimeriez ajouter ou améliorer."></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer par email</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("suggestion"));}
-function renderBugForm(){openModal("Signaler un problème","Bug, erreur d'analyse, écriture discutable ou problème d'affichage.",`<div class="notice warnNotice">Le signalement sera préparé par email à <b>${SUPPORT_EMAIL}</b>. Si vous avez une capture, joignez-la directement dans votre email.</div><div class="field"><label>Type de problème</label><select id="feedbackCategory"><option>Bug</option><option>Erreur d'analyse</option><option>Écriture discutable</option><option>Problème d'affichage</option></select></div><div class="field"><label>Titre du problème</label><input id="feedbackTitle" placeholder="Ex : erreur sur les extournes"></div><div class="field"><label>Détail</label><textarea id="feedbackMessage" placeholder="Expliquez le problème, la page concernée, le dossier et ce que vous constatez."></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Préparer l'email</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("probleme"));}
-function sendFeedback(kind){const title=document.getElementById("feedbackTitle")?.value.trim()||"";const category=document.getElementById("feedbackCategory")?.value||"";const message=document.getElementById("feedbackMessage")?.value.trim()||"";const msg=document.getElementById("feedbackMsg");if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}const item={kind,title,category,message,status:"a_etude",createdAt:new Date().toLocaleString("fr-FR")};saveLocalRequest(item);msg.style.display="block";msg.innerHTML="<b>Demande enregistrée localement.</b><br>Votre logiciel de messagerie va s'ouvrir pour l'envoyer à Axe Compta.";const subject=kind==="probleme"?`[Axe Compta] Signalement - ${title}`:`[Axe Compta] Suggestion - ${title}`;const body=`Bonjour,\n\nType : ${kind}\nCatégorie : ${category}\nUtilisateur : ${currentUser?.email||""}\n\nTitre : ${title}\n\nDétail :\n${message}\n\nPage : ${location.href}\n\nCordialement`;mailto(subject,body);}
-function statusPill(status){if(status==="en_developpement")return`<span class="pill dev">🔵 En développement</span>`;if(status==="disponible")return`<span class="pill">🟢 Disponible</span>`;if(status==="non_retenue")return`<span class="pill dark">⚫ Non retenue</span>`;return`<span class="pill warn">🟡 À l'étude</span>`;}
-function renderMySuggestions(){const list=getSavedRequests();openModal("Mes suggestions","Demandes enregistrées sur ce navigateur.",list.length?`<div class="notice">Le suivi centralisé par compte sera branché dans une prochaine version. Pour l'instant, les demandes sont conservées localement et envoyées à ${SUPPORT_EMAIL}.</div>${list.map(x=>`<div class="suggestionRow"><b>${safe(x.title)}</b>${statusPill(x.status)}<p>${safe(x.message)}</p><span class="muted">${safe(x.kind)} - ${safe(x.category)} - ${safe(x.createdAt)}</span></div>`).join("")}`:`<div class="notice">Aucune demande enregistrée sur ce navigateur.</div>`);}
-function renderNews(){openModal("Nouveautés","Historique des améliorations réellement intégrées ou prévues.",`<div class="versionBox"><h3>Version actuelle - modules de clôture</h3><ul><li>Analyse balance et grand livre</li><li>Propositions d'écritures de clôture</li><li>Affectation du résultat et PV</li><li>Extournes automatiques N+1</li><li>Score qualité du dossier</li></ul></div><div class="versionBox"><h3>Prochaine étape</h3><ul><li>IA sur l'affectation du résultat</li><li>IA de contrôle des extournes</li><li>IA pour atteindre 100/100 au score qualité</li></ul></div>`);}
-function renderSubscription(){openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Contact abonnement</span><b style="font-size:18px">${SUPPORT_EMAIL}</b></div></div><div class="notice warnNotice"><b>Gestion Stripe à brancher.</b><br>Les prix de paiement existent déjà pour le checkout. En revanche, modifier le moyen de paiement, récupérer les factures et se désabonner nécessitent un portail client Stripe dédié. Tant qu'il n'est pas branché, on ne met pas de faux boutons.</div><div class="actions"><a class="btn primary" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a></div>`);}
+
+function renderSuggestForm(){
+  openModal("Suggérer une fonctionnalité","Votre demande sera enregistrée et suivie dans Mes suggestions.",`
+    <div class="notice">Axe Compta est développé avec les retours de ses utilisateurs. Chaque suggestion est étudiée.</div>
+    <div class="field"><label>Titre de la demande</label><input id="feedbackTitle" placeholder="Ex : Ajouter un contrôle des comptes 467"></div>
+    <div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>Contrôle comptable</option><option>Export</option><option>Ergonomie</option><option>Module IA</option><option>Autre</option></select></div>
+    <div class="field"><label>Détail</label><textarea id="feedbackMessage" placeholder="Décrivez ce que vous aimeriez ajouter ou améliorer."></textarea></div>
+    <div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer la suggestion</button></div>
+    <div id="feedbackMsg" class="notice" style="display:none"></div>`);
+  document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("suggestion"));
+}
+
+function renderBugForm(){
+  openModal("Signaler un problème","Bug, erreur d'analyse, écriture discutable ou problème d'affichage.",`
+    <div class="notice warnNotice">Le signalement sera enregistré dans le suivi Axe Compta. Pour joindre une capture, indiquez son nom ou envoyez-la ensuite à <b>${SUPPORT_EMAIL}</b>.</div>
+    <div class="field"><label>Type de problème</label><select id="feedbackCategory"><option>Bug</option><option>Erreur d'analyse</option><option>Écriture discutable</option><option>Problème d'affichage</option></select></div>
+    <div class="field"><label>Titre du problème</label><input id="feedbackTitle" placeholder="Ex : erreur sur les extournes"></div>
+    <div class="field"><label>Détail</label><textarea id="feedbackMessage" placeholder="Expliquez le problème, la page concernée, le dossier et ce que vous constatez."></textarea></div>
+    <div class="field"><label>Capture d'écran facultative</label><input id="feedbackScreenshot" type="file" accept=".png,.jpg,.jpeg,.webp"><p class="muted">Pour l'instant, seul le nom du fichier est conservé. L'upload de capture sera branché ensuite.</p></div>
+    <div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer le signalement</button></div>
+    <div id="feedbackMsg" class="notice" style="display:none"></div>`);
+  document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("bug"));
+}
+
+async function sendFeedback(type){
+  const title=document.getElementById("feedbackTitle")?.value.trim()||"";
+  const category=document.getElementById("feedbackCategory")?.value||"";
+  const message=document.getElementById("feedbackMessage")?.value.trim()||"";
+  const screenshotName=document.getElementById("feedbackScreenshot")?.files?.[0]?.name||"";
+  const msg=document.getElementById("feedbackMsg");
+  const btn=document.getElementById("sendFeedbackBtn");
+
+  if(!currentUser){msg.style.display="block";msg.innerHTML="<b>Connexion requise.</b>";return;}
+  if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}
+
+  btn.disabled=true;
+  btn.textContent="Enregistrement...";
+
+  try{
+    const response=await fetch(SUBMIT_FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,userEmail:currentUser.email,type,category,title,message,closureId:"",page:location.href,screenshotName})});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.ok) throw new Error(data.error||"Erreur lors de l'enregistrement.");
+    msg.style.display="block";
+    msg.innerHTML=`<b class="okText">Retour enregistré.</b><br>Statut initial : ${safe(data.statusLabel||"À l'étude")}. Vous le retrouverez dans “Mes suggestions”.`;
+    btn.textContent="Envoyé";
+  }catch(e){
+    console.error(e);
+    msg.style.display="block";
+    msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de l'enregistrement.")}</b>`;
+    btn.disabled=false;
+    btn.textContent=type==="bug"?"Envoyer le signalement":"Envoyer la suggestion";
+  }
+}
+
+function statusPill(status,statusLabel){
+  if(status==="en_developpement")return`<span class="pill dev">🔵 ${safe(statusLabel||"En développement")}</span>`;
+  if(status==="disponible")return`<span class="pill">🟢 ${safe(statusLabel||"Disponible")}</span>`;
+  if(status==="non_retenue")return`<span class="pill dark">⚫ ${safe(statusLabel||"Non retenue")}</span>`;
+  if(status==="corrige")return`<span class="pill">🟢 ${safe(statusLabel||"Corrigé")}</span>`;
+  if(status==="ouvert")return`<span class="pill warn">🟡 ${safe(statusLabel||"Ouvert")}</span>`;
+  return`<span class="pill warn">🟡 ${safe(statusLabel||"À l'étude")}</span>`;
+}
+
+async function renderMySuggestions(){
+  openModal("Mes suggestions","Demandes enregistrées sur votre compte.",`<div class="notice">Chargement de vos demandes...</div>`);
+  try{
+    const snap=await getDocs(query(collection(db,"feedback"),where("uid","==",currentUser.uid),orderBy("createdAt","desc"),limit(100)));
+    if(snap.empty){document.getElementById("modalContent").innerHTML=`<div class="notice">Aucune demande enregistrée pour le moment.</div>`;return;}
+    document.getElementById("modalContent").innerHTML=[...snap.docs].map(d=>{const x=d.data()||{};return `<div class="suggestionRow"><b>${safe(x.title)}</b>${statusPill(x.status,x.statusLabel)}<p>${safe(x.message)}</p><span class="muted">${safe(x.type)} - ${safe(x.category)} - ${x.createdAt?.toDate?x.createdAt.toDate().toLocaleString("fr-FR"):""}</span>${x.adminNote?`<div class="notice"><b>Note Axe Compta :</b><br>${safe(x.adminNote)}</div>`:""}</div>`;}).join("");
+  }catch(e){
+    console.error(e);
+    document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Impossible de charger les demandes.</b><br>Vérifiez les règles Firestore ou l'index Firestore si nécessaire.</div>`;
+  }
+}
+
+function renderNews(){openModal("Nouveautés","Historique des améliorations réellement intégrées ou prévues.",`<div class="versionBox"><h3>Version actuelle - modules de clôture</h3><ul><li>Analyse balance et grand livre</li><li>Propositions d'écritures de clôture</li><li>Affectation du résultat et PV</li><li>Extournes automatiques N+1</li><li>Score qualité du dossier</li><li>Suivi des suggestions et signalements</li></ul></div><div class="versionBox"><h3>Prochaine étape</h3><ul><li>IA sur l'affectation du résultat</li><li>IA de contrôle des extournes</li><li>IA pour atteindre 100/100 au score qualité</li><li>Back-office développeur des retours utilisateurs</li></ul></div>`);}
+function renderSubscription(){openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Contact abonnement</span><b style="font-size:18px">${SUPPORT_EMAIL}</b></div></div><div class="notice warnNotice"><b>Gestion Stripe à brancher.</b><br>Les prix de paiement existent déjà pour le checkout. Modifier le moyen de paiement, récupérer les factures et se désabonner nécessitent un portail client Stripe dédié. Tant qu'il n'est pas branché, on ne met pas de faux boutons.</div><div class="actions"><a class="btn primary" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a></div>`);}
+
 document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();}));
-document.getElementById("closeModalBtn").addEventListener("click",closeModal);document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
-onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;loadDashboard(user);});logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
+document.getElementById("closeModalBtn").addEventListener("click",closeModal);
+document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
+onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;loadDashboard(user);});
+logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 </script>
 </body>
 </html>
