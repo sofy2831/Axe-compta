@@ -103,43 +103,45 @@ exports.stripeWebhook = onRequest(
 
         const db = admin.firestore();
 
-       if (plan === "solo") {
-  if (!closureId) return res.status(400).send("Missing closureId");
+        if (plan === "solo") {
+          if (!closureId) return res.status(400).send("Missing closureId");
 
-  await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
-    {
-      paid: true,
-      status: "paid",
-      paidAt: admin.firestore.FieldValue.serverTimestamp(),
-      stripeSessionId: session.id,
-      paymentMode: "solo",
-      plan: "solo",
-    },
-    { merge: true }
-  );
+          await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
+            {
+              paid: true,
+              status: "paid",
+              paidAt: admin.firestore.FieldValue.serverTimestamp(),
+              stripeSessionId: session.id,
+              paymentMode: "solo",
+              plan: "solo",
+            },
+            { merge: true }
+          );
 
-  await db.collection("users").doc(uid).set(
-    {
-      active: true,
-      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-}
+          await db.collection("users").doc(uid).set(
+            {
+              active: true,
+              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }
 
-if (["expert", "cabinet", "extra-collab"].includes(plan)) {
-  await db.collection("users").doc(uid).set(
-    {
-      plan,
-      active: true,
-      subscriptionActive: true,
-      stripeCustomerId: session.customer || null,
-      stripeSubscriptionId: session.subscription || null,
-      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-} 
+        if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+          await db.collection("users").doc(uid).set(
+            {
+              plan,
+              active: true,
+              subscriptionActive: true,
+              stripeCustomerId: session.customer || null,
+              stripeSubscriptionId: session.subscription || null,
+              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        }
+      }
+
       return res.status(200).send("ok");
     } catch (error) {
       console.error("Webhook processing error:", error);
