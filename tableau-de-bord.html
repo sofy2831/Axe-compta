@@ -11,7 +11,7 @@
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}
 a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}
 header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}.btn:disabled,.btn.disabled{opacity:.45;cursor:not-allowed;transform:none;pointer-events:none}.small{padding:8px 12px;font-size:13px}
 main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}.muted{color:var(--muted)}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
 .metric,.box,.moduleCard,.menuCard,.offerCard{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}
 .modulesGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.moduleCard{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:176px}.moduleCard b{font-size:18px}.moduleCard span{color:var(--muted);font-size:14px;display:block}.moduleCard .btn{align-self:flex-start;margin-top:auto}
@@ -42,9 +42,10 @@ import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, ser
 
 const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
+const CUSTOMER_PORTAL_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCustomerPortalSession";
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 const rows=document.getElementById("closuresRows"),affectationModuleLink=document.getElementById("affectationModuleLink"),extournesModuleLink=document.getElementById("extournesModuleLink"),scoreModuleLink=document.getElementById("scoreModuleLink"),userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn");
-let currentUser=null,currentPlanLabel="À activer",currentUserData={};
+let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentHasPaidSoloClosure=false;
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function planDisplay(plan){
@@ -91,6 +92,7 @@ async function loadDashboard(user){
       const c=d.data()||{};
       return c.archived!==true && (c.paid===true || c.paymentMode==="solo" || c.plan==="solo");
     });
+    currentHasPaidSoloClosure=hasPaidSoloClosure;
 
     if(currentPlanLabel==="À activer" && hasPaidSoloClosure){
       currentPlanLabel="Solo 99 €";
@@ -99,25 +101,46 @@ async function loadDashboard(user){
     }
 
     rows.innerHTML="";
-    let exports=0,activeCount=0,firstActiveClosureId=null;
+    let exports=0,activeCount=0,firstActiveClosureId=null,firstAccessibleClosureId=null;
     const subscriptionOk=isSubscriptionActive(currentUserData);
 
     snap.forEach(docSnap=>{
       const c=docSnap.data()||{},archived=c.archived===true,paid=isSoloActive(c)||subscriptionOk;
       if(!archived&&!firstActiveClosureId)firstActiveClosureId=docSnap.id;
+      if(paid&&!archived&&!firstAccessibleClosureId)firstAccessibleClosureId=docSnap.id;
       if(!archived)activeCount++;
       if(paid&&!archived)exports++;
 
       const status=archived?"Archivée":statusLabel(c.status);
       const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';
       const archiveLabel=archived?"Désarchiver":"Archiver";
+      const lockedClass=paid?"":" disabled";
+      const lockedTitle=paid?"":" title='Disponible après paiement'";
+      const actionLinks=paid
+        ? `<a class="btn small" href="affectation-resultat.html?id=${encodeURIComponent(docSnap.id)}">Affectation</a><a class="btn small" href="extournes-automatiques.html?id=${encodeURIComponent(docSnap.id)}">Extournes</a><a class="btn small" href="score-qualite.html?id=${encodeURIComponent(docSnap.id)}">Score</a><button class="btn small" type="button" data-archive="${safe(docSnap.id)}" data-state="${archived}">${archiveLabel}</button>`
+        : `<span class="btn small disabled"${lockedTitle}>Affectation</span><span class="btn small disabled"${lockedTitle}>Extournes</span><span class="btn small disabled"${lockedTitle}>Score</span><span class="btn small disabled"${lockedTitle}>Archiver</span>`;
 
-      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${safe(status)}</td><td>${payment}</td><td><div class="actions inlineActions"><a class="btn small primary" href="cloture-resultat.html?id=${encodeURIComponent(docSnap.id)}">Ouvrir</a><a class="btn small" href="affectation-resultat.html?id=${encodeURIComponent(docSnap.id)}">Affectation</a><a class="btn small" href="extournes-automatiques.html?id=${encodeURIComponent(docSnap.id)}">Extournes</a><a class="btn small" href="score-qualite.html?id=${encodeURIComponent(docSnap.id)}">Score</a><button class="btn small" type="button" data-archive="${safe(docSnap.id)}" data-state="${archived}">${archiveLabel}</button></div></td></tr>`;
+      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${safe(status)}</td><td>${payment}</td><td><div class="actions inlineActions"><a class="btn small primary" href="cloture-resultat.html?id=${encodeURIComponent(docSnap.id)}">Ouvrir</a>${actionLinks}</div></td></tr>`;
     });
 
-    affectationModuleLink.href=firstActiveClosureId?`affectation-resultat.html?id=${encodeURIComponent(firstActiveClosureId)}`:"affectation-resultat.html";
-    extournesModuleLink.href=firstActiveClosureId?`extournes-automatiques.html?id=${encodeURIComponent(firstActiveClosureId)}`:"extournes-automatiques.html";
-    scoreModuleLink.href=firstActiveClosureId?`score-qualite.html?id=${encodeURIComponent(firstActiveClosureId)}`:"score-qualite.html";
+    if(firstAccessibleClosureId){
+      affectationModuleLink.href=`affectation-resultat.html?id=${encodeURIComponent(firstAccessibleClosureId)}`;
+      extournesModuleLink.href=`extournes-automatiques.html?id=${encodeURIComponent(firstAccessibleClosureId)}`;
+      scoreModuleLink.href=`score-qualite.html?id=${encodeURIComponent(firstAccessibleClosureId)}`;
+      affectationModuleLink.classList.remove("disabled");
+      extournesModuleLink.classList.remove("disabled");
+      scoreModuleLink.classList.remove("disabled");
+    }else{
+      affectationModuleLink.href="#";
+      extournesModuleLink.href="#";
+      scoreModuleLink.href="#";
+      affectationModuleLink.classList.add("disabled");
+      extournesModuleLink.classList.add("disabled");
+      scoreModuleLink.classList.add("disabled");
+      affectationModuleLink.title="Disponible après paiement d'une clôture";
+      extournesModuleLink.title="Disponible après paiement d'une clôture";
+      scoreModuleLink.title="Disponible après paiement d'une clôture";
+    }
     activeClosuresEl.textContent=activeCount;
     exportsCountEl.textContent=exports;
 
@@ -233,12 +256,26 @@ async function renderMySuggestions(){
 
 function renderNews(){openModal("Nouveautés","Historique des améliorations réellement intégrées ou prévues.",`<div class="versionBox"><h3>Version actuelle - modules de clôture</h3><ul><li>Analyse balance et grand livre</li><li>Propositions d'écritures de clôture</li><li>Affectation du résultat et PV</li><li>Extournes automatiques N+1</li><li>Score qualité du dossier</li><li>Suivi des suggestions et signalements</li></ul></div><div class="versionBox"><h3>Prochaine étape</h3><ul><li>IA sur l'affectation du résultat</li><li>IA de contrôle des extournes</li><li>IA pour atteindre 100/100 au score qualité</li><li>Back-office développeur des retours utilisateurs</li></ul></div>`);}
 
+
+async function openCustomerPortal(){
+  if(!currentUser)return;
+  try{
+    const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");
+    location.href=d.url;
+  }catch(e){
+    alert(e.message||"Portail Stripe non disponible.");
+  }
+}
+
 function renderSubscription(){
-  const currentPlan=currentUserData.plan||"";
+  const isActive=(isSubscriptionActive(currentUserData)||currentHasPaidSoloClosure);
+  const hasStripeCustomer=!!currentUserData.stripeCustomerId;
   openModal("Mon abonnement","Gestion de l'offre actuelle.",`
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
       <div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div>
-      <div class="metric"><span>Statut</span><b>${isSubscriptionActive(currentUserData)?"Actif":"À activer"}</b></div>
+      <div class="metric"><span>Statut</span><b>${isActive?"Actif":"À activer"}</b></div>
     </div>
     <div class="notice">Vous pouvez changer de formule depuis cet écran. Le paiement ou changement d'abonnement se fait via Stripe.</div>
     <div class="offerGrid">
@@ -247,11 +284,16 @@ function renderSubscription(){
       <div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire.</p><div class="offerPrice">129 € / mois</div><button class="btn" data-sub-plan="extra-collab" data-original="Ajouter une licence">Ajouter une licence</button></div>
       <div class="offerCard"><h3>Clôture Solo</h3><p>Paiement par dossier depuis la page Résultat.</p><div class="offerPrice">99 € / clôture</div><a class="btn" href="nouvelle-cloture.html?plan=solo">Créer une clôture</a></div>
     </div>
-    <div class="notice warnNotice"><b>Factures, moyen de paiement et désabonnement :</b><br>nécessitent le portail client Stripe. À brancher ensuite pour que le client gère seul ses factures, sa carte et la résiliation.</div>
-    <div class="actions"><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a></div>`);
+    <div class="notice warnNotice"><b>Factures, moyen de paiement et désabonnement :</b><br>ces actions passent par le portail client Stripe. Le bouton sera pleinement opérationnel dès que la fonction backend <code>createCustomerPortalSession</code> sera déployée.</div>
+    <div class="actions">
+      <button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button>
+      <button class="btn danger" type="button" id="portalCancelBtn">Se désabonner</button>
+      <a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a>
+    </div>`);
   document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));
+  document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);
+  document.getElementById("portalCancelBtn")?.addEventListener("click",openCustomerPortal);
 }
-
 document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();}));
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
