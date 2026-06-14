@@ -13,13 +13,14 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));m
 header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}
 main{padding:42px 0 72px}h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}.muted{color:var(--muted)}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
-.metric,.box,.moduleCard,.menuCard{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}
+.metric,.box,.moduleCard,.menuCard,.offerCard{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}.box{padding:24px;margin-bottom:22px}
 .modulesGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.moduleCard{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:176px}.moduleCard b{font-size:18px}.moduleCard span{color:var(--muted);font-size:14px;display:block}.moduleCard .btn{align-self:flex-start;margin-top:auto}
 .menuGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.menuCard{padding:16px;min-height:132px;cursor:pointer;transition:.18s ease}.menuCard:hover{transform:translateY(-2px);background:linear-gradient(180deg,rgba(36,86,140,.9),rgba(22,58,100,.8))}.menuCard b{display:block;margin-bottom:8px}.menuCard span{display:block;color:#d7e4f3;font-size:13px}
+.offerGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}.offerCard{padding:16px}.offerCard h3{margin:0 0 6px}.offerPrice{font-size:25px;font-weight:950;margin:8px 0}.offerCard p{margin:0;color:#d7e4f3;font-size:13px}
 table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:none}.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}.pill.dev{background:rgba(74,163,255,.12);color:#9fd0ff;border-color:rgba(74,163,255,.30)}.pill.dark{background:rgba(255,255,255,.08);color:#d8d8d8;border-color:rgba(255,255,255,.16)}.pill.err{background:rgba(255,139,139,.10);color:#ffbcbc;border-color:rgba(255,139,139,.28)}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions.inlineActions{margin-top:0}.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}.okText{color:var(--ok)}.errText{color:var(--danger)}footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 .modalOverlay{position:fixed;inset:0;background:rgba(3,12,24,.74);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}.modalOverlay.open{display:flex}.modal{width:min(900px,100%);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#173b66,#102847);border:1px solid rgba(255,255,255,.18);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);padding:24px}.modalHead{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.14);padding-bottom:14px;margin-bottom:16px}.modalTitle{font-size:24px;font-weight:900}.closeBtn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer}.field{margin-top:14px}.field label{display:block;margin:0 0 6px;font-size:13px;font-weight:850;color:#dbe6f4}input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:13px 14px;font:inherit;outline:none}input[type=file]{padding:10px}textarea{min-height:120px;resize:vertical}.suggestionRow{border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;background:rgba(255,255,255,.06);margin-top:10px}.suggestionRow b{display:block;margin-bottom:5px}.suggestionRow p{margin:8px 0;color:#dbe6f4}.versionBox{border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.06);padding:14px;margin-top:12px}.versionBox h3{margin:0 0 8px}.versionBox ul{margin:8px 0 0;padding-left:22px}.contactLink{color:#8df0b3;font-weight:900;text-decoration:underline}
-@media(max-width:960px){.grid,.modulesGrid,.menuGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}table{display:block;overflow-x:auto;white-space:nowrap}}
+@media(max-width:960px){.grid,.modulesGrid,.menuGrid,.offerGrid{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media(max-width:640px){.nav{height:76px}.logoImg{height:44px}.wrap{width:min(100% - 24px,1180px)}}
 </style>
 </head>
@@ -40,11 +41,24 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
+const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 const rows=document.getElementById("closuresRows"),affectationModuleLink=document.getElementById("affectationModuleLink"),extournesModuleLink=document.getElementById("extournesModuleLink"),scoreModuleLink=document.getElementById("scoreModuleLink"),userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn");
-let currentUser=null,currentPlanLabel="À activer";
+let currentUser=null,currentPlanLabel="À activer",currentUserData={};
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function planDisplay(plan){
+  if(plan==="solo")return"Solo 99 €";
+  if(plan==="expert")return"Expert 149 €/mois";
+  if(plan==="cabinet")return"Cabinet 399 €/mois";
+  if(plan==="extra-collab")return"Collaborateur 129 €/mois";
+  if(plan==="developer")return"Développeur";
+  if(plan==="monthly")return"Expert 149 €/mois";
+  if(plan==="one-shot")return"Solo 99 €";
+  return"À activer";
+}
+function isSubscriptionActive(data){return data.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(data.plan)||data.developerAccess===true||data.role==="admin";}
+function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;affectationModuleLink.href="affectation-resultat.html";extournesModuleLink.href="extournes-automatiques.html";scoreModuleLink.href="score-qualite.html";}
 function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Fichiers analysés";if(status==="paid")return"Activée";return"À compléter";}
 async function toggleArchive(user,closureId,archived){await updateDoc(doc(db,"users",user.uid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(user);}
@@ -52,11 +66,13 @@ async function toggleArchive(user,closureId,archived){await updateDoc(doc(db,"us
 async function loadDashboard(user){
   userEmailEl.textContent=user.email;
   const userSnap=await getDoc(doc(db,"users",user.uid));
-  let plan="À activer",active=true;
+  let plan="À activer",active=false;
+  currentUserData={};
   if(userSnap.exists()){
     const data=userSnap.data();
-    plan=data.plan==="monthly"?"149 €/mois":data.plan==="one-shot"?"39 €":"À activer";
-    active=data.active!==false;
+    currentUserData=data;
+    plan=planDisplay(data.plan);
+    active=data.active!==false || isSubscriptionActive(data);
   }
   currentPlanLabel=plan;
   planLabelEl.textContent=plan;
@@ -73,9 +89,10 @@ async function loadDashboard(user){
 
     rows.innerHTML="";
     let exports=0,activeCount=0,firstActiveClosureId=null;
+    const subscriptionOk=isSubscriptionActive(currentUserData);
 
     snap.forEach(docSnap=>{
-      const c=docSnap.data()||{},archived=c.archived===true,paid=c.paid===true||plan==="149 €/mois";
+      const c=docSnap.data()||{},archived=c.archived===true,paid=isSoloActive(c)||subscriptionOk;
       if(!archived&&!firstActiveClosureId)firstActiveClosureId=docSnap.id;
       if(!archived)activeCount++;
       if(paid&&!archived)exports++;
@@ -113,6 +130,21 @@ function openModal(title,subtitle,html){
   document.getElementById("menuModal").classList.add("open");
 }
 function closeModal(){document.getElementById("menuModal").classList.remove("open");}
+
+async function startSubscription(plan){
+  if(!currentUser)return;
+  const btn=document.querySelector(`[data-sub-plan="${plan}"]`);
+  try{
+    if(btn){btn.disabled=true;btn.textContent="Redirection Stripe...";}
+    const r=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,plan,email:currentUser.email})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe.");
+    location.href=d.url;
+  }catch(e){
+    alert(e.message||"Erreur Stripe.");
+    if(btn){btn.disabled=false;btn.textContent=btn.dataset.original||"Changer";}
+  }
+}
 
 function renderSuggestForm(){
   openModal("Suggérer une fonctionnalité","Votre demande sera enregistrée et suivie dans Mes suggestions.",`
@@ -189,7 +221,25 @@ async function renderMySuggestions(){
 }
 
 function renderNews(){openModal("Nouveautés","Historique des améliorations réellement intégrées ou prévues.",`<div class="versionBox"><h3>Version actuelle - modules de clôture</h3><ul><li>Analyse balance et grand livre</li><li>Propositions d'écritures de clôture</li><li>Affectation du résultat et PV</li><li>Extournes automatiques N+1</li><li>Score qualité du dossier</li><li>Suivi des suggestions et signalements</li></ul></div><div class="versionBox"><h3>Prochaine étape</h3><ul><li>IA sur l'affectation du résultat</li><li>IA de contrôle des extournes</li><li>IA pour atteindre 100/100 au score qualité</li><li>Back-office développeur des retours utilisateurs</li></ul></div>`);}
-function renderSubscription(){openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Contact abonnement</span><b style="font-size:18px">${SUPPORT_EMAIL}</b></div></div><div class="notice warnNotice"><b>Gestion Stripe à brancher.</b><br>Les prix de paiement existent déjà pour le checkout. Modifier le moyen de paiement, récupérer les factures et se désabonner nécessitent un portail client Stripe dédié. Tant qu'il n'est pas branché, on ne met pas de faux boutons.</div><div class="actions"><a class="btn primary" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a></div>`);}
+
+function renderSubscription(){
+  const currentPlan=currentUserData.plan||"";
+  openModal("Mon abonnement","Gestion de l'offre actuelle.",`
+    <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+      <div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div>
+      <div class="metric"><span>Statut</span><b>${isSubscriptionActive(currentUserData)?"Actif":"À activer"}</b></div>
+    </div>
+    <div class="notice">Vous pouvez changer de formule depuis cet écran. Le paiement ou changement d'abonnement se fait via Stripe.</div>
+    <div class="offerGrid">
+      <div class="offerCard"><h3>Axe Compta Expert</h3><p>1 utilisateur nominatif, multi-dossiers.</p><div class="offerPrice">149 € / mois</div><button class="btn primary" data-sub-plan="expert" data-original="Choisir Expert">Choisir Expert</button></div>
+      <div class="offerCard"><h3>Axe Compta Cabinet</h3><p>Jusqu'à 3 collaborateurs, 3 licences nominatives.</p><div class="offerPrice">399 € / mois</div><button class="btn primary" data-sub-plan="cabinet" data-original="Choisir Cabinet">Choisir Cabinet</button></div>
+      <div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire.</p><div class="offerPrice">129 € / mois</div><button class="btn" data-sub-plan="extra-collab" data-original="Ajouter une licence">Ajouter une licence</button></div>
+      <div class="offerCard"><h3>Clôture Solo</h3><p>Paiement par dossier depuis la page Résultat.</p><div class="offerPrice">99 € / clôture</div><a class="btn" href="nouvelle-cloture.html?plan=solo">Créer une clôture</a></div>
+    </div>
+    <div class="notice warnNotice"><b>Factures, moyen de paiement et désabonnement :</b><br>nécessitent le portail client Stripe. À brancher ensuite pour que le client gère seul ses factures, sa carte et la résiliation.</div>
+    <div class="actions"><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a></div>`);
+  document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));
+}
 
 document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();}));
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
