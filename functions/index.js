@@ -203,21 +203,28 @@ exports.stripeWebhook = onRequest(
             break;
           }
 
-          const plan = planFromSubscription(subscription);
-          const isActive = ["active", "trialing"].includes(subscription.status);
+         const plan = planFromSubscription(subscription);
+const isActive = ["active", "trialing"].includes(subscription.status);
 
-          await userDoc.ref.set(
-            {
-              plan: plan || userDoc.data().plan || "",
-              active: isActive,
-              subscriptionActive: isActive,
-              paymentStatus: subscription.status,
-              stripeCustomerId: subscription.customer || userDoc.data().stripeCustomerId || null,
-              stripeSubscriptionId: subscription.id,
-              subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
+const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
+const subscriptionEndsAt = subscription.cancel_at
+  ? new Date(subscription.cancel_at * 1000)
+  : null;
+
+await userDoc.ref.set(
+  {
+    plan: plan || userDoc.data().plan || "",
+    active: isActive,
+    subscriptionActive: isActive,
+    paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
+    cancelAtPeriodEnd,
+    subscriptionEndsAt,
+    stripeCustomerId: subscription.customer || userDoc.data().stripeCustomerId || null,
+    stripeSubscriptionId: subscription.id,
+    subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  },
+  { merge: true }
+);
 
           break;
         }
