@@ -57,6 +57,7 @@ exports.createCheckoutSession = onRequest(
         mode,
         payment_method_types: ["card"],
         customer_email: email,
+        customer_creation: plan === "solo" ? "always" : undefined,
         line_items: [{ price: priceMap[plan], quantity: 1 }],
         success_url: `${ALLOWED_ORIGIN}/merci.html`,
         cancel_url:
