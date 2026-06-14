@@ -7,8 +7,10 @@ const XLSX = require("xlsx");
 admin.initializeApp();
 setGlobalOptions({ region: "europe-west9", maxInstances: 10 });
 
-const PRICE_ONE_SHOT = "price_1TeDflRDM80msH4WHpXEAirL";
-const PRICE_MONTHLY = "price_1TeDgZRDM80msH4W9UDDkMFd";
+const PRICE_SOLO_99 = "price_1TiAwkRDM80msH4WqJAFRL8K";
+const PRICE_EXPERT_149 = "price_1TiAzmRDM80msH4WG6H7FTAI";
+const PRICE_CABINET_399 = "price_1TiB1KRDM80msH4WmQO4gh7K";
+const PRICE_EXTRA_COLLAB_129 = "price_1TiB2DRDM80msH4Wu6rhGaVv";
 const ALLOWED_ORIGIN = "https://compta.axe-dossier.fr";
 
 function setCors(res, headers = "Content-Type, Authorization") {
@@ -29,20 +31,43 @@ exports.createCheckoutSession = onRequest(
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const { uid, closureId, plan, email } = req.body || {};
 
-      if (!uid || !plan || !email) return res.status(400).json({ error: "Paramètres manquants." });
-      if (!["one-shot", "monthly"].includes(plan)) return res.status(400).json({ error: "Plan invalide." });
-      if (plan === "one-shot" && !closureId) return res.status(400).json({ error: "closureId manquant." });
+      if (!uid || !plan || !email) {
+        return res.status(400).json({ error: "Paramètres manquants." });
+      }
 
-      const price = plan === "monthly" ? PRICE_MONTHLY : PRICE_ONE_SHOT;
+      const allowedPlans = ["solo", "expert", "cabinet", "extra-collab"];
+      if (!allowedPlans.includes(plan)) {
+        return res.status(400).json({ error: "Plan invalide." });
+      }
+
+      if (plan === "solo" && !closureId) {
+        return res.status(400).json({ error: "closureId manquant." });
+      }
+
+      const priceMap = {
+        solo: PRICE_SOLO_99,
+        expert: PRICE_EXPERT_149,
+        cabinet: PRICE_CABINET_399,
+        "extra-collab": PRICE_EXTRA_COLLAB_129,
+      };
+
+      const mode = plan === "solo" ? "payment" : "subscription";
 
       const session = await stripe.checkout.sessions.create({
-        mode: plan === "monthly" ? "subscription" : "payment",
+        mode,
         payment_method_types: ["card"],
         customer_email: email,
-        line_items: [{ price, quantity: 1 }],
+        line_items: [{ price: priceMap[plan], quantity: 1 }],
         success_url: `${ALLOWED_ORIGIN}/merci.html`,
-        cancel_url: `${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}`,
-        metadata: { uid, closureId: closureId || "", plan },
+        cancel_url:
+          plan === "solo"
+            ? `${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}`
+            : `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
+        metadata: {
+          uid,
+          closureId: closureId || "",
+          plan,
+        },
       });
 
       return res.json({ url: session.url });
@@ -78,45 +103,43 @@ exports.stripeWebhook = onRequest(
 
         const db = admin.firestore();
 
-        if (plan === "one-shot") {
-          if (!closureId) return res.status(400).send("Missing closureId");
+       if (plan === "solo") {
+  if (!closureId) return res.status(400).send("Missing closureId");
 
-          await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
-            {
-              paid: true,
-              status: "paid",
-              paidAt: admin.firestore.FieldValue.serverTimestamp(),
-              stripeSessionId: session.id,
-              paymentMode: "one-shot",
-            },
-            { merge: true }
-          );
+  await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
+    {
+      paid: true,
+      status: "paid",
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      stripeSessionId: session.id,
+      paymentMode: "solo",
+      plan: "solo",
+    },
+    { merge: true }
+  );
 
-          await db.collection("users").doc(uid).set(
-            {
-              plan: "one-shot",
-              active: true,
-              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
-        }
+  await db.collection("users").doc(uid).set(
+    {
+      active: true,
+      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
 
-        if (plan === "monthly") {
-          await db.collection("users").doc(uid).set(
-            {
-              plan: "monthly",
-              active: true,
-              subscriptionActive: true,
-              stripeCustomerId: session.customer || null,
-              stripeSubscriptionId: session.subscription || null,
-              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
-        }
-      }
-
+if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+  await db.collection("users").doc(uid).set(
+    {
+      plan,
+      active: true,
+      subscriptionActive: true,
+      stripeCustomerId: session.customer || null,
+      stripeSubscriptionId: session.subscription || null,
+      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+} 
       return res.status(200).send("ok");
     } catch (error) {
       console.error("Webhook processing error:", error);
