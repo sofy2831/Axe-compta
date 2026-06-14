@@ -118,13 +118,15 @@ exports.stripeWebhook = onRequest(
             { merge: true }
           );
 
-          await db.collection("users").doc(uid).set(
-            {
-              active: true,
-              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
+         await db.collection("users").doc(uid).set(
+  {
+    active: true,
+    plan: "solo",
+    stripeCustomerId: session.customer || null,
+    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+  },
+  { merge: true }
+);
         }
 
         if (["expert", "cabinet", "extra-collab"].includes(plan)) {
