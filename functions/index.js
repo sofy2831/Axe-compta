@@ -86,66 +86,198 @@ exports.stripeWebhook = onRequest(
     const sig = req.headers["stripe-signature"];
 
     let event;
+
     try {
-      event = stripe.webhooks.constructEvent(req.rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      event = stripe.webhooks.constructEvent(
+        req.rawBody,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
     } catch (error) {
       console.error("Webhook signature error:", error.message);
       return res.status(400).send(`Webhook Error: ${error.message}`);
     }
 
+    const db = admin.firestore();
+
+    function planFromSubscription(subscription) {
+      const items = subscription.items?.data || [];
+      const priceIds = items.map(item => item.price?.id).filter(Boolean);
+
+      if (priceIds.includes(PRICE_CABINET_399)) return "cabinet";
+      if (priceIds.includes(PRICE_EXPERT_149)) return "expert";
+      if (priceIds.includes(PRICE_EXTRA_COLLAB_129)) return "extra-collab";
+
+      return "";
+    }
+
+    async function findUserBySubscription(subscriptionId) {
+      if (!subscriptionId) return null;
+
+      const snap = await db
+        .collection("users")
+        .where("stripeSubscriptionId", "==", subscriptionId)
+        .limit(1)
+        .get();
+
+      if (snap.empty) return null;
+      return snap.docs[0];
+    }
+
+    async function findUserByCustomer(customerId) {
+      if (!customerId) return null;
+
+      const snap = await db
+        .collection("users")
+        .where("stripeCustomerId", "==", customerId)
+        .limit(1)
+        .get();
+
+      if (snap.empty) return null;
+      return snap.docs[0];
+    }
+
     try {
-      if (event.type === "checkout.session.completed") {
-        const session = event.data.object;
-        const uid = session.metadata?.uid;
-        const closureId = session.metadata?.closureId;
-        const plan = session.metadata?.plan;
+      switch (event.type) {
 
-        if (!uid || !plan) return res.status(400).send("Missing metadata");
+        case "checkout.session.completed": {
+          const session = event.data.object;
+          const uid = session.metadata?.uid;
+          const closureId = session.metadata?.closureId;
+          const plan = session.metadata?.plan;
 
-        const db = admin.firestore();
+          if (!uid || !plan) return res.status(400).send("Missing metadata");
 
-        if (plan === "solo") {
-          if (!closureId) return res.status(400).send("Missing closureId");
+          if (plan === "solo") {
+            if (!closureId) return res.status(400).send("Missing closureId");
 
-          await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
+            await db.collection("users").doc(uid).collection("closures").doc(closureId).set(
+              {
+                paid: true,
+                status: "paid",
+                paidAt: admin.firestore.FieldValue.serverTimestamp(),
+                stripeSessionId: session.id,
+                paymentMode: "solo",
+                plan: "solo",
+              },
+              { merge: true }
+            );
+
+            await db.collection("users").doc(uid).set(
+              {
+                active: true,
+                plan: "solo",
+                subscriptionActive: false,
+                paymentStatus: "paid",
+                stripeCustomerId: session.customer || null,
+                lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          }
+
+          if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+            await db.collection("users").doc(uid).set(
+              {
+                plan,
+                active: true,
+                subscriptionActive: true,
+                paymentStatus: "paid",
+                stripeCustomerId: session.customer || null,
+                stripeSubscriptionId: session.subscription || null,
+                lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          }
+
+          break;
+        }
+
+        case "customer.subscription.updated": {
+          const subscription = event.data.object;
+          const userDoc = await findUserBySubscription(subscription.id);
+
+          if (!userDoc) {
+            console.warn("No user found for subscription:", subscription.id);
+            break;
+          }
+
+          const plan = planFromSubscription(subscription);
+          const isActive = ["active", "trialing"].includes(subscription.status);
+
+          await userDoc.ref.set(
             {
-              paid: true,
-              status: "paid",
-              paidAt: admin.firestore.FieldValue.serverTimestamp(),
-              stripeSessionId: session.id,
-              paymentMode: "solo",
-              plan: "solo",
+              plan: plan || userDoc.data().plan || "",
+              active: isActive,
+              subscriptionActive: isActive,
+              paymentStatus: subscription.status,
+              stripeCustomerId: subscription.customer || userDoc.data().stripeCustomerId || null,
+              stripeSubscriptionId: subscription.id,
+              subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
 
-         await db.collection("users").doc(uid).set(
-  {
-    active: true,
-    plan: "solo",
-    stripeCustomerId: session.customer || null,
-    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-  },
-  { merge: true }
-);
+          break;
         }
 
-        if (["expert", "cabinet", "extra-collab"].includes(plan)) {
-          await db.collection("users").doc(uid).set(
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object;
+          const userDoc = await findUserBySubscription(subscription.id);
+
+          if (!userDoc) {
+            console.warn("No user found for deleted subscription:", subscription.id);
+            break;
+          }
+
+          await userDoc.ref.set(
             {
-              plan,
-              active: true,
-              subscriptionActive: true,
-              stripeCustomerId: session.customer || null,
-              stripeSubscriptionId: session.subscription || null,
-              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+              active: false,
+              subscriptionActive: false,
+              paymentStatus: "canceled",
+              plan: "",
+              subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
             },
             { merge: true }
           );
+
+          break;
         }
+
+        case "invoice.payment_failed": {
+          const invoice = event.data.object;
+          const subscriptionId = invoice.subscription;
+          const customerId = invoice.customer;
+
+          let userDoc = await findUserBySubscription(subscriptionId);
+          if (!userDoc) userDoc = await findUserByCustomer(customerId);
+
+          if (!userDoc) {
+            console.warn("No user found for failed invoice:", invoice.id);
+            break;
+          }
+
+          await userDoc.ref.set(
+            {
+              active: false,
+              subscriptionActive: false,
+              paymentStatus: "failed",
+              paymentFailedAt: admin.firestore.FieldValue.serverTimestamp(),
+              lastFailedInvoiceId: invoice.id || "",
+            },
+            { merge: true }
+          );
+
+          break;
+        }
+
+        default:
+          console.log("Unhandled Stripe event:", event.type);
       }
 
       return res.status(200).send("ok");
+
     } catch (error) {
       console.error("Webhook processing error:", error);
       return res.status(500).send("Webhook processing error");
