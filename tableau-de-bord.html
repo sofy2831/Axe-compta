@@ -58,7 +58,12 @@ function planDisplay(plan){
   if(plan==="one-shot")return"Solo 99 €";
   return"À activer";
 }
-function isSubscriptionActive(data){return data.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(data.plan)||data.developerAccess===true||data.role==="admin";}
+function isSubscriptionActive(data){
+  return data.developerAccess===true
+    || data.role==="admin"
+    || data.subscriptionActive===true
+    || (data.active!==false && ["expert","cabinet","extra-collab","monthly"].includes(data.plan));
+}
 function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;affectationModuleLink.href="affectation-resultat.html";extournesModuleLink.href="extournes-automatiques.html";scoreModuleLink.href="score-qualite.html";}
 function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Fichiers analysés";if(status==="paid")return"Activée";return"À compléter";}
@@ -77,7 +82,7 @@ async function loadDashboard(user){
   }
   currentPlanLabel=plan;
   planLabelEl.textContent=plan;
-  accountStatusEl.textContent=active?"Actif":"À activer";
+  accountStatusEl.textContent=currentUserData.cancelAtPeriodEnd===true?"Résiliation programmée":(active?"Actif":"À activer");
 
   try{
     const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));
@@ -97,7 +102,7 @@ async function loadDashboard(user){
     if(currentPlanLabel==="À activer" && hasPaidSoloClosure){
       currentPlanLabel="Solo 99 €";
       planLabelEl.textContent=currentPlanLabel;
-      accountStatusEl.textContent="Actif";
+      accountStatusEl.textContent=currentUserData.cancelAtPeriodEnd===true?"Résiliation programmée":"Actif";
     }
 
     rows.innerHTML="";
@@ -269,17 +274,37 @@ async function openCustomerPortal(){
   }
 }
 
+function formatDateValue(value){
+  if(!value)return"";
+  try{
+    if(value.toDate)return value.toDate().toLocaleDateString("fr-FR");
+    if(value.seconds)return new Date(value.seconds*1000).toLocaleDateString("fr-FR");
+    const d=new Date(value);
+    return Number.isNaN(d.getTime())?"":d.toLocaleDateString("fr-FR");
+  }catch(e){return"";}
+}
+
+function subscriptionEndingText(data){
+  if(data.cancelAtPeriodEnd!==true)return"";
+  const end=formatDateValue(data.subscriptionEndsAt||data.subscriptionCancelAt||data.cancelAt);
+  return end?`Annulation prévue le ${end}. Accès conservé jusqu'à cette date.`:"Annulation prévue à la fin de la période payée.";
+}
+
 function renderSubscription(){
   const isActive=(isSubscriptionActive(currentUserData)||currentHasPaidSoloClosure);
   const planKey=String(currentUserData.plan||"").toLowerCase();
   const isSolo=currentPlanLabel==="Solo 99 €" || planKey==="solo";
-  const isSubscription=["expert","cabinet","extra-collab"].includes(planKey);
+  const isSubscription=["expert","cabinet","extra-collab","monthly"].includes(planKey);
+  const endingText=subscriptionEndingText(currentUserData);
+  const displayStatus=endingText ? "Actif — résiliation programmée" : (isActive ? "Actif" : "À activer");
 
   openModal("Mon abonnement","Gestion de l'offre actuelle.",`
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
       <div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div>
-      <div class="metric"><span>Statut</span><b>${isActive?"Actif":"À activer"}</b></div>
+      <div class="metric"><span>Statut</span><b>${safe(displayStatus)}</b></div>
     </div>
+
+    ${endingText ? `<div class="notice warnNotice"><b>${safe(endingText)}</b><br>Le compte reste utilisable jusqu'à la fin de la période déjà payée. À cette date, Stripe enverra la résiliation définitive.</div>` : ""}
 
     <div class="notice">
       ${isSolo
@@ -305,7 +330,7 @@ function renderSubscription(){
 
     <div class="actions">
       <button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button>
-      ${isSubscription ? `<button class="btn danger" type="button" id="portalCancelBtn">Se désabonner</button>` : ""}
+      ${isSubscription ? `<button class="btn danger" type="button" id="portalCancelBtn">${endingText ? "Gérer la résiliation" : "Se désabonner"}</button>` : ""}
       <a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a>
     </div>
   `);
