@@ -1417,3 +1417,50 @@ exports.submitFeedback = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Erreur lors de l’enregistrement du retour." });
   }
 });
+exports.createCustomerPortalSession = onRequest(
+  { secrets: ["STRIPE_SECRET_KEY"] },
+  async (req, res) => {
+    setCors(res);
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      const { uid, returnUrl } = req.body || {};
+      if (!uid) return res.status(400).json({ error: "uid manquant." });
+
+      const db = admin.firestore();
+      const userSnap = await db.collection("users").doc(uid).get();
+
+      if (!userSnap.exists) {
+        return res.status(404).json({ error: "Utilisateur introuvable." });
+      }
+
+      const user = userSnap.data() || {};
+      const customerId = user.stripeCustomerId;
+
+      if (!customerId) {
+        return res.status(400).json({
+          error: "Aucun client Stripe trouvé pour ce compte.",
+        });
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: returnUrl || `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
+      });
+
+      return res.json({ ok: true, url: session.url });
+
+    } catch (error) {
+      console.error("createCustomerPortalSession error:", error);
+      return res.status(500).json({
+        error: "Erreur création portail Stripe.",
+      });
+    }
+  }
+);
