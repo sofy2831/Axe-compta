@@ -87,6 +87,17 @@ async function loadDashboard(user){
       return;
     }
 
+    const hasPaidSoloClosure=snap.docs.some(d=>{
+      const c=d.data()||{};
+      return c.archived!==true && (c.paid===true || c.paymentMode==="solo" || c.plan==="solo");
+    });
+
+    if(currentPlanLabel==="À activer" && hasPaidSoloClosure){
+      currentPlanLabel="Solo 99 €";
+      planLabelEl.textContent=currentPlanLabel;
+      accountStatusEl.textContent="Actif";
+    }
+
     rows.innerHTML="";
     let exports=0,activeCount=0,firstActiveClosureId=null;
     const subscriptionOk=isSubscriptionActive(currentUserData);
