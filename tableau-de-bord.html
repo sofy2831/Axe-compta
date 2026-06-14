@@ -271,30 +271,60 @@ async function openCustomerPortal(){
 
 function renderSubscription(){
   const isActive=(isSubscriptionActive(currentUserData)||currentHasPaidSoloClosure);
-  const hasStripeCustomer=!!currentUserData.stripeCustomerId;
+  const planKey=String(currentUserData.plan||"").toLowerCase();
+  const isSolo=currentPlanLabel==="Solo 99 €" || planKey==="solo";
+  const isSubscription=["expert","cabinet","extra-collab"].includes(planKey);
+
   openModal("Mon abonnement","Gestion de l'offre actuelle.",`
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
       <div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div>
       <div class="metric"><span>Statut</span><b>${isActive?"Actif":"À activer"}</b></div>
     </div>
-    <div class="notice">Vous pouvez changer de formule depuis cet écran. Le paiement ou changement d'abonnement se fait via Stripe.</div>
+
+    <div class="notice">
+      ${isSolo
+        ? "Votre formule Solo 99 € est un paiement ponctuel par clôture. Il n'y a donc pas d'abonnement à résilier."
+        : "Vous pouvez changer de formule depuis cet écran. Le paiement ou changement d'abonnement se fait via Stripe."
+      }
+    </div>
+
     <div class="offerGrid">
       <div class="offerCard"><h3>Axe Compta Expert</h3><p>1 utilisateur nominatif, multi-dossiers.</p><div class="offerPrice">149 € / mois</div><button class="btn primary" data-sub-plan="expert" data-original="Choisir Expert">Choisir Expert</button></div>
       <div class="offerCard"><h3>Axe Compta Cabinet</h3><p>Jusqu'à 3 collaborateurs, 3 licences nominatives.</p><div class="offerPrice">399 € / mois</div><button class="btn primary" data-sub-plan="cabinet" data-original="Choisir Cabinet">Choisir Cabinet</button></div>
       <div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire.</p><div class="offerPrice">129 € / mois</div><button class="btn" data-sub-plan="extra-collab" data-original="Ajouter une licence">Ajouter une licence</button></div>
       <div class="offerCard"><h3>Clôture Solo</h3><p>Paiement par dossier depuis la page Résultat.</p><div class="offerPrice">99 € / clôture</div><a class="btn" href="nouvelle-cloture.html?plan=solo">Créer une clôture</a></div>
     </div>
-    <div class="notice warnNotice"><b>Factures, moyen de paiement et désabonnement :</b><br>ces actions passent par le portail client Stripe. Le bouton sera pleinement opérationnel dès que la fonction backend <code>createCustomerPortalSession</code> sera déployée.</div>
+
+    <div class="notice warnNotice">
+      <b>Gestion Stripe :</b><br>
+      ${isSubscription
+        ? "Le portail Stripe permet de consulter les factures, modifier le moyen de paiement et annuler l'abonnement."
+        : "Le portail Stripe permet de consulter les informations de facturation et les moyens de paiement. La résiliation n'apparaît que pour les abonnements mensuels."
+      }
+    </div>
+
     <div class="actions">
       <button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button>
-      <button class="btn danger" type="button" id="portalCancelBtn">Se désabonner</button>
+      ${isSubscription ? `<button class="btn danger" type="button" id="portalCancelBtn">Se désabonner</button>` : ""}
       <a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Contacter le support</a>
-    </div>`);
+    </div>
+  `);
+
   document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));
   document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);
   document.getElementById("portalCancelBtn")?.addEventListener("click",openCustomerPortal);
 }
 document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();}));
+["affectationModuleLink","extournesModuleLink","scoreModuleLink"].forEach(id=>{
+  const el=document.getElementById(id);
+  el?.addEventListener("click",e=>{
+    if(el.classList.contains("disabled")){
+      e.preventDefault();
+      alert("Module disponible après paiement d'une clôture.");
+    }
+  });
+});
+
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
 onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;loadDashboard(user);});
