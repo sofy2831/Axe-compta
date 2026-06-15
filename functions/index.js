@@ -208,7 +208,9 @@ exports.stripeWebhook = onRequest(
          const plan = planFromSubscription(subscription);
 const isActive = ["active", "trialing"].includes(subscription.status);
 
-const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
+const cancelAtPeriodEnd =
+  subscription.cancel_at_period_end === true || !!subscription.cancel_at;
+
 const subscriptionEndsAt = subscription.cancel_at
   ? new Date(subscription.cancel_at * 1000)
   : null;
