@@ -1568,6 +1568,72 @@ exports.submitFeedback = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Erreur lors de l’enregistrement du retour." });
   }
 });
+
+exports.syncStripeSubscription = onRequest(
+  { secrets: ["STRIPE_SECRET_KEY"] },
+  async (req, res) => {
+    setCors(res);
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      const { uid } = req.body || {};
+      if (!uid) return res.status(400).json({ error: "uid manquant." });
+
+      const db = admin.firestore();
+      const userRef = db.collection("users").doc(uid);
+      const userSnap = await userRef.get();
+
+      if (!userSnap.exists) {
+        return res.status(404).json({ error: "Utilisateur introuvable." });
+      }
+
+      const user = userSnap.data() || {};
+      const subscriptionId = user.stripeSubscriptionId;
+
+      if (!subscriptionId) {
+        return res.json({ ok: true, synced: false, reason: "Aucun abonnement Stripe." });
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+      const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
+      const subscriptionEndsAt = subscription.cancel_at
+        ? new Date(subscription.cancel_at * 1000)
+        : null;
+
+      const isActive = ["active", "trialing"].includes(subscription.status);
+
+      await userRef.set(
+        {
+          active: isActive,
+          subscriptionActive: isActive,
+          paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
+          cancelAtPeriodEnd,
+          subscriptionEndsAt,
+          subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      return res.json({
+        ok: true,
+        synced: true,
+        status: subscription.status,
+        cancelAtPeriodEnd,
+      });
+
+    } catch (error) {
+      console.error("syncStripeSubscription error:", error);
+      return res.status(500).json({ error: "Erreur synchronisation abonnement Stripe." });
+    }
+  }
+);
+
 exports.createCustomerPortalSession = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
   async (req, res) => {
