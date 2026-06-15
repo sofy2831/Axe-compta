@@ -26,7 +26,37 @@ function hasPlan(){return allowedPlans.includes(requestedPlan);}function isSubsc
 function showRequestedPlan(){if(!hasPlan())return;planBox.style.display="block";if(requestedPlan==="solo"){planBox.innerHTML=`<b>Parcours sélectionné :</b> ${planLabels.solo}<br>Créez votre compte, puis lancez une nouvelle clôture. Le paiement 99 € se fera depuis la page Résultat du dossier.`;}else{planBox.innerHTML=`<b>Offre sélectionnée :</b> ${planLabels[requestedPlan]}<br>Après connexion, vous serez redirigé vers le paramétrage cabinet avant paiement Stripe.`;}}
 async function ensureUserDoc(user,extra={}){const userRef=doc(db,"users",user.uid);const snap=await getDoc(userRef);const previous=snap.exists()?snap.data():{};const base={email:user.email||extra.email||"",active:previous.active===true,plan:previous.plan||"",subscriptionActive:previous.subscriptionActive===true,updatedAt:serverTimestamp(),...extra};if(!snap.exists())base.createdAt=serverTimestamp();await setDoc(userRef,base,{merge:true});}
 async function startCheckout(user,plan){if(plan==="solo"){window.location.href="nouvelle-cloture.html?plan=solo";return;}const res=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid,plan,email:user.email})});const data=await res.json().catch(()=>({}));if(!res.ok||!data.url)throw new Error(data.error||"Erreur Stripe.");window.location.href=data.url;}
-async function afterAuth(user){if(redirecting)return;redirecting=true;try{await ensureUserDoc(user);if(hasPlan()){if(requestedPlan==="solo"||next==="nouvelle-cloture"){window.location.href="nouvelle-cloture.html?plan=solo";return;}if(isSubscriptionPlan(requestedPlan)){showMessage("Redirection Stripe en cours...");await startCheckout(user,requestedPlan);return;}}window.location.href="tableau-de-bord.html";}catch(error){redirecting=false;showMessage(error.message||"Impossible de continuer.",true);}}
+async function afterAuth(user){
+  if(redirecting)return;
+  redirecting=true;
+
+  try{
+    await ensureUserDoc(user);
+
+    if(requestedPlan==="cabinet" && next==="cabinet-parametrage"){
+      window.location.href="cabinet-parametrage.html?plan=cabinet";
+      return;
+    }
+
+    if(hasPlan()){
+      if(requestedPlan==="solo" || next==="nouvelle-cloture"){
+        window.location.href="nouvelle-cloture.html?plan=solo";
+        return;
+      }
+
+      if(isSubscriptionPlan(requestedPlan)){
+        showMessage("Redirection Stripe en cours...");
+        await startCheckout(user,requestedPlan);
+        return;
+      }
+    }
+
+    window.location.href="tableau-de-bord.html";
+  }catch(error){
+    redirecting=false;
+    showMessage(error.message||"Impossible de continuer.",true);
+  }
+}
 document.querySelectorAll(".tab").forEach(tab=>{tab.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".form").forEach(f=>f.classList.remove("active"));tab.classList.add("active");document.getElementById(tab.dataset.tab+"Form").classList.add("active");msg.style.display="none";});});
 loginForm.addEventListener("submit",async e=>{e.preventDefault();try{loginSubmitBtn.disabled=true;loginSubmitBtn.textContent="Connexion...";const cred=await signInWithEmailAndPassword(auth,loginEmail.value.trim(),loginPassword.value);await afterAuth(cred.user);}catch(error){loginSubmitBtn.disabled=false;loginSubmitBtn.textContent="Me connecter";showMessage(readableFirebaseError(error),true);}});
 registerForm.addEventListener("submit",async e=>{e.preventDefault();try{registerSubmitBtn.disabled=true;registerSubmitBtn.textContent="Création...";const cred=await createUserWithEmailAndPassword(auth,registerEmail.value.trim(),registerPassword.value);await ensureUserDoc(cred.user,{email:registerEmail.value.trim(),companyName:companyName.value.trim(),plan:"",active:false,subscriptionActive:false,createdAt:serverTimestamp()});await afterAuth(cred.user);}catch(error){registerSubmitBtn.disabled=false;registerSubmitBtn.textContent="Créer mon espace";showMessage(readableFirebaseError(error),true);}});
