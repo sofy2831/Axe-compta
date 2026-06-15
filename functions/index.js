@@ -163,17 +163,19 @@ exports.stripeWebhook = onRequest(
               { merge: true }
             );
 
-            await db.collection("users").doc(uid).set(
-              {
-                active: true,
-                plan: "solo",
-                subscriptionActive: false,
-                paymentStatus: "paid",
-                stripeCustomerId: session.customer || null,
-                lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+           await db.collection("users").doc(uid).set(
+  {
+    active: true,
+    plan: "solo",
+    hasSoloPurchase: true,
+    subscriptionActive: false,
+    paymentStatus: "paid",
+    cancelAtPeriodEnd: false,
+    stripeCustomerId: session.customer || null,
+    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+  },
+  { merge: true }
+);
           }
 
           if (["expert", "cabinet", "extra-collab"].includes(plan)) {
