@@ -43,6 +43,7 @@ import { doc, getDoc, collection, query, orderBy, limit, getDocs, updateDoc, ser
 const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const CUSTOMER_PORTAL_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCustomerPortalSession";
+ const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncStripeSubscription"; 
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 const rows=document.getElementById("closuresRows"),affectationModuleLink=document.getElementById("affectationModuleLink"),extournesModuleLink=document.getElementById("extournesModuleLink"),scoreModuleLink=document.getElementById("scoreModuleLink"),userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn");
 let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentHasPaidSoloClosure=false;
