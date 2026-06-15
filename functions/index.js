@@ -1603,10 +1603,12 @@ exports.syncStripeSubscription = onRequest(
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-      const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
-      const subscriptionEndsAt = subscription.cancel_at
-        ? new Date(subscription.cancel_at * 1000)
-        : null;
+     const cancelAtPeriodEnd =
+  subscription.cancel_at_period_end === true || !!subscription.cancel_at;
+
+const subscriptionEndsAt = subscription.cancel_at
+  ? new Date(subscription.cancel_at * 1000)
+  : null;
 
       const isActive = ["active", "trialing"].includes(subscription.status);
 
