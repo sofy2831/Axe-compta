@@ -238,16 +238,22 @@ await userDoc.ref.set(
             break;
           }
 
-          await userDoc.ref.set(
-            {
-              active: false,
-              subscriptionActive: false,
-              paymentStatus: "canceled",
-              plan: "",
-              subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
+          const userData = userDoc.data() || {};
+
+const fallbackPlan =
+  userData.hasSoloPurchase === true ? "solo" : "";
+
+await userDoc.ref.set(
+{
+  active: fallbackPlan === "solo",
+  subscriptionActive: false,
+  paymentStatus: "canceled",
+  plan: fallbackPlan,
+  subscriptionCanceledAt:
+    admin.firestore.FieldValue.serverTimestamp(),
+},
+{ merge: true }
+);
 
           break;
         }
