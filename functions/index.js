@@ -246,15 +246,16 @@ const fallbackPlan =
   userData.hasSoloPurchase === true ? "solo" : "";
 
 await userDoc.ref.set(
-{
-  active: fallbackPlan === "solo",
-  subscriptionActive: false,
-  paymentStatus: "canceled",
-  plan: fallbackPlan,
-  subscriptionCanceledAt:
-    admin.firestore.FieldValue.serverTimestamp(),
-},
-{ merge: true }
+  {
+    active: fallbackPlan === "solo",
+    subscriptionActive: false,
+    paymentStatus: "canceled",
+    plan: fallbackPlan,
+    cancelAtPeriodEnd: false,
+    subscriptionEndsAt: null,
+    subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+  },
+  { merge: true }
 );
 
           break;
