@@ -28,7 +28,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
 <div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
@@ -372,7 +372,7 @@ function renderSubscription(){
 
     <div class="offerGrid">
       <div class="offerCard"><h3>Axe Compta Expert</h3><p>1 utilisateur nominatif, multi-dossiers.</p><div class="offerPrice">149 € / mois</div><button class="btn primary" data-sub-plan="expert" data-original="Choisir Expert">Choisir Expert</button></div>
-      <div class="offerCard"><h3>Axe Compta Cabinet</h3><p>Jusqu'à 3 collaborateurs, 3 licences nominatives.</p><div class="offerPrice">399 € / mois</div><button class="btn primary" data-sub-plan="cabinet" data-original="Choisir Cabinet">Choisir Cabinet</button></div>
+      <div class="offerCard"><h3>Axe Compta Cabinet</h3><p>Jusqu'à 3 collaborateurs, 3 licences nominatives.</p><div class="offerPrice">399 € / mois</div><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a></div>
       <div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire.</p><div class="offerPrice">129 € / mois</div><button class="btn" data-sub-plan="extra-collab" data-original="Ajouter une licence">Ajouter une licence</button></div>
       <div class="offerCard"><h3>Clôture Solo</h3><p>Paiement par dossier depuis la page Résultat.</p><div class="offerPrice">99 € / clôture</div><a class="btn" href="nouvelle-cloture.html?plan=solo">Créer une clôture</a></div>
     </div>
