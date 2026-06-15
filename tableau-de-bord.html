@@ -365,8 +365,21 @@ document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListe
 
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
-onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;loadDashboard(user);});
-logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    window.location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+  await syncStripeBeforeDashboard(user);
+  await loadDashboard(user);
+});
+
+logoutBtnEl.addEventListener("click",async()=>{
+  await signOut(auth);
+  window.location.href="connexion.html";
+});
 </script>
 </body>
 </html>
