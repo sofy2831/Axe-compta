@@ -145,18 +145,19 @@ $("activateBtn").addEventListener("click",async()=>{
     await setDoc(doc(db,"users",currentUser.uid),{
       planRequested:"cabinet",
       cabinetOwner:true,
-      cabinetSetup:{
-        cabinetName,
-        ownerName:$("ownerName").value.trim(),
-        ownerEmail:currentUser.email||"",
-        phone:$("phone").value.trim(),
-        includedLicenses:3,
-        extraWanted:Number($("extraWanted").value||0),
-        rightsMode:$("rightsMode").value,
-        notes:$("notes").value.trim(),
-        status:"pending_payment",
-        updatedAt:serverTimestamp()
-      },
+     cabinetSetup:{
+  cabinetName,
+  ownerName:$("ownerName").value.trim(),
+  ownerEmail:currentUser.email||"",
+  phone:$("phone").value.trim(),
+  includedLicenses:3,
+  extraWanted:Number($("extraWanted").value||0),
+  rightsMode:"by_file",
+  notes:$("notes").value.trim(),
+  status:"pending_payment",
+  createdAt:serverTimestamp(),
+  updatedAt:serverTimestamp()
+},
       updatedAt:serverTimestamp()
     },{merge:true});
 
