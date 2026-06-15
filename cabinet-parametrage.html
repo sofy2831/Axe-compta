@@ -63,13 +63,30 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
   </section>
 
   <section class="box">
-    <h2>3. Organisation des droits</h2>
-    <label>Mode de gestion souhaité</label>
-    <select id="rightsMode">
-      <option value="by_file">Droits par dossier à cocher</option>
-      <option value="shared_all">Tous les collaborateurs partagent tous les dossiers</option>
-      <option value="restricted">Accès restreint par défaut</option>
-    </select>
+  <h2>3. Après activation</h2>
+
+  <div class="notice">
+    <b>Votre espace Cabinet sera créé après paiement.</b><br>
+    Vous pourrez ensuite gérer vos collaborateurs depuis votre espace Cabinet.
+  </div>
+
+  <div class="grid">
+    <div class="metric"><span>Invitations</span><b>3 incluses</b></div>
+    <div class="metric"><span>Droits</span><b>Par dossier</b></div>
+  </div>
+
+  <div class="notice warnNotice">
+    Après activation, vous pourrez :
+    <br>✅ inviter jusqu’à 3 collaborateurs inclus ;
+    <br>✅ définir leurs droits dossier par dossier ;
+    <br>✅ suspendre ou retirer un accès ;
+    <br>✅ réattribuer une licence à un autre collaborateur ;
+    <br>✅ ajouter un collaborateur supplémentaire à 129 €/mois.
+  </div>
+
+  <label>Notes internes facultatives</label>
+  <textarea id="notes" placeholder="Ex : collaborateurs à inviter après paiement, dossiers sensibles réservés au gérant..."></textarea>
+</section>
 
     <label>Notes internes facultatives</label>
     <textarea id="notes" placeholder="Ex : dossiers sensibles réservés au gérant, collaborateurs à inviter après paiement..."></textarea>
