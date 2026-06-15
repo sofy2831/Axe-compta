@@ -70,6 +70,18 @@ function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td
 function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Fichiers analysés";if(status==="paid")return"Activée";return"À compléter";}
 async function toggleArchive(user,closureId,archived){await updateDoc(doc(db,"users",user.uid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(user);}
 
+async function syncStripeBeforeDashboard(user){
+  try{
+    await fetch(SYNC_STRIPE_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({uid:user.uid})
+    });
+  }catch(e){
+    console.warn("Sync Stripe non bloquante :", e);
+  }
+}
+ 
 async function loadDashboard(user){
   userEmailEl.textContent=user.email;
   const userSnap=await getDoc(doc(db,"users",user.uid));
