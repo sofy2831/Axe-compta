@@ -9,9 +9,10 @@
 :root{--bg:#102847;--panel:#1c4371;--panel2:#14365f;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}
-a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}.progress{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.choice b{display:block;margin-bottom:6px}.choice p{margin:0 0 10px;color:#d7e4f3;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.exportBar{display:none}.printOnly{display:none}
+a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}label{display:block;margin:14px 0 6px;font-weight:850;font-size:14px}input{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0d294b;color:#fff;font-weight:700}input[readonly]{opacity:.92}.metric,.choice{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:12px 18px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:8px 12px;font-size:13px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.err{color:var(--danger)}.ok{color:var(--ok)}.warnText{color:var(--warn)}.progress{height:10px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.choice b{display:block;margin-bottom:6px}.choice p{margin:0 0 10px;color:#d7e4f3;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line)}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.exportBar{display:none}.printArea{display:none!important}.num,.amount{text-align:right;white-space:nowrap}
+.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.doc th,.doc td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px}.doc th{background:#f3f6fa;color:#111}.doc .num,.doc .amount{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}
 @media(max-width:900px){.grid,.grid4,.cards3{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
-@media print{body{background:#fff!important;color:#111!important}.wrap{width:100%;padding:0}.topbar,.box,.exportBar{display:none!important}.printOnly{display:block!important}}
+@media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable),.exportBar{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.doc table{page-break-inside:auto}.doc tr{page-break-inside:avoid;page-break-after:auto}@page{size:A4;margin:12mm}}
 </style>
 </head>
 <body>
@@ -92,6 +93,8 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <a class="btn" id="extournesExportBtn" href="extournes-automatiques.html">Extournes</a>
     </div>
   </section>
+
+  <section class="printArea printable" id="printArea"></section>
 </div>
 
 <script type="module">
@@ -99,242 +102,60 @@ import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-const params=new URLSearchParams(window.location.search);const closureId=params.get("id");
+const params=new URLSearchParams(window.location.search);
+const closureId=params.get("id");
 let currentUser=null,currentClosure=null,resultType="profit",resultAmount=0,generatedRows=[];
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
 function euro(v){return nf.format(Number(v||0))+" €"}
 function money(v){return euro(v)}
 function totalAllocated(){return totals().allocated}
-function n(id){return Number($(id).value||0)}function set(id,v){$(id).value=v??""}
+function n(id){return Number($(id).value||0)}
+function set(id,v){$(id).value=v??""}
 function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 function cleanFile(s){return String(s||"document").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").toLowerCase()||"document"}
-function getCompte(row){return String(row.Compte||row.compte||"").replace(/\s/g,"")}
-function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const n=Number(raw);return Number.isNaN(n)?0:n}
+function getCompte(row){return String(row.Compte||row.compte||row.CompteNum||row.compteNum||"").replace(/\s/g,"")}
+function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const x=Number(raw);return Number.isNaN(x)?0:x}
 function signedAmount(row){const keys=Object.keys(row||{});let debit=0,credit=0,solde=null,montant=null;for(const k of keys){const x=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");const val=numFromValue(row[k]);if(!val)continue;if(x.includes("debit"))debit+=Math.abs(val);else if(x.includes("credit"))credit+=Math.abs(val);else if(x.includes("solde"))solde=val;else if(x.includes("montant"))montant=val;}if(debit||credit)return debit-credit;if(solde!==null)return solde;if(montant!==null)return montant;return 0}
 function findResultFromBalance(c){const rows=Array.isArray(c?.balance)?c.balance:[];const resultRows=rows.filter(r=>getCompte(r).startsWith("120")||getCompte(r).startsWith("129"));if(!resultRows.length)return null;let selected=resultRows.find(r=>getCompte(r).startsWith("120"))||resultRows[0];const compte=getCompte(selected);const amount=Math.abs(signedAmount(selected));if(!amount)return null;return{type:compte.startsWith("129")?"loss":"profit",amount}}
 function findResult(c){for(const k of ["resultAmount","accountingResult","netIncome","result","resultat"]){if(c?.[k]!==undefined&&c?.[k]!==null&&!Number.isNaN(Number(c[k]))){const v=Number(c[k]);return{type:v<0?"loss":"profit",amount:Math.abs(v)}}}return findResultFromBalance(c)}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
-function endDateLabel(){const fy=$("fiscalYear").value;const matches=fy.match(/(\d{4})-(\d{2})-(\d{2})/g);if(matches&&matches.length){const last=matches[matches.length-1];const [y,m,d]=last.split("-");return `${d}/${m}/${y}`}return fy}
+function docDateFr(v){if(!v)return "à compléter";const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:v}
+function exerciceEndFr(){const fy=$("fiscalYear").value||"";const dates=fy.match(/\d{4}-\d{2}-\d{2}/g);if(dates&&dates.length){const last=dates[dates.length-1].split("-");return `${last[2]}/${last[1]}/${last[0]}`}return fy||"l'exercice"}
 function showMode(){const profit=resultType==="profit";$("profitInputs").style.display=profit?"block":"none";$("lossInputs").style.display=profit?"none":"block";$("resultNature").textContent=profit?"Bénéfice":"Perte"}
 function totals(){const allocated=resultType==="profit"?n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");const remaining=+(resultAmount-allocated).toFixed(2);return{allocated,remaining}}
 function updateSummary(){const t=totals();$("resultAmountLabel").textContent=euro(resultAmount);$("allocatedLabel").textContent=euro(t.allocated);$("remainingLabel").textContent=euro(t.remaining);const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;$("progressBar").style.width=pct+"%";if(Math.abs(t.remaining)<=0.01){$("balanceBox").innerHTML='<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.'}else if(t.remaining>0){$("balanceBox").innerHTML=`<b class="warnText">Affectation en cours.</b><br>Il reste ${euro(t.remaining)} à affecter.`}else{$("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`}generatedRows=[];$("entriesBox").innerHTML="";$("saveBtn").disabled=true;$("pvBtn").disabled=true;$("exportBar").style.display="none"}
 ["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>$(id).addEventListener("input",updateSummary));
 function applyStrategy(strategy){if(resultType==="loss"||strategy==="loss"){set("lossCarryForwardAmount",resultAmount);updateSummary();return}set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);if(strategy==="distribution"){set("dividendAmount",resultAmount)}else if(strategy==="report"){set("carryForwardAmount",resultAmount)}else{const reserve=Math.min(resultAmount,Math.round(resultAmount*0.05*100)/100);set("reserveAmount",reserve);set("carryForwardAmount",+(resultAmount-reserve).toFixed(2))}updateSummary()}
-$("autoBtn").addEventListener("click",()=>applyStrategy(resultType==="loss"?"loss":"prudent"));document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
+$("autoBtn").addEventListener("click",()=>applyStrategy(resultType==="loss"?"loss":"prudent"));
+document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
 $("aiBtn").addEventListener("click",()=>alert("Module IA prévu : il proposera la meilleure affectation selon la société, les réserves, la trésorerie et la stratégie de distribution."));
 function buildEntries(){const t=totals();if(Math.abs(t.remaining)>0.01)throw new Error("L’affectation doit être équilibrée avant de générer les écritures.");const rows=[];if(resultType==="profit"){rows.push({journal:"OD",label:"Affectation du résultat bénéficiaire",debit:"120000",credit:"",amount:resultAmount});const r=n("reserveAmount"),cf=n("carryForwardAmount"),d=n("dividendAmount");if(r)rows.push({journal:"OD",label:"Affectation en réserves",debit:"",credit:"106800",amount:r,affectation:"Réserve légale / autres réserves"});if(cf)rows.push({journal:"OD",label:"Report à nouveau créditeur",debit:"",credit:"110000",amount:cf,affectation:"Report à nouveau créditeur"});if(d)rows.push({journal:"OD",label:"Dividendes à payer",debit:"",credit:"457000",amount:d,affectation:"Dividendes à payer"})}else{const l=n("lossCarryForwardAmount");rows.push({journal:"OD",label:"Report à nouveau débiteur",debit:"119000",credit:"",amount:l,affectation:"Report à nouveau débiteur"});rows.push({journal:"OD",label:"Affectation du résultat déficitaire",debit:"",credit:"129000",amount:l})}return rows}
-function renderEntries(rows){$("entriesBox").innerHTML=`<table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.journal}</td><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td>${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`}
-$("generateBtn").addEventListener("click",()=>{try{generatedRows=buildEntries();renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block"}catch(e){alert(e.message)}});
+function renderEntries(rows){$("entriesBox").innerHTML=`<table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit||"")}</td><td>${sanitize(r.credit||"")}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`}
+$("generateBtn").addEventListener("click",()=>{try{generatedRows=buildEntries();renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}catch(e){alert(e.message)}});
 async function saveAffectation(){if(!currentUser||!closureId)return alert("Clôture non sélectionnée.");if(!generatedRows.length)generatedRows=buildEntries();const data={companyName:$("companyName").value,fiscalYear:$("fiscalYear").value,resultType,resultAmount,reserveAmount:n("reserveAmount"),carryForwardAmount:n("carryForwardAmount"),dividendAmount:n("dividendAmount"),lossCarryForwardAmount:n("lossCarryForwardAmount"),pvDate:$("pvDate").value,entries:generatedRows,status:"generated",updatedAt:new Date().toISOString()};await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{affectationResult:data,updatedAt:serverTimestamp()},{merge:true});alert("Affectation enregistrée.")}
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
-function affectationRows(){return generatedRows.filter(r=>r.affectation).map(r=>`<tr><td>${sanitize(r.affectation)}</td><td>${r.credit||r.debit}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}
-function entriesRows(){return generatedRows.map(r=>`<tr><td>${sanitize(r.label)}</td><td>${r.debit||""}</td><td>${r.credit||""}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}
-function docDateFr(v){
-  if(!v) return "à compléter";
-  const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
-}
-function exerciceEndFr(){
-  const fy = $("fiscalYear").value || "";
-  const dates = fy.match(/\d{4}-\d{2}-\d{2}/g);
-  if(dates && dates.length){
-    const last = dates[dates.length - 1].split("-");
-    return `${last[2]}/${last[1]}/${last[0]}`;
-  }
-  return fy || "l'exercice";
-}
-function allocationRowsHtml(){
-  const rows = generatedRows.filter(r => !String(r.label || "").toLowerCase().includes("affectation du résultat"));
-  return rows.map(r=>{
-    const account = r.credit || r.debit || "";
-    return `<tr><td>${sanitize(r.affectation || r.label)}</td><td>${sanitize(account)}</td><td class="amount">${money(r.amount)}</td></tr>`;
-  }).join("");
-}
-function accountingRowsHtml(){
-  return generatedRows.map(r=>`
-    <tr>
-      <td>${sanitize(r.label)}</td>
-      <td>${sanitize(r.debit || "")}</td>
-      <td>${sanitize(r.credit || "")}</td>
-      <td class="amount">${money(r.amount)}</td>
-    </tr>`).join("");
-}
-function getExportRows(){
-  if(!generatedRows.length) generatedRows = buildEntries();
-  return generatedRows.map(r=>({
-    Journal:r.journal||"OD",
-    Libelle:r.label||"",
-    Debit:r.debit||"",
-    Credit:r.credit||"",
-    Montant:Number(r.amount||0).toFixed(2).replace(".",","),
-    Affectation:r.affectation||""
-  }));
-}
-function pvBody(){
-  const company = sanitize($("companyName").value || "Société");
-  const fiscalYear = sanitize($("fiscalYear").value || "exercice concerné");
-  const pvDate = sanitize(docDateFr($("pvDate").value));
-  const nature = resultType === "profit" ? "bénéfice" : "perte";
-  const resultText = money(resultAmount);
-  const decision = resultType === "profit"
-    ? `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`
-    : `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${resultText}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;
 
-  return `<main class="pvDoc">
-    <header class="pvHeader">
-      <div class="brandBanner">AXE COMPTA IA</div>
-      <h1>Procès-verbal d’Assemblée Générale Ordinaire</h1>
-      <div class="sub">Affectation du résultat</div>
-      <div class="titleRule"></div>
-    </header>
+function allocationRowsHtml(){const rows=generatedRows.filter(r=>!String(r.label||"").toLowerCase().includes("affectation du résultat"));return rows.map(r=>`<tr><td>${sanitize(r.affectation||r.label)}</td><td>${sanitize(r.credit||r.debit||"")}</td><td class="amount">${money(r.amount)}</td></tr>`).join("")}
+function accountingRowsHtml(){return generatedRows.map(r=>`<tr><td>${sanitize(r.journal||"OD")}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit||"")}</td><td>${sanitize(r.credit||"")}</td><td class="amount">${money(r.amount)}</td></tr>`).join("")}
+function getExportRows(){if(!generatedRows.length)generatedRows=buildEntries();return generatedRows.map(r=>({Journal:r.journal||"OD",Libelle:r.label||"",Debit:r.debit||"",Credit:r.credit||"",Montant:Number(r.amount||0).toFixed(2).replace(".",","),Affectation:r.affectation||""}))}
+function docInfoRows(title){return `<table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date du PV</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Résultat constaté</td><td>${resultType==="profit"?"Bénéfice":"Perte"} de ${money(resultAmount)}</td></tr><tr><td>Total affecté</td><td>${money(totalAllocated())}</td></tr></table>`}
+function docHtml(title="Affectation du résultat", subtitle="Écritures et décision d'affectation"){return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">${sanitize(title)}</div><div class="docSub">${sanitize(subtitle)}</div></div>${docInfoRows(title)}<div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Répartition décidée</h3><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><h3>Écritures comptables</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus doivent être contrôlées avant comptabilisation définitive.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
+function pvDocHtml(){const nature=resultType==="profit"?"bénéfice":"perte";const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Procès-verbal d'Assemblée Générale Ordinaire</div><div class="docSub">Affectation du résultat</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date de l’assemblée</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${money(resultAmount)}</td></tr></table><h3>Première résolution — Affectation du résultat</h3><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Écritures comptables résultant de la décision</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div style="margin-top:28px;line-height:1.9;page-break-inside:avoid"><p>Fait à ____________________________ le ____________________________</p><p><strong>Le représentant légal</strong></p><p>Nom : ____________________________ Qualité : ____________________________</p><p>Signature : ____________________________</p></div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
+const printCss = `@page{size:A4;margin:12mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff;font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px;vertical-align:top}th{background:#f3f6fa;color:#111;text-transform:uppercase}.amount,.num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}h3{font-size:12pt;margin:14px 0 6px;color:#173f6f;text-transform:uppercase}`;
+function htmlPage(content){return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Affectation du résultat</title><style>${printCss}</style></head><body>${content}</body></html>`}
+function ensureGenerated(){if(!generatedRows.length)generatedRows=buildEntries()}
+function openPrintDoc(){try{ensureGenerated()}catch(e){alert(e.message);return}const w=window.open("","_blank");if(!w){alert("Le navigateur a bloqué la fenêtre d’impression. Autorisez les pop-ups pour ce site.");return}w.document.open();w.document.write(htmlPage(docHtml()).replace("</body>","<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250);};<\/script></body>"));w.document.close()}
+function renderPrint(){if(!generatedRows.length)return;$("printArea").innerHTML=docHtml()}
+function download(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function csvContent(){const rows=getExportRows();const header=["Journal","Libelle","Debit","Credit","Montant","Affectation"];return [header.join(";"),...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n")}
+$("printBtn").addEventListener("click",openPrintDoc);
+$("csvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`,"\ufeff"+csvContent(),"text/csv;charset=utf-8")}catch(e){alert(e.message)}});
+$("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`,htmlPage(docHtml()),"application/vnd.ms-excel;charset=utf-8")}catch(e){alert(e.message)}});
+$("wordBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.doc`,htmlPage(docHtml()),"application/msword;charset=utf-8")}catch(e){alert(e.message)}});
+$("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`,htmlPage(pvDocHtml()),"application/msword;charset=utf-8")}catch(e){alert(e.message)}});
 
-    <table class="infoTable">
-      <tbody>
-        <tr><td>Société</td><td>${company}</td></tr>
-        <tr><td>Exercice concerné</td><td>${fiscalYear}</td></tr>
-        <tr><td>Date de l’assemblée</td><td>${pvDate}</td></tr>
-        <tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr>
-        <tr><td>Résultat constaté</td><td>${nature} de ${resultText}</td></tr>
-      </tbody>
-    </table>
-
-    <section class="resolution">
-      <h2>Première résolution — Affectation du résultat</h2>
-      <p>${decision}</p>
-
-      <table class="dataTable">
-        <thead><tr><th>Affectation</th><th>Compte</th><th>Montant</th></tr></thead>
-        <tbody>${allocationRowsHtml()}</tbody>
-      </table>
-
-      <div class="okBlock">
-        <strong>Total affecté : ${money(totalAllocated())}</strong><br>
-        Affectation équilibrée et conforme au résultat détecté.
-      </div>
-    </section>
-
-    <section class="entries">
-      <h2>Écriture comptable résultant de la présente décision</h2>
-      <table class="dataTable">
-        <thead><tr><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead>
-        <tbody>${accountingRowsHtml()}</tbody>
-      </table>
-      <p class="legalText">La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p>
-    </section>
-
-    <section class="signBlock">
-      <p>Fait à ____________________________ le ____________________________</p>
-      <p><strong>Le représentant légal</strong></p>
-      <p>Nom : ____________________________ Qualité : ____________________________</p>
-      <p>Signature : ____________________________</p>
-    </section>
-
-    <footer class="pvFooter">
-      <strong>AXE COMPTA IA</strong><br>Assistant de clôture comptable
-    </footer>
-  </main>`;
-}
-const pvCss = `
-@page{size:A4;margin:10mm 11mm 10mm 11mm}
-html,body{margin:0;padding:0;background:#fff;color:#101010;font-family:Arial,Helvetica,sans-serif;font-size:10.2pt;line-height:1.24;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.pvDoc{width:182mm;min-height:271mm;margin:0 auto;color:#101010;background:#fff}
-.pvHeader{margin-bottom:10px;color:#101010}
-.brandBanner{background:#173f6f;color:#fff;font-weight:900;letter-spacing:.07em;font-size:10pt;padding:7px 10px;margin:0 0 14px 0;text-transform:uppercase}
-.pvHeader h1{font-size:18pt;line-height:1.08;margin:0;text-align:center;text-transform:uppercase;color:#173f6f;font-weight:900;letter-spacing:-.02em}
-.sub{text-align:center;font-size:11.4pt;color:#5d6f86;margin-top:5px}
-.titleRule{width:24mm;border-top:1.5px solid #173f6f;margin:9px auto 0 auto}
-.infoTable,.dataTable{width:100%;border-collapse:collapse;margin:7px 0 10px;table-layout:fixed}
-.infoTable td,.dataTable th,.dataTable td{border:1px solid #91a4ba;padding:4px 7px;vertical-align:middle;color:#101010!important}
-.infoTable td{font-size:9.7pt;line-height:1.12}
-.infoTable td:first-child{width:27%;font-weight:800;background:#f1f4f8;color:#101010!important}
-.dataTable th{background:#e6ebf2;color:#101010!important;font-weight:900;text-transform:uppercase;font-size:9pt;text-align:center;letter-spacing:.02em}
-.dataTable td{font-size:9.6pt;line-height:1.12}
-.dataTable .amount{text-align:right;white-space:nowrap}
-.resolution h2,.entries h2{font-size:12pt;margin:12px 0 6px;color:#173f6f;text-transform:uppercase;letter-spacing:.01em;line-height:1.15;font-weight:900}
-p{margin:4px 0}
-.resolution p{font-size:10pt;line-height:1.24;margin-bottom:7px}
-.okBlock{border-left:4px solid #16a37e;background:#eaf7f1;padding:6px 9px;margin:7px 0 12px;font-size:9.8pt;color:#101010}
-.legalText{font-size:9.8pt;margin:7px 0 18px;line-height:1.28}
-.signBlock{margin-top:26px;font-size:10.2pt;line-height:1.85;page-break-inside:avoid;color:#101010}
-.signBlock p{margin:8px 0}
-.pvFooter{
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-
-    border-top:3px solid #173f6f;
-    padding-top:8px;
-
-    text-align:center;
-    font-size:9.3pt;
-    color:#444;
-    line-height:1.25;
-}
-@media print{html,body{width:210mm;height:auto}.pvDoc{width:182mm;min-height:271mm;margin:0 auto}.noPrint{display:none!important}}
-`;
-function pvHtml(){
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV AG - Affectation du résultat</title><style>${pvCss}</style></head><body>${pvBody()}</body></html>`;
-}
-function exportHtmlDoc(){
-  return pvHtml();
-}
-function ensureGenerated(){
-  if(!generatedRows.length) generatedRows = buildEntries();
-}
-function openPrintDoc(){
-  try{ensureGenerated()}catch(e){alert(e.message);return}
-  const w = window.open("", "_blank");
-  if(!w){alert("Le navigateur a bloqué la fenêtre d’impression. Autorisez les pop-ups pour ce site.");return}
-  w.document.open();
-  w.document.write(pvHtml().replace("</body>","<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250);};<\/script></body>"));
-  w.document.close();
-}
-function download(filename, content, type){
-  const blob = new Blob([content],{type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-function csvContent(){
-  const rows = getExportRows();
-  const header = ["Journal","Libelle","Debit","Credit","Montant","Affectation"];
-  return [header.join(";"), ...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n");
-}
-$("printBtn") && $("printBtn").addEventListener("click",openPrintDoc);
-$("pdfBtn") && $("pdfBtn").addEventListener("click",openPrintDoc);
-$("csvBtn") && $("csvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`, "\ufeff" + csvContent(), "text/csv;charset=utf-8")}catch(e){alert(e.message)}});
-$("excelBtn") && $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`, exportHtmlDoc(), "application/vnd.ms-excel;charset=utf-8")}catch(e){alert(e.message)}});
-$("wordBtn") && $("wordBtn").addEventListener("click",()=>{
-  try{ensureGenerated()}catch(e){alert(e.message);return}
-  const wordCss = pvCss + `
-    @page WordSection1{size:595.3pt 841.9pt;margin:32pt 38pt 32pt 38pt;}
-    div.WordSection1{page:WordSection1;}
-    body{mso-line-height-rule:exactly;font-size:10.2pt;line-height:1.24;}
-    .pvDoc{width:100%;min-height:auto;margin:0;}
-    .brandBanner{background:#173f6f!important;color:#ffffff!important;mso-shading:#173f6f;font-weight:900;padding:7px 10px!important;margin-bottom:14px!important;}
-    .pvHeader h1{font-size:18pt;color:#173f6f!important;text-align:center!important;margin:0!important;}
-    .sub{text-align:center!important;color:#5d6f86!important;font-size:11.4pt!important;margin-top:5px!important;}
-    .titleRule{border-top:1.5px solid #173f6f!important;margin:9px auto 0 auto!important;}
-    .infoTable,.dataTable{margin:7px 0 10px!important;border-collapse:collapse!important;}
-    .dataTable th{background:#e6ebf2!important;color:#101010!important;mso-shading:#e6ebf2;font-size:9pt!important;padding:4px 7px!important;}
-    .infoTable td:first-child{background:#f1f4f8!important;color:#101010!important;mso-shading:#f1f4f8;font-weight:800!important;}
-    .infoTable td,.dataTable td{padding:4px 7px!important;color:#101010!important;border:1px solid #91a4ba!important;line-height:1.12!important;font-size:9.6pt!important;}
-    .resolution h2,.entries h2{color:#173f6f!important;text-transform:uppercase!important;font-size:12pt!important;margin:12px 0 6px!important;}
-    .resolution p{font-size:10pt!important;line-height:1.24!important;margin-bottom:7px!important;}
-    .okBlock{background:#eaf7f1!important;mso-shading:#eaf7f1;border-left:4px solid #16a37e!important;padding:6px 9px!important;margin:7px 0 12px!important;}
-    .legalText{font-size:9.8pt!important;margin:7px 0 18px!important;}
-    .signBlock{margin-top:26px!important;line-height:1.85!important;page-break-inside:avoid!important;}
-    .signBlock p{margin:8px 0!important;}
-   
-    .pvFooter strong{color:#173f6f!important;}
-  `;  const body = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><title>PV AG</title><style>${wordCss}</style></head><body><div class="WordSection1">${pvBody()}</div></body></html>`;
-  download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`, body, "application/msword;charset=utf-8");
-});
-$("pvBtn") && $("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.html`, pvHtml(), "text/html;charset=utf-8")}catch(e){alert(e.message)}});
-async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;if($("extournesExportBtn")) $("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block"}}
+async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
 </script>
 </body>
