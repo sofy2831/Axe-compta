@@ -85,21 +85,15 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
         <input id="inviteEmail" type="email" placeholder="collaborateur@cabinet.fr">
       </div>
       <div>
-        <label>Rôle</label>
-        <select id="inviteRole">
-          <option value="collaborator">Collaborateur</option>
-          <option value="manager">Responsable dossier</option>
-          <option value="viewer">Lecture seule</option>
-        </select>
+        <label>Collaborateur</label>
+        <input type="text" value="Collaborateur" disabled>
       </div>
     </div>
 
-    <label>Droits par défaut</label>
-    <select id="defaultAccess">
-      <option value="none">Aucun accès dossier par défaut</option>
-      <option value="shared">Accès aux dossiers partagés uniquement</option>
-      <option value="all">Accès à tous les dossiers du cabinet</option>
-    </select>
+    <label>Dossiers autorisés</label>
+    <div class="notice">
+      Les dossiers seront sélectionnés par cases à cocher lors de la prochaine étape de développement.
+    </div>
 
     <label>Message facultatif</label>
     <textarea id="inviteNote" placeholder="Ex : Bonjour, voici votre accès Axe Compta Cabinet."></textarea>
