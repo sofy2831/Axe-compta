@@ -124,7 +124,7 @@ function renderSubscription(){
   const endingText=subscriptionEndingText(currentUserData);
   const displayStatus=endingText?"Actif — résiliation programmée":(isActive?"Actif":"À activer");
   const cabinetExtra=isCabinetOwner(currentUserData)
-    ? `<div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire rattachée au cabinet.</p><div class="offerPrice">129 € / mois</div><a class="btn" href="cabinet-espace.html">Gérer depuis l’espace Cabinet</a></div>`
+    ? `<div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Une licence nominative supplémentaire rattachée au cabinet. L’ajout se fait uniquement depuis l’espace Cabinet.</p><div class="offerPrice">129 € / mois</div><span class="btn disabled">Géré depuis l’espace Cabinet</span></div>`
     : `<div class="offerCard"><h3>Collaborateur supplémentaire</h3><p>Disponible uniquement depuis une offre Cabinet active.</p><div class="offerPrice">129 € / mois</div><span class="btn disabled">Réservé Cabinet</span></div>`;
 
   const cabinetCard=isCabinetOwner(currentUserData)
@@ -137,7 +137,9 @@ function renderSubscription(){
   document.getElementById("portalCancelBtn")?.addEventListener("click",openCustomerPortal);
 }
 
-document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();if(a==="cabinet")location.href="cabinet-espace.html";}));
+document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm();if(a==="bug")renderBugForm();if(a==="mySuggestions")renderMySuggestions();if(a==="news")renderNews();if(a==="subscription")renderSubscription();if(a==="cabinet")window.location.assign("cabinet-espace.html");}));
+cabinetHeaderBtn?.addEventListener("click",e=>{e.preventDefault();window.location.assign("cabinet-espace.html");});
+cabinetMenuCard?.addEventListener("click",e=>{e.preventDefault();window.location.assign("cabinet-espace.html");});
 ["affectationModuleLink","extournesModuleLink","scoreModuleLink"].forEach(id=>{const el=document.getElementById(id);el?.addEventListener("click",e=>{if(el.classList.contains("disabled")){e.preventDefault();alert("Module disponible après paiement d'une clôture.");}});});
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
