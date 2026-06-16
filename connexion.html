@@ -91,31 +91,35 @@ async function ensureUserDoc(user, extra={}){
 }
 
 async function afterAuth(user){
-  if(redirecting) return;
-  redirecting = true;
+  if(redirecting)return;
+  redirecting=true;
 
   try{
     await ensureUserDoc(user);
 
-    if(requestedPlan === "cabinet"){
-      window.location.href = "cabinet-parametrage.html?plan=cabinet";
+    // CABINET : toujours passer par paramétrage avant Stripe
+    if(requestedPlan==="cabinet" || next==="cabinet-parametrage"){
+      window.location.href="cabinet-parametrage.html?plan=cabinet";
       return;
     }
 
-    if(requestedPlan === "solo" || next === "nouvelle-cloture"){
-      window.location.href = "nouvelle-cloture.html?plan=solo";
+    // SOLO : création du dossier, paiement plus tard depuis Résultat
+    if(requestedPlan==="solo" || next==="nouvelle-cloture"){
+      window.location.href="nouvelle-cloture.html?plan=solo";
       return;
     }
 
-    if(requestedPlan === "expert"){
-      window.location.href = "tableau-de-bord.html";
+    // EXPERT : pour l’instant tableau de bord ou Stripe selon ton choix
+    if(requestedPlan==="expert"){
+      window.location.href="tableau-de-bord.html";
       return;
     }
 
-    window.location.href = "tableau-de-bord.html";
+    window.location.href="tableau-de-bord.html";
+
   }catch(error){
-    redirecting = false;
-    showMessage(error.message || "Impossible de continuer.", true);
+    redirecting=false;
+    showMessage(error.message||"Impossible de continuer.",true);
   }
 }
 
