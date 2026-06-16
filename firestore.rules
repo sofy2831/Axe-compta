@@ -7,34 +7,63 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function userEmail() {
+      return request.auth.token.email;
+    }
+
     function isAdmin() {
       return isSignedIn()
-        && request.auth.token.email in [
+        && userEmail() in [
           "s.dumas974@gmail.com",
           "contact@axe-dossier.fr"
         ];
     }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isInvitedCollaborator() {
+      return isSignedIn()
+        && resource.data.email == userEmail()
+        && resource.data.status in ["invited", "active", "suspended"];
+    }
+
+    function isSharedClosure() {
+      return isSignedIn()
+        && resource.data.sharedEmails is list
+        && resource.data.sharedEmails.hasAny([userEmail()]);
+    }
+
     match /users/{userId} {
-      allow read, write: if isSignedIn()
-                          && request.auth.uid == userId;
+      allow read, write: if isOwner(userId) || isAdmin();
+
+      match /closures/{closureId} {
+        allow read, update: if isOwner(userId) || isAdmin() || isSharedClosure();
+        allow create, delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /cabinetCollaborators/{collabId} {
+        allow read: if isOwner(userId) || isAdmin() || isInvitedCollaborator();
+        allow create, delete: if isOwner(userId) || isAdmin();
+        allow update: if isOwner(userId) || isAdmin() || isInvitedCollaborator();
+      }
+
+      match /cabinetSharedClosures/{closureId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
 
       match /{document=**} {
-        allow read, write: if isSignedIn()
-                            && request.auth.uid == userId;
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
     match /feedback/{feedbackId} {
-      // Le client voit uniquement ses propres demandes
       allow read: if isSignedIn()
                   && resource.data.uid == request.auth.uid;
 
-      // Admin voit et modifie tout
       allow read, update, delete: if isAdmin();
 
-      // Création directe bloquée côté client.
-      // Les créations passent par submitFeedback en Cloud Function.
       allow create: if false;
     }
   }
