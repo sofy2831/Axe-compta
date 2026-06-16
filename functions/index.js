@@ -178,21 +178,36 @@ exports.stripeWebhook = onRequest(
 );
           }
 
-         if (["expert", "cabinet", "extra-collab"].includes(plan)) {
-  await db.collection("users").doc(uid).set(
-    {
-      plan,
-      active: true,
-      subscriptionActive: true,
-      paymentStatus: "paid",
-      cabinetOwner: plan === "cabinet" ? true : admin.firestore.FieldValue.delete(),
-      stripeCustomerId: session.customer || null,
-      stripeSubscriptionId: session.subscription || null,
-      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-}
+       if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+  const userRef = db.collection("users").doc(uid);
+
+  const updateData = {
+    active: true,
+    subscriptionActive: true,
+    paymentStatus: "paid",
+    stripeCustomerId: session.customer || null,
+    stripeSubscriptionId: session.subscription || null,
+    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  if (plan === "cabinet") {
+    updateData.plan = "cabinet";
+    updateData.cabinetOwner = true;
+    updateData["cabinetSetup.status"] = "active";
+  }
+
+  if (plan === "expert") {
+    updateData.plan = "expert";
+  }
+
+  if (plan === "extra-collab") {
+    updateData.plan = "cabinet";
+    updateData.cabinetOwner = true;
+    updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
+  }
+
+  await userRef.set(updateData, { merge: true });
+} 
 
           break;
         }
@@ -218,7 +233,7 @@ const subscriptionEndsAt = subscription.cancel_at
 
 await userDoc.ref.set(
   {
-    plan: plan || userDoc.data().plan || "",
+    plan: plan === "extra-collab" ? "cabinet" : (plan || userDoc.data().plan || ""),
     active: isActive,
     subscriptionActive: isActive,
     paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
