@@ -178,20 +178,21 @@ exports.stripeWebhook = onRequest(
 );
           }
 
-          if (["expert", "cabinet", "extra-collab"].includes(plan)) {
-            await db.collection("users").doc(uid).set(
-              {
-                plan,
-                active: true,
-                subscriptionActive: true,
-                paymentStatus: "paid",
-                stripeCustomerId: session.customer || null,
-                stripeSubscriptionId: session.subscription || null,
-                lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
-          }
+         if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+  await db.collection("users").doc(uid).set(
+    {
+      plan,
+      active: true,
+      subscriptionActive: true,
+      paymentStatus: "paid",
+      cabinetOwner: plan === "cabinet" ? true : admin.firestore.FieldValue.delete(),
+      stripeCustomerId: session.customer || null,
+      stripeSubscriptionId: session.subscription || null,
+      lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
 
           break;
         }
@@ -223,6 +224,7 @@ await userDoc.ref.set(
     paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
     cancelAtPeriodEnd,
     subscriptionEndsAt,
+    cabinetOwner: (plan || userDoc.data().plan) === "cabinet" ? true : userDoc.data().cabinetOwner || false,
     stripeCustomerId: subscription.customer || userDoc.data().stripeCustomerId || null,
     stripeSubscriptionId: subscription.id,
     subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
