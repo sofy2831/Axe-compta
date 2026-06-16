@@ -36,27 +36,22 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+  allow read, write: if isSignedIn()
+                      && request.auth.uid == userId;
 
-      match /closures/{closureId} {
-        allow read, update: if isOwner(userId) || isAdmin() || isSharedClosure();
-        allow create, delete: if isOwner(userId) || isAdmin();
-      }
+  match /cabinetCollaborators/{collabId} {
+    allow read, update: if isSignedIn()
+                        && resource.data.email == request.auth.token.email;
 
-      match /cabinetCollaborators/{collabId} {
-        allow read: if isOwner(userId) || isAdmin() || isInvitedCollaborator();
-        allow create, delete: if isOwner(userId) || isAdmin();
-        allow update: if isOwner(userId) || isAdmin() || isInvitedCollaborator();
-      }
+    allow read, write: if isSignedIn()
+                        && request.auth.uid == userId;
+  }
 
-      match /cabinetSharedClosures/{closureId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-
-      match /{document=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
-    }
+  match /{document=**} {
+    allow read, write: if isSignedIn()
+                        && request.auth.uid == userId;
+  }
+}
 
     match /feedback/{feedbackId} {
       allow read: if isSignedIn()
