@@ -175,6 +175,17 @@ function showMsg(text,isError=false){
   $("inviteMsg").innerHTML=isError ? `<span class="errText">${safe(text)}</span>` : `<span class="okText">${safe(text)}</span>`;
 }
 
+function canAccessCabinet(data){
+  return data.developerAccess===true
+    || data.role==="admin"
+    || (
+      data.plan==="cabinet"
+      && data.subscriptionActive===true
+      && data.active!==false
+      && ["paid","active","trialing","cancel_at_period_end"].includes(String(data.paymentStatus||""))
+    );
+}
+
 function roleLabel(role){
   if(role==="manager")return"Responsable dossier";
   if(role==="viewer")return"Lecture seule";
@@ -255,20 +266,10 @@ async function loadCabinetPage(user){
 
   currentUserData=userSnap.data()||{};
 
- const hasCabinetAccess =
-  currentUserData.developerAccess===true
-  || currentUserData.role==="admin"
-  || (
-    currentUserData.plan==="cabinet"
-    && currentUserData.subscriptionActive===true
-    && currentUserData.active!==false
-    && currentUserData.paymentStatus==="paid"
-  );
-
-if(!hasCabinetAccess){
-  location.href="tableau-de-bord.html";
-  return;
-}
+  if(!canAccessCabinet(currentUserData)){
+    location.href="tableau-de-bord.html";
+    return;
+  }
 
   const name=currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || "Cabinet";
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs et des droits.`;
