@@ -36,8 +36,16 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+
+  function isInvitedCollaborator() {
+    return isSignedIn()
+      && exists(/databases/$(database)/documents/users/$(userId)/cabinetCollaborators/$(request.auth.token.email.replace('.', '_')));
+  }
+
   allow read, write: if isSignedIn()
                       && request.auth.uid == userId;
+
+  allow read: if isInvitedCollaborator();
 
   match /cabinetCollaborators/{collabId} {
     allow read, update: if isSignedIn()
@@ -52,7 +60,6 @@ service cloud.firestore {
                         && request.auth.uid == userId;
   }
 }
-
     match /feedback/{feedbackId} {
       allow read: if isSignedIn()
                   && resource.data.uid == request.auth.uid;
