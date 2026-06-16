@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Espace Cabinet | Axe Compta IA</title>
+<meta name="robots" content="noindex,nofollow"/>
+<style>
+:root{--bg:#0b1f3a;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.14);--primary:#72e0c5;--primary2:#4aa3ff;--warning:#ffd166;--danger:#ff8b8b;--ok:#8df0b3;--radius:22px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top left,rgba(74,163,255,.38),transparent 42rem),radial-gradient(circle at top right,rgba(114,224,197,.20),transparent 36rem),linear-gradient(180deg,#10294a 0%,#14365f 42%,#102847 100%);line-height:1.55;min-height:100vh}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto}
+header{border-bottom:1px solid var(--line);background:rgba(11,31,58,.82);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10}
+.nav{height:86px;display:flex;align-items:center;justify-content:space-between;gap:16px}.logoImg{height:52px;width:auto;display:block}.navRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:12px 18px;font-weight:850;color:var(--text);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s ease}
+.btn:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}
+.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 18px 40px rgba(74,163,255,.20)}
+.btn.danger{border-color:rgba(255,139,139,.35);color:#ffe1e1;background:rgba(255,139,139,.08)}
+.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}
+.btn:disabled,.btn.disabled{opacity:.45;cursor:not-allowed;transform:none;pointer-events:none}
+.small{padding:8px 12px;font-size:13px}
+main{padding:42px 0 72px}
+h1{font-size:clamp(34px,4vw,54px);line-height:1;letter-spacing:-.055em;margin:0 0 10px}
+h2{margin:0 0 14px;font-size:22px;letter-spacing:-.035em}
+.muted{color:var(--muted)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.box,.metric,.card{background:linear-gradient(180deg,rgba(28,67,113,.82),rgba(19,52,91,.76));border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 55px rgba(7,23,45,.22)}
+.box{padding:24px;margin-bottom:22px}.metric{padding:18px}.metric b{display:block;font-size:29px;color:#fff}.metric span{display:block;color:var(--muted);font-size:13px}
+label{display:block;margin:14px 0 7px;color:#dbe6f4;font-size:13px;font-weight:850}
+input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:13px 14px;font:inherit;outline:none}
+textarea{min-height:92px;resize:vertical}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;border:1px solid var(--line);font-size:14px;margin-top:12px}
+th,td{text-align:left;padding:13px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:#dce8f6;background:rgba(255,255,255,.06);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}
+.pill.warn{background:rgba(255,209,102,.10);color:var(--warning);border-color:rgba(255,209,102,.25)}
+.pill.err{background:rgba(255,139,139,.10);color:#ffbcbc;border-color:rgba(255,139,139,.28)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions.inlineActions{margin-top:0}
+.notice{margin-top:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.08);border-radius:14px;padding:14px;color:#dbeeea;font-size:14px}
+.warnNotice{border-left-color:var(--warning);background:rgba(255,209,102,.09)}
+.errText{color:var(--danger);font-weight:850}.okText{color:var(--ok);font-weight:850}
+footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media(max-width:960px){.grid,.grid2{grid-template-columns:1fr}.top{flex-direction:column}table{display:block;overflow-x:auto;white-space:nowrap}}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a>
+    <div class="navRight">
+      <a class="btn" href="tableau-de-bord.html">Tableau de bord</a>
+      <a class="btn" href="assistant-cloture-comptable.html">Site</a>
+      <button class="btn danger" type="button" id="logoutBtn">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Espace Cabinet</h1>
+      <p class="muted" id="cabinetLine">Chargement du cabinet...</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="metric"><b id="includedLicenses">3</b><span>licences incluses</span></div>
+    <div class="metric"><b id="activeCollaborators">0</b><span>collaborateurs actifs</span></div>
+    <div class="metric"><b id="availableLicenses">3</b><span>licences disponibles</span></div>
+    <div class="metric"><b id="extraLicenses">0</b><span>suppléments 129 €</span></div>
+  </div>
+
+  <section class="box">
+    <h2>Inviter un collaborateur</h2>
+    <p class="muted">Le collaborateur recevra un lien d’invitation. Après création de son compte, il sera rattaché au cabinet.</p>
+
+    <div class="grid2">
+      <div>
+        <label>Email du collaborateur</label>
+        <input id="inviteEmail" type="email" placeholder="collaborateur@cabinet.fr">
+      </div>
+      <div>
+        <label>Rôle</label>
+        <select id="inviteRole">
+          <option value="collaborator">Collaborateur</option>
+          <option value="manager">Responsable dossier</option>
+          <option value="viewer">Lecture seule</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Droits par défaut</label>
+    <select id="defaultAccess">
+      <option value="none">Aucun accès dossier par défaut</option>
+      <option value="shared">Accès aux dossiers partagés uniquement</option>
+      <option value="all">Accès à tous les dossiers du cabinet</option>
+    </select>
+
+    <label>Message facultatif</label>
+    <textarea id="inviteNote" placeholder="Ex : Bonjour, voici votre accès Axe Compta Cabinet."></textarea>
+
+    <div class="actions">
+      <button class="btn primary" type="button" id="inviteBtn">Créer l’invitation</button>
+      <button class="btn warn" type="button" id="extraBtn">Ajouter une licence 129 €/mois</button>
+    </div>
+
+    <div id="inviteMsg" class="notice" style="display:none"></div>
+  </section>
+
+  <section class="box">
+    <h2>Collaborateurs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Droits</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="collabRows">
+        <tr><td colspan="5" class="muted">Chargement...</td></tr>
+      </tbody>
+    </table>
+    <div class="notice warnNotice">
+      Une licence suspendue reste réservée. Pour libérer la licence, utilisez “Retirer du cabinet”.
+    </div>
+  </section>
+
+  <section class="box">
+    <h2>Droits par dossier</h2>
+    <p class="muted">Cette section prépare la gestion fine des accès. Le branchement dossier par dossier pourra être renforcé ensuite.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Dossier</th>
+          <th>Collaborateur</th>
+          <th>Droit</th>
+        </tr>
+      </thead>
+      <tbody id="rightsRows">
+        <tr><td colspan="3" class="muted">Sélectionnez un collaborateur après création des invitations.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+</main>
+
+<footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+
+<script type="module">
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
+
+const $=id=>document.getElementById(id);
+let currentUser=null;
+let currentUserData={};
+let collaborators=[];
+
+function safe(v){
+  return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+function showMsg(text,isError=false){
+  $("inviteMsg").style.display="block";
+  $("inviteMsg").innerHTML=isError ? `<span class="errText">${safe(text)}</span>` : `<span class="okText">${safe(text)}</span>`;
+}
+
+function roleLabel(role){
+  if(role==="manager")return"Responsable dossier";
+  if(role==="viewer")return"Lecture seule";
+  return"Collaborateur";
+}
+
+function statusLabel(status){
+  if(status==="active")return`<span class="pill">Actif</span>`;
+  if(status==="suspended")return`<span class="pill warn">Suspendu</span>`;
+  if(status==="removed")return`<span class="pill err">Retiré</span>`;
+  return`<span class="pill warn">Invitation envoyée</span>`;
+}
+
+function accessLabel(access){
+  if(access==="all")return"Tous les dossiers";
+  if(access==="shared")return"Dossiers partagés";
+  return"Aucun accès par défaut";
+}
+
+function activeCount(){
+  return collaborators.filter(c=>c.status==="active" || c.status==="invited" || !c.status).length;
+}
+
+function includedCount(){
+  return Number(currentUserData.cabinetSetup?.includedLicenses || 3);
+}
+
+function extraCount(){
+  return Number(currentUserData.cabinetExtraLicenses || 0);
+}
+
+function updateMetrics(){
+  const included=includedCount();
+  const extra=extraCount();
+  const used=activeCount();
+  const available=Math.max(0,included+extra-used);
+
+  $("includedLicenses").textContent=included;
+  $("extraLicenses").textContent=extra;
+  $("activeCollaborators").textContent=used;
+  $("availableLicenses").textContent=available;
+}
+
+function renderCollaborators(){
+  if(!collaborators.length){
+    $("collabRows").innerHTML=`<tr><td colspan="5" class="muted">Aucun collaborateur invité pour le moment.</td></tr>`;
+    updateMetrics();
+    return;
+  }
+
+  $("collabRows").innerHTML=collaborators.map(c=>`
+    <tr>
+      <td>${safe(c.email)}</td>
+      <td>${safe(roleLabel(c.role))}</td>
+      <td>${statusLabel(c.status)}</td>
+      <td>${safe(accessLabel(c.defaultAccess))}</td>
+      <td>
+        <div class="actions inlineActions">
+          <button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button>
+          <button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  document.querySelectorAll("[data-suspend]").forEach(btn=>btn.addEventListener("click",()=>suspendCollaborator(btn.dataset.suspend)));
+  document.querySelectorAll("[data-remove]").forEach(btn=>btn.addEventListener("click",()=>removeCollaborator(btn.dataset.remove)));
+
+  updateMetrics();
+}
+
+async function loadCabinetPage(user){
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+  if(!userSnap.exists()){
+    location.href="tableau-de-bord.html";
+    return;
+  }
+
+  currentUserData=userSnap.data()||{};
+
+  if(currentUserData.plan!=="cabinet" && currentUserData.cabinetOwner!==true){
+    location.href="tableau-de-bord.html";
+    return;
+  }
+
+  const name=currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || "Cabinet";
+  $("cabinetLine").textContent=`${name} — gestion des collaborateurs et des droits.`;
+
+  const snap=await getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc")));
+  collaborators=snap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+
+  renderCollaborators();
+}
+
+async function createInvitation(){
+  const email=$("inviteEmail").value.trim().toLowerCase();
+  if(!email){
+    showMsg("Email obligatoire.",true);
+    return;
+  }
+
+  const used=activeCount();
+  const allowed=includedCount()+extraCount();
+
+  if(used>=allowed){
+    showMsg("Quota atteint. Ajoutez une licence supplémentaire avant d’inviter un nouveau collaborateur.",true);
+    return;
+  }
+
+  const inviteId=email.replace(/[^\w.-]+/g,"_");
+
+  const data={
+    email,
+    role:$("inviteRole").value,
+    defaultAccess:$("defaultAccess").value,
+    note:$("inviteNote").value.trim(),
+    status:"invited",
+    cabinetOwnerUid:currentUser.uid,
+    cabinetName:currentUserData.cabinetSetup?.cabinetName || "",
+    inviteLink:`https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&email=${encodeURIComponent(email)}`,
+    createdAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  };
+
+  await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
+
+  showMsg("Invitation créée. Le lien pourra être envoyé par email après branchement de l’envoi automatique.");
+  $("inviteEmail").value="";
+  $("inviteNote").value="";
+  await loadCabinetPage(currentUser);
+}
+
+async function suspendCollaborator(id){
+  await updateDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",id),{
+    status:"suspended",
+    suspendedAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  });
+  await loadCabinetPage(currentUser);
+}
+
+async function removeCollaborator(id){
+  await updateDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",id),{
+    status:"removed",
+    removedAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  });
+  await loadCabinetPage(currentUser);
+}
+
+async function addExtraLicense(){
+  try{
+    $("extraBtn").disabled=true;
+    $("extraBtn").textContent="Redirection Stripe...";
+
+    const r=await fetch(CREATE_CHECKOUT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        uid:currentUser.uid,
+        plan:"extra-collab",
+        email:currentUser.email
+      })
+    });
+
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe.");
+    location.href=d.url;
+  }catch(e){
+    showMsg(e.message||"Erreur Stripe.",true);
+    $("extraBtn").disabled=false;
+    $("extraBtn").textContent="Ajouter une licence 129 €/mois";
+  }
+}
+
+$("inviteBtn").addEventListener("click",()=>createInvitation().catch(e=>{console.error(e);showMsg(e.message||"Erreur lors de l’invitation.",true)}));
+$("extraBtn").addEventListener("click",addExtraLicense);
+$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
+
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    location.href="connexion.html";
+    return;
+  }
+  currentUser=user;
+  loadCabinetPage(user).catch(e=>{
+    console.error(e);
+    $("cabinetLine").textContent="Erreur de chargement de l’espace cabinet.";
+  });
+});
+</script>
+</body>
+</html>
