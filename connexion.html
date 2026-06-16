@@ -10,203 +10,130 @@
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const params = new URLSearchParams(window.location.search);
 const requestedPlan = params.get("plan") || "";
 const next = params.get("next") || "";
+const inviteOwnerUid = params.get("invite") || "";
+const inviteEmail = (params.get("email") || "").trim().toLowerCase();
 const allowedPlans = ["solo", "expert", "cabinet", "extra-collab"];
 
 const msg = document.getElementById("msg");
 const planBox = document.getElementById("planBox");
-
 const loginFormEl = document.getElementById("loginForm");
 const registerFormEl = document.getElementById("registerForm");
 const loginSubmitBtn = document.getElementById("loginSubmitBtn");
 const registerSubmitBtn = document.getElementById("registerSubmitBtn");
 const resetPasswordLink = document.getElementById("resetPasswordLink");
-
 let redirecting = false;
 
-const planLabels = {
-  solo: "Axe Compta Solo — 99 € par clôture",
-  expert: "Axe Compta Expert — 149 € / mois",
-  cabinet: "Axe Compta Cabinet — 399 € / mois",
-  "extra-collab": "Collaborateur supplémentaire — 129 € / mois"
-};
+const planLabels = {solo:"Axe Compta Solo — 99 € par clôture",expert:"Axe Compta Expert — 149 € / mois",cabinet:"Axe Compta Cabinet — 399 € / mois","extra-collab":"Collaborateur supplémentaire — 129 € / mois"};
 
-function showMessage(text, isError=false){
-  msg.textContent = text;
-  msg.classList.toggle("error", isError);
-  msg.style.display = "block";
-}
-
-function readableFirebaseError(error){
-  const code = error?.code || "";
-  if(code.includes("invalid-email")) return "Adresse email invalide.";
-  if(code.includes("user-not-found") || code.includes("wrong-password") || code.includes("invalid-credential")) return "Email ou mot de passe incorrect.";
-  if(code.includes("email-already-in-use")) return "Un compte existe déjà avec cet email.";
-  if(code.includes("weak-password")) return "Le mot de passe doit contenir au moins 6 caractères.";
-  return "Erreur : " + (error?.message || "impossible de continuer.");
-}
-
-function hasPlan(){
-  return allowedPlans.includes(requestedPlan);
-}
+function showMessage(text,isError=false){msg.textContent=text;msg.classList.toggle("error",isError);msg.style.display="block";}
+function readableFirebaseError(error){const code=error?.code||"";if(code.includes("invalid-email"))return"Adresse email invalide.";if(code.includes("user-not-found")||code.includes("wrong-password")||code.includes("invalid-credential"))return"Email ou mot de passe incorrect.";if(code.includes("email-already-in-use"))return"Un compte existe déjà avec cet email.";if(code.includes("weak-password"))return"Le mot de passe doit contenir au moins 6 caractères.";return"Erreur : "+(error?.message||"impossible de continuer.");}
+function hasPlan(){return allowedPlans.includes(requestedPlan);}
+function isInviteFlow(){return !!inviteOwnerUid && !!inviteEmail;}
 
 function showRequestedPlan(){
-  if(!hasPlan()) return;
-
-  planBox.style.display = "block";
-
-  if(requestedPlan === "solo"){
-    planBox.innerHTML = `<b>Parcours sélectionné :</b> ${planLabels.solo}<br>Créez votre compte, puis lancez une nouvelle clôture. Le paiement 99 € se fera depuis la page Résultat du dossier.`;
+  if(isInviteFlow()){
+    planBox.style.display="block";
+    planBox.innerHTML=`<b>Invitation Cabinet :</b> créez votre compte avec l’email invité, puis vous serez rattaché automatiquement au cabinet.`;
+    document.getElementById("loginEmail").value=inviteEmail;
+    document.getElementById("registerEmail").value=inviteEmail;
     return;
   }
-
-  if(requestedPlan === "cabinet"){
-    planBox.innerHTML = `<b>Offre sélectionnée :</b> ${planLabels.cabinet}<br>Après connexion, vous serez redirigé vers le paramétrage Cabinet avant paiement Stripe.`;
-    return;
-  }
-
-  planBox.innerHTML = `<b>Offre sélectionnée :</b> ${planLabels[requestedPlan]}<br>Après connexion, vous serez redirigé vers Stripe.`;
+  if(!hasPlan())return;
+  planBox.style.display="block";
+  if(requestedPlan==="solo"){planBox.innerHTML=`<b>Parcours sélectionné :</b> ${planLabels.solo}<br>Créez votre compte, puis lancez une nouvelle clôture. Le paiement 99 € se fera depuis la page Résultat du dossier.`;return;}
+  if(requestedPlan==="cabinet"){planBox.innerHTML=`<b>Offre sélectionnée :</b> ${planLabels.cabinet}<br>Après connexion, vous serez redirigé vers le paramétrage Cabinet avant paiement Stripe.`;return;}
+  planBox.innerHTML=`<b>Offre sélectionnée :</b> ${planLabels[requestedPlan]}<br>Après connexion, vous serez redirigé vers Stripe.`;
 }
 
-async function ensureUserDoc(user, extra={}){
-  const userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-  const previous = snap.exists() ? snap.data() : {};
+async function ensureUserDoc(user,extra={}){
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
+  const previous=snap.exists()?snap.data():{};
+  const base={email:user.email||extra.email||"",active:previous.active===true,plan:previous.plan||"",subscriptionActive:previous.subscriptionActive===true,updatedAt:serverTimestamp(),...extra};
+  if(!snap.exists())base.createdAt=serverTimestamp();
+  await setDoc(userRef,base,{merge:true});
+}
 
-  const base = {
-    email: user.email || extra.email || "",
-    active: previous.active === true,
-    plan: previous.plan || "",
-    subscriptionActive: previous.subscriptionActive === true,
-    updatedAt: serverTimestamp(),
-    ...extra
-  };
+async function findInvitation(ownerUid,email){
+  const cleanEmail=String(email||"").trim().toLowerCase();
+  const directId=cleanEmail.replace(/[^\w.-]+/g,"_");
+  const directRef=doc(db,"users",ownerUid,"cabinetCollaborators",directId);
+  const directSnap=await getDoc(directRef);
+  if(directSnap.exists())return{id:directId,ref:directRef,data:directSnap.data()||{}};
+  const q=query(collection(db,"users",ownerUid,"cabinetCollaborators"),where("email","==",cleanEmail),limit(1));
+  const snap=await getDocs(q);
+  if(snap.empty)return null;
+  const d=snap.docs[0];
+  return{id:d.id,ref:d.ref,data:d.data()||{}};
+}
 
-  if(!snap.exists()) base.createdAt = serverTimestamp();
-  await setDoc(userRef, base, { merge:true });
+async function attachCabinetMember(user){
+  if(!isInviteFlow())return false;
+  const userEmail=String(user.email||"").trim().toLowerCase();
+  if(userEmail!==inviteEmail)throw new Error("Cette invitation est réservée à l'email "+inviteEmail+".");
+  const ownerSnap=await getDoc(doc(db,"users",inviteOwnerUid));
+  if(!ownerSnap.exists())throw new Error("Cabinet introuvable.");
+  const ownerData=ownerSnap.data()||{};
+  const invitation=await findInvitation(inviteOwnerUid,userEmail);
+  if(!invitation)throw new Error("Invitation introuvable. Vérifiez l'email invité dans l'espace Cabinet.");
+  if(invitation.data.status==="removed")throw new Error("Cette invitation a été retirée du cabinet.");
+  const cabinetName=invitation.data.cabinetName||ownerData.cabinetSetup?.cabinetName||ownerData.companyName||"Cabinet";
+
+  await setDoc(doc(db,"users",user.uid),{
+    email:user.email||userEmail,
+    active:true,
+    plan:"cabinet-collaborator",
+    subscriptionActive:true,
+    paymentStatus:"cabinet_included",
+    cabinetMember:true,
+    cabinetOwnerUid:inviteOwnerUid,
+    cabinetName,
+    role:"collaborator",
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  await setDoc(invitation.ref,{
+    status:"active",
+    collaboratorUid:user.uid,
+    email:userEmail,
+    role:"collaborator",
+    active:true,
+    activatedAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  },{merge:true});
+  return true;
 }
 
 async function afterAuth(user){
   if(redirecting)return;
   redirecting=true;
-
   try{
-    await ensureUserDoc(user);
-
-    // CABINET : toujours passer par paramétrage avant Stripe
-    if(requestedPlan==="cabinet" || next==="cabinet-parametrage"){
-      window.location.href="cabinet-parametrage.html?plan=cabinet";
-      return;
-    }
-
-    // SOLO : création du dossier, paiement plus tard depuis Résultat
-    if(requestedPlan==="solo" || next==="nouvelle-cloture"){
-      window.location.href="nouvelle-cloture.html?plan=solo";
-      return;
-    }
-
-    // EXPERT : pour l’instant tableau de bord ou Stripe selon ton choix
-    if(requestedPlan==="expert"){
+    if(isInviteFlow()){
+      await attachCabinetMember(user);
       window.location.href="tableau-de-bord.html";
       return;
     }
-
+    await ensureUserDoc(user);
+    if(requestedPlan==="cabinet"||next==="cabinet-parametrage"){window.location.href="cabinet-parametrage.html?plan=cabinet";return;}
+    if(requestedPlan==="solo"||next==="nouvelle-cloture"){window.location.href="nouvelle-cloture.html?plan=solo";return;}
+    if(requestedPlan==="expert"){window.location.href="tableau-de-bord.html";return;}
     window.location.href="tableau-de-bord.html";
-
-  }catch(error){
-    redirecting=false;
-    showMessage(error.message||"Impossible de continuer.",true);
-  }
+  }catch(error){redirecting=false;showMessage(error.message||"Impossible de continuer.",true);}
 }
 
-document.querySelectorAll(".tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    const target = tab.dataset.tab;
+document.querySelectorAll(".tab").forEach(tab=>{tab.addEventListener("click",()=>{const target=tab.dataset.tab;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".form").forEach(f=>f.classList.remove("active"));tab.classList.add("active");document.getElementById(target+"Form")?.classList.add("active");msg.style.display="none";});});
 
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    document.querySelectorAll(".form").forEach(f=>f.classList.remove("active"));
+loginFormEl.addEventListener("submit",async e=>{e.preventDefault();try{loginSubmitBtn.disabled=true;loginSubmitBtn.textContent="Connexion...";const email=document.getElementById("loginEmail").value.trim();const password=document.getElementById("loginPassword").value;const cred=await signInWithEmailAndPassword(auth,email,password);await afterAuth(cred.user);}catch(error){loginSubmitBtn.disabled=false;loginSubmitBtn.textContent="Me connecter";showMessage(readableFirebaseError(error),true);}});
 
-    tab.classList.add("active");
-    document.getElementById(target + "Form")?.classList.add("active");
+registerFormEl.addEventListener("submit",async e=>{e.preventDefault();try{registerSubmitBtn.disabled=true;registerSubmitBtn.textContent="Création...";const email=document.getElementById("registerEmail").value.trim();const password=document.getElementById("registerPassword").value;const companyName=document.getElementById("companyName").value.trim();const cred=await createUserWithEmailAndPassword(auth,email,password);if(!isInviteFlow()){await setDoc(doc(db,"users",cred.user.uid),{email,companyName,plan:"",active:false,subscriptionActive:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});}await afterAuth(cred.user);}catch(error){registerSubmitBtn.disabled=false;registerSubmitBtn.textContent="Créer mon espace";showMessage(readableFirebaseError(error),true);}});
 
-    msg.style.display = "none";
-  });
-});
+resetPasswordLink.addEventListener("click",async e=>{e.preventDefault();const email=document.getElementById("loginEmail").value.trim();if(!email){showMessage("Indiquez votre email, puis cliquez de nouveau sur mot de passe oublié.",true);return;}try{await sendPasswordResetEmail(auth,email);showMessage("Email de réinitialisation envoyé.");}catch(error){showMessage(readableFirebaseError(error),true);}});
 
-loginFormEl.addEventListener("submit", async e=>{
-  e.preventDefault();
-
-  try{
-    loginSubmitBtn.disabled = true;
-    loginSubmitBtn.textContent = "Connexion...";
-
-    const email = document.getElementById("loginEmail").value.trim();
-    const password = document.getElementById("loginPassword").value;
-
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    await afterAuth(cred.user);
-  }catch(error){
-    loginSubmitBtn.disabled = false;
-    loginSubmitBtn.textContent = "Me connecter";
-    showMessage(readableFirebaseError(error), true);
-  }
-});
-
-registerFormEl.addEventListener("submit", async e=>{
-  e.preventDefault();
-
-  try{
-    registerSubmitBtn.disabled = true;
-    registerSubmitBtn.textContent = "Création...";
-
-    const email = document.getElementById("registerEmail").value.trim();
-    const password = document.getElementById("registerPassword").value;
-    const companyName = document.getElementById("companyName").value.trim();
-
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-    await setDoc(doc(db,"users",cred.user.uid),{
-  email:registerEmail.value.trim(),
-  companyName:companyName.value.trim(),
-  plan:"",
-  active:false,
-  subscriptionActive:false,
-  createdAt:serverTimestamp(),
-  updatedAt:serverTimestamp()
-},{merge:true});
-await afterAuth(cred.user);
-  }catch(error){
-    registerSubmitBtn.disabled = false;
-    registerSubmitBtn.textContent = "Créer mon espace";
-    showMessage(readableFirebaseError(error), true);
-  }
-});
-
-resetPasswordLink.addEventListener("click", async e=>{
-  e.preventDefault();
-
-  const email = document.getElementById("loginEmail").value.trim();
-
-  if(!email){
-    showMessage("Indiquez votre email, puis cliquez de nouveau sur mot de passe oublié.", true);
-    return;
-  }
-
-  try{
-    await sendPasswordResetEmail(auth, email);
-    showMessage("Email de réinitialisation envoyé.");
-  }catch(error){
-    showMessage(readableFirebaseError(error), true);
-  }
-});
-
-onAuthStateChanged(auth, user=>{
-  if(user) afterAuth(user);
-});
-
+onAuthStateChanged(auth,user=>{if(user)afterAuth(user);});
 showRequestedPlan();
 </script></body></html>
