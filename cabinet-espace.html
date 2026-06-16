@@ -255,10 +255,20 @@ async function loadCabinetPage(user){
 
   currentUserData=userSnap.data()||{};
 
-  if(currentUserData.plan!=="cabinet" && currentUserData.cabinetOwner!==true){
-    location.href="tableau-de-bord.html";
-    return;
-  }
+ const hasCabinetAccess =
+  currentUserData.developerAccess===true
+  || currentUserData.role==="admin"
+  || (
+    currentUserData.plan==="cabinet"
+    && currentUserData.subscriptionActive===true
+    && currentUserData.active!==false
+    && currentUserData.paymentStatus==="paid"
+  );
+
+if(!hasCabinetAccess){
+  location.href="tableau-de-bord.html";
+  return;
+}
 
   const name=currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || "Cabinet";
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs et des droits.`;
