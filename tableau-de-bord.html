@@ -51,7 +51,16 @@ let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentHas
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function planDisplay(plan){if(plan==="solo")return"Solo 99 €";if(plan==="expert")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="monthly")return"Expert 149 €/mois";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
-function isCabinetOwner(data){return data.plan==="cabinet"||data.cabinetOwner===true||data.cabinetSetup?.status==="active";}
+function isCabinetOwner(data){
+  return data.developerAccess===true
+    || data.role==="admin"
+    || (
+      data.plan==="cabinet"
+      && data.subscriptionActive===true
+      && data.active!==false
+      && data.paymentStatus==="paid"
+    );
+}
 function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabinetHeaderBtn.style.display=show?"inline-flex":"none";cabinetMenuCard.classList.toggle("hidden",!show);}
 function isSubscriptionActive(data){return data.developerAccess===true||data.role==="admin"||data.subscriptionActive===true||(data.active!==false&&["expert","cabinet","extra-collab","monthly"].includes(data.plan));}
 function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
