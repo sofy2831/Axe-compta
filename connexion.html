@@ -169,16 +169,16 @@ registerFormEl.addEventListener("submit", async e=>{
 
     const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-    await ensureUserDoc(cred.user, {
-      email,
-      companyName,
-      plan: "",
-      active: false,
-      subscriptionActive: false,
-      createdAt: serverTimestamp()
-    });
-
-    await afterAuth(cred.user);
+    await setDoc(doc(db,"users",cred.user.uid),{
+  email:registerEmail.value.trim(),
+  companyName:companyName.value.trim(),
+  plan:"",
+  active:false,
+  subscriptionActive:false,
+  createdAt:serverTimestamp(),
+  updatedAt:serverTimestamp()
+},{merge:true});
+await afterAuth(cred.user);
   }catch(error){
     registerSubmitBtn.disabled = false;
     registerSubmitBtn.textContent = "Créer mon espace";
