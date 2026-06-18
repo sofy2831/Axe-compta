@@ -120,14 +120,41 @@ async function loadCabinetPage(user){
 
 async function createInvitation(){
   const email=$("inviteEmail").value.trim().toLowerCase();
-  if(!email){showMsg("Email obligatoire.",true);return;}
-  if(activeCount()>=includedCount()+extraCount()){showMsg("Quota atteint. Ajoutez une licence supplémentaire avant d’inviter un nouveau collaborateur.",true);return;}
+
+  if(!email){
+    showMsg("Email obligatoire.",true);
+    return;
+  }
+
+  if(activeCount()>=includedCount()+extraCount()){
+    showMsg("Quota atteint. Ajoutez une licence supplémentaire avant d’inviter un nouveau collaborateur.",true);
+    return;
+  }
+
   const inviteId=email.replace(/[^\w.-]+/g,"_");
-  const inviteLink=`https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&email=${encodeURIComponent(email)}`;
-  const data={email,role:"collaborator",defaultAccess:"by_closure",note:$("inviteNote").value.trim(),status:"invited",cabinetOwnerUid:currentUser.uid,cabinetName:currentUserData.cabinetSetup?.cabinetName||"",inviteLink,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+
+  const inviteLink=`https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&collabId=${encodeURIComponent(inviteId)}&email=${encodeURIComponent(email)}`;
+
+  const data={
+    email,
+    role:"collaborator",
+    defaultAccess:"by_closure",
+    note:$("inviteNote").value.trim(),
+    status:"invited",
+    cabinetOwnerUid:currentUser.uid,
+    cabinetName:currentUserData.cabinetSetup?.cabinetName||"",
+    inviteLink,
+    createdAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  };
+
   await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
+
   showMsg(`<b class="okText">Invitation créée.</b><br><span class="mono">${safe(inviteLink)}</span><br><br><a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((data.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+inviteLink)}">Envoyer par mail</a>`);
-  $("inviteEmail").value="";$("inviteNote").value="";
+
+  $("inviteEmail").value="";
+  $("inviteNote").value="";
+
   await loadCabinetPage(currentUser);
 }
 async function suspendCollaborator(id){await updateDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",id),{status:"suspended",suspendedAt:serverTimestamp(),updatedAt:serverTimestamp()});await loadCabinetPage(currentUser);}
