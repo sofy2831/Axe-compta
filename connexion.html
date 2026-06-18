@@ -91,7 +91,7 @@ async function attachCabinetMember(user){
   const ownerSnap=await getDoc(doc(db,"users",inviteOwnerUid));
   if(!ownerSnap.exists())throw new Error("Cabinet introuvable.");
   const ownerData=ownerSnap.data()||{};
-  const invitation=await findInvitation(inviteOwnerUid,userEmail);
+ const invitation=await findInvitation(inviteOwnerUid,inviteCollabId,userEmail);
   if(!invitation)throw new Error("Invitation introuvable. Vérifiez l'email invité dans l'espace Cabinet.");
   if(invitation.data.status==="removed")throw new Error("Cette invitation a été retirée du cabinet.");
   const cabinetName=invitation.data.cabinetName||ownerData.cabinetSetup?.cabinetName||ownerData.companyName||"Cabinet";
