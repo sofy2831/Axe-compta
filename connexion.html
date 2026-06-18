@@ -16,6 +16,7 @@ const params = new URLSearchParams(window.location.search);
 const requestedPlan = params.get("plan") || "";
 const next = params.get("next") || "";
 const inviteOwnerUid = params.get("invite") || "";
+const inviteCollabId = params.get("collabId") || "";
 const inviteEmail = (params.get("email") || "").trim().toLowerCase();
 const allowedPlans = ["solo", "expert", "cabinet", "extra-collab"];
 
