@@ -62,17 +62,26 @@ async function ensureUserDoc(user,extra={}){
   await setDoc(userRef,base,{merge:true});
 }
 
-async function findInvitation(ownerUid,email){
+async function findInvitation(ownerUid,collabId,email){
   const cleanEmail=String(email||"").trim().toLowerCase();
-  const directId=cleanEmail.replace(/[^\w.-]+/g,"_");
-  const directRef=doc(db,"users",ownerUid,"cabinetCollaborators",directId);
-  const directSnap=await getDoc(directRef);
-  if(directSnap.exists())return{id:directId,ref:directRef,data:directSnap.data()||{}};
-  const q=query(collection(db,"users",ownerUid,"cabinetCollaborators"),where("email","==",cleanEmail),limit(1));
-  const snap=await getDocs(q);
-  if(snap.empty)return null;
-  const d=snap.docs[0];
-  return{id:d.id,ref:d.ref,data:d.data()||{}};
+
+  const invitationRef=doc(db,"users",ownerUid,"cabinetCollaborators",collabId);
+  const invitationSnap=await getDoc(invitationRef);
+
+  if(!invitationSnap.exists())return null;
+
+  const data=invitationSnap.data()||{};
+  const storedEmail=String(data.email||"").trim().toLowerCase();
+
+  if(storedEmail!==cleanEmail){
+    throw new Error("Cette invitation ne correspond pas à cet email.");
+  }
+
+  return {
+    id:collabId,
+    ref:invitationRef,
+    data
+  };
 }
 
 async function attachCabinetMember(user){
