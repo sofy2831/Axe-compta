@@ -39,11 +39,11 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <script type="module">
 import { auth, db, storage } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { collection, addDoc, updateDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 
 let currentUser=null;
-
+let currentUserData={};
 const companyNameEl=document.getElementById("companyName");
 const startDateEl=document.getElementById("startDate");
 const endDateEl=document.getElementById("endDate");
@@ -69,7 +69,17 @@ startDateEl.addEventListener("change",updatePeriod);
 endDateEl.addEventListener("change",updatePeriod);
 updatePeriod();
 
-onAuthStateChanged(auth,user=>{if(!user){window.location.href="connexion.html";return;}currentUser=user;});
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    window.location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+  currentUserData=userSnap.exists()?userSnap.data():{};
+});
 logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 
 saveBtnEl.addEventListener("click",async()=>{
@@ -94,6 +104,10 @@ saveBtnEl.addEventListener("click",async()=>{
   saveBtnEl.textContent="Enregistrement...";
 
   try{
+    const isCabinetMember=currentUserData.cabinetMember===true;
+const isCabinetOwner=currentUserData.plan==="cabinet" || currentUserData.cabinetOwner===true;
+
+const includedByCabinet=isCabinetMember || isCabinetOwner;
     const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
       companyName,
       startDate:startDateEl.value,
@@ -102,8 +116,15 @@ saveBtnEl.addEventListener("click",async()=>{
       vatRegime:vatEl.value,
       notes:notesEl.value,
       status:"draft",
-      paid:false,
-      paymentMode:null,
+      paid:includedByCabinet ? true : false,
+paymentMode:includedByCabinet ? "cabinet" : null,
+planSource:includedByCabinet ? "cabinet" : "solo",
+ownerUid:currentUser.uid,
+ownerEmail:currentUser.email || "",
+cabinetOwnerUid:isCabinetMember ? currentUserData.cabinetOwnerUid : (isCabinetOwner ? currentUser.uid : ""),
+sharedWith:{},
+sharedWithEmails:[],
+cabinetShared:false,
       files:{balance:null,grandLivre:null,amortissements:null,emprunt:null},
       balance:[],
       grandLivre:[],
