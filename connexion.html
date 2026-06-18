@@ -34,7 +34,9 @@ const planLabels = {solo:"Axe Compta Solo — 99 € par clôture",expert:"Axe C
 function showMessage(text,isError=false){msg.textContent=text;msg.classList.toggle("error",isError);msg.style.display="block";}
 function readableFirebaseError(error){const code=error?.code||"";if(code.includes("invalid-email"))return"Adresse email invalide.";if(code.includes("user-not-found")||code.includes("wrong-password")||code.includes("invalid-credential"))return"Email ou mot de passe incorrect.";if(code.includes("email-already-in-use"))return"Un compte existe déjà avec cet email.";if(code.includes("weak-password"))return"Le mot de passe doit contenir au moins 6 caractères.";return"Erreur : "+(error?.message||"impossible de continuer.");}
 function hasPlan(){return allowedPlans.includes(requestedPlan);}
-function isInviteFlow(){return !!inviteOwnerUid && !!inviteEmail;}
+function isInviteFlow(){
+  return !!inviteOwnerUid && !!inviteCollabId && !!inviteEmail;
+}
 
 function showRequestedPlan(){
   if(isInviteFlow()){
