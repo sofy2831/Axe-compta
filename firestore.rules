@@ -23,50 +23,84 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isInvitedCollaborator() {
+    function isCabinetOwnerOfUser(userId) {
       return isSignedIn()
-        && resource.data.email == userEmail()
-        && resource.data.status in ["invited", "active", "suspended"];
+        && exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.cabinetOwnerUid == request.auth.uid;
+    }
+
+    function isCabinetMember() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.cabinetMember == true
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionActive == true;
+    }
+
+    function myCabinetOwnerUid() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.cabinetOwnerUid;
     }
 
     function isSharedClosure() {
       return isSignedIn()
-        && resource.data.sharedEmails is list
-        && resource.data.sharedEmails.hasAny([userEmail()]);
+        && (
+          resource.data.sharedWithEmails.hasAny([userEmail()])
+          || resource.data.sharedEmails.hasAny([userEmail()])
+        );
     }
 
     match /users/{userId} {
 
-  function isInvitedCollaborator() {
-    return isSignedIn()
-      && exists(/databases/$(database)/documents/users/$(userId)/cabinetCollaborators/$(request.auth.token.email.replace('.', '_')));
-  }
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin();
 
-  allow read, write: if isSignedIn()
-                      && request.auth.uid == userId;
+      match /cabinetCollaborators/{collabId} {
 
-  allow read: if isInvitedCollaborator();
+        allow read: if isSignedIn()
+          && (
+            isOwner(userId)
+            || resource.data.email == userEmail()
+            || isAdmin()
+          );
 
-  match /cabinetCollaborators/{collabId} {
-    allow read, update: if isSignedIn()
-                        && resource.data.email == request.auth.token.email;
+        allow create, update, delete: if isOwner(userId) || isAdmin();
 
-    allow read, write: if isSignedIn()
-                        && request.auth.uid == userId;
-  }
+        allow update: if isSignedIn()
+          && resource.data.email == userEmail()
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid;
+      }
 
-  match /{document=**} {
-    allow read, write: if isSignedIn()
-                        && request.auth.uid == userId;
-  }
-}
+      match /{document=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /closures/{closureId} {
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      allow read, update, delete: if isSignedIn()
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isSharedClosure()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+          || (
+            isCabinetMember()
+            && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+          )
+          || isAdmin()
+        );
+    }
+
     match /feedback/{feedbackId} {
       allow read: if isSignedIn()
-                  && resource.data.uid == request.auth.uid;
+        && resource.data.uid == request.auth.uid;
 
       allow read, update, delete: if isAdmin();
 
-      allow create: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid;
     }
   }
 }
