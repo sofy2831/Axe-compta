@@ -259,35 +259,47 @@ await userDoc.ref.set(
           break;
         }
 
-        case "customer.subscription.deleted": {
-          const subscription = event.data.object;
-          const userDoc = await findUserBySubscription(subscription.id);
+       case "customer.subscription.deleted": {
+  const subscription = event.data.object;
+  const userDoc = await findUserBySubscription(subscription.id);
 
-          if (!userDoc) {
-            console.warn("No user found for deleted subscription:", subscription.id);
-            break;
-          }
+  if (!userDoc) {
+    console.warn("No user found for deleted subscription:", subscription.id);
+    break;
+  }
 
-          const userData = userDoc.data() || {};
+  const userData = userDoc.data() || {};
+  const deletedPlan = planFromSubscription(subscription);
 
-const fallbackPlan =
-  userData.hasSoloPurchase === true ? "solo" : "";
+  if (deletedPlan === "extra-collab") {
+    await userDoc.ref.set(
+      {
+        cabinetExtraLicenses: admin.firestore.FieldValue.increment(-1),
+        lastExtraCollabCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    break;
+  }
 
-await userDoc.ref.set(
-  {
-    active: fallbackPlan === "solo",
-    subscriptionActive: false,
-    paymentStatus: "canceled",
-    plan: fallbackPlan,
-    cancelAtPeriodEnd: false,
-    subscriptionEndsAt: null,
-    subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
-  },
-  { merge: true }
-);
+  const fallbackPlan = userData.hasSoloPurchase === true ? "solo" : "";
 
-          break;
-        }
+  await userDoc.ref.set(
+    {
+      active: fallbackPlan === "solo",
+      subscriptionActive: false,
+      paymentStatus: "canceled",
+      plan: fallbackPlan,
+      cabinetOwner: false,
+      cancelAtPeriodEnd: false,
+      subscriptionEndsAt: null,
+      subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  break;
+}
 
         case "invoice.payment_failed": {
           const invoice = event.data.object;
