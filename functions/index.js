@@ -178,36 +178,45 @@ exports.stripeWebhook = onRequest(
 );
           }
 
-       if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+  if (["expert", "cabinet", "extra-collab"].includes(plan)) {
   const userRef = db.collection("users").doc(uid);
+  const userSnap = await userRef.get();
+  const userData = userSnap.exists ? userSnap.data() || {} : {};
 
   const updateData = {
     active: true,
-    subscriptionActive: true,
     paymentStatus: "paid",
-    stripeCustomerId: session.customer || null,
-    stripeSubscriptionId: session.subscription || null,
+    stripeCustomerId: session.customer || userData.stripeCustomerId || null,
     lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  if (plan === "cabinet") {
-    updateData.plan = "cabinet";
-    updateData.cabinetOwner = true;
-    updateData["cabinetSetup.status"] = "active";
-  }
-
   if (plan === "expert") {
     updateData.plan = "expert";
+    updateData.subscriptionActive = true;
+    updateData.stripeSubscriptionId = session.subscription || null;
+  }
+
+  if (plan === "cabinet") {
+    updateData.plan = "cabinet";
+    updateData.subscriptionActive = true;
+    updateData.cabinetOwner = true;
+    updateData.cabinetMember = false;
+    updateData.role = "owner";
+    updateData.stripeSubscriptionId = session.subscription || null;
+    updateData["cabinetSetup.status"] = "active";
+    updateData["cabinetSetup.includedLicenses"] = userData.cabinetSetup?.includedLicenses || 3;
   }
 
   if (plan === "extra-collab") {
     updateData.plan = "cabinet";
+    updateData.subscriptionActive = true;
     updateData.cabinetOwner = true;
     updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
+    updateData.lastExtraCollabSubscriptionId = session.subscription || null;
   }
 
   await userRef.set(updateData, { merge: true });
-} 
+}
 
           break;
         }
