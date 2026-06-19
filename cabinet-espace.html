@@ -92,17 +92,42 @@ function renderCollaborators(){
 
 function renderSharedRights(){
   const lines=[];
+
   sharedClosures.forEach(c=>{
-    const shared=Object.values(c.sharedWith||{}).filter(s=>s?.active===true);
-    shared.forEach(s=>lines.push({companyName:c.companyName||"Société sans nom",period:`${c.startDate||"—"} → ${c.endDate||"—"}`,email:s.email||"—"}));
+    const emails=Array.isArray(c.sharedWithEmails)
+      ? c.sharedWithEmails
+      : [];
+
+    emails.forEach(email=>{
+      lines.push({
+        companyName:c.companyName||"Société sans nom",
+        period:`${c.startDate||"—"} → ${c.endDate||"—"}`,
+        email
+      });
+    });
   });
-  if(!lines.length){$("rightsRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier partagé pour le moment. Utilisez le bouton “Partager” dans Mes clôtures.</td></tr>`;return;}
-  $("rightsRows").innerHTML=lines.map(x=>`<tr><td>${safe(x.companyName)}</td><td>${safe(x.period)}</td><td>${safe(x.email)}</td><td><span class="pill">Accès au dossier</span></td></tr>`).join("");
+
+  if(!lines.length){
+    $("rightsRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier partagé pour le moment. Utilisez le bouton “Partager” dans Mes clôtures.</td></tr>`;
+    return;
+  }
+
+  $("rightsRows").innerHTML=lines.map(x=>`
+    <tr>
+      <td>${safe(x.companyName)}</td>
+      <td>${safe(x.period)}</td>
+      <td>${safe(x.email)}</td>
+      <td><span class="pill">Accès au dossier</span></td>
+    </tr>
+  `).join("");
 }
 
 async function loadCabinetPage(user){
   const userSnap=await getDoc(doc(db,"users",user.uid));
-  if(!userSnap.exists){location.href="tableau-de-bord.html";return;}
+ if(!userSnap.exists()){
+  location.href="tableau-de-bord.html";
+  return;
+}
   currentUserData=userSnap.data()||{};
   if(!canAccessCabinet(currentUserData)){location.href="tableau-de-bord.html";return;}
   const name=currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||"Cabinet";
