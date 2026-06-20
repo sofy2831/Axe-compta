@@ -62,7 +62,8 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));m
       <button class="btn secondary" type="button" id="printBtn">Imprimer / PDF</button>
       <button class="btn secondary" type="button" id="csvBtn">CSV</button>
       <button class="btn secondary" type="button" id="excelBtn">Excel</button>
-      <button class="btn warn" type="button" id="aiBtn">IA - atteindre 100/100</button>
+     <button class="btn warn" type="button" id="saveScoreBtn">Enregistrer le score qualité</button>
+<button class="btn warn" type="button" id="aiBtn">IA - atteindre 100/100</button>
     </div>
   </section>
 
@@ -127,12 +128,44 @@ function rowsForKey(k){if(k==="files")return[];if(k==="waiting")return rowsWithP
 function entriesTableHtml(rows){if(!rows.length)return`<div class="notice">Aucune écriture détaillée détectée pour ce contrôle.</div>`;return`<table class="modalTable"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${sanitize(r.journal||"OD")}</td><td>${sanitize(r.label||r.libelle||r.sourceLabel||"")}</td><td>${sanitize(r.debit||"")}</td><td>${sanitize(r.credit||"")}</td><td class="num">${euro(amount(r))}</td></tr>`).join("")}</tbody></table>`}
 function openView(k){const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=i.title;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("fileInputs").innerHTML="";$("modalImportBtn").style.display="none";$("modalBack").style.display="flex"}
 function openRecheck(k){const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=`Recontrôler - ${i.title}`;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}<br><br>Réimportez uniquement les fichiers nécessaires :`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("fileInputs").innerHTML=i.files.map(f=>`<label>${sanitize(f)}</label><input type="file" accept=".xls,.xlsx,.csv">`).join("");$("modalImportBtn").style.display="inline-flex";$("modalImportBtn").onclick=()=>alert("Étape suivante à brancher : upload des fichiers actualisés puis relance du parsing ciblé. Le score sera recalculé automatiquement après réanalyse.");$("modalBack").style.display="flex"}
-$("modalCloseBtn").addEventListener("click",()=>$("modalBack").style.display="none");$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").style.display="none"});$("aiBtn").addEventListener("click",()=>alert("Module IA prévu : explication des points perdus, priorisation des corrections et accompagnement jusqu'à 100/100."));
+$("modalCloseBtn").addEventListener("click",()=>$("modalBack").style.display="none");$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").style.display="none"});$("aiBtn").addEventListener("click",()=>alert("Module IA prévu : explication des points perdus, priorisation des corrections et accompagnement jusqu'à 100/100."));$("saveScoreBtn").addEventListener("click",async()=>{
+  const btn=$("saveScoreBtn");
+  try{
+    btn.disabled=true;
+    btn.textContent="Enregistrement...";
+    await saveScore();
+    btn.textContent="Score enregistré";
+    $("statusLine").innerHTML='<span class="okText">Score qualité enregistré. Le tableau de bord sera mis à jour.</span>';
+  }catch(e){
+    console.error(e);
+    btn.disabled=false;
+    btn.textContent="Enregistrer le score qualité";
+    $("statusLine").innerHTML='<span class="errText">Erreur lors de l’enregistrement du score.</span>';
+  }
+});
+  
 function statusLabel(i){return i.status==='ok'?'OK':i.status==='danger'?'À corriger':'À contrôler'}
 function docHtml(){return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Score qualité du dossier</div><div class="docSub">Contrôle global de clôture comptable</div></div><div class="docScore">Score qualité : ${score}/100 - ${sanitize(grade(score))}</div><table class="docInfo"><tr><th>Société</th><td>${sanitize($("companyLabel").textContent)}</td></tr><tr><th>Exercice</th><td>${sanitize($("yearLabel").textContent)}</td></tr><tr><th>Objectif</th><td>${score>=100?"100/100 atteint":`${100-score} point(s) restant(s)`}</td></tr></table><h2>Détail des contrôles</h2><table class="docTable"><thead><tr><th class="c-control">Contrôle</th><th class="c-score">Score</th><th class="c-statut">Statut</th><th class="c-obs">Observation</th></tr></thead><tbody>${scoreItems.map(i=>`<tr><td class="c-control">${sanitize(i.title)}</td><td class="c-score">${i.score}/${i.max}</td><td class="c-statut">${statusLabel(i)}</td><td class="c-obs">${sanitize(i.detail)}</td></tr>`).join("")}</tbody></table><h2>Objectif 100/100</h2><p>Corrigez les points signalés dans votre comptabilité, puis relancez le contrôle pour obtenir une nouvelle évaluation du dossier.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderDoc(){$("printArea").innerHTML=docHtml()}function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}function fileBase(){return `score-qualite-${($("companyLabel").textContent||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}
 $("printBtn").addEventListener("click",()=>{renderDoc();window.print()});$("csvBtn").addEventListener("click",()=>{const csv=["Contrôle;Score;Max;Statut;Observation",...scoreItems.map(i=>`${i.title};${i.score};${i.max};${i.status};${i.detail}`)].join("\n");download(fileBase()+".csv",csv,"text/csv;charset=utf-8")});$("excelBtn").addEventListener("click",()=>{const html=`<table><tr><th>Contrôle</th><th>Score</th><th>Max</th><th>Statut</th><th>Observation</th></tr>${scoreItems.map(i=>`<tr><td>${sanitize(i.title)}</td><td>${i.score}</td><td>${i.max}</td><td>${i.status}</td><td>${sanitize(i.detail)}</td></tr>`).join("")}</table>`;download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8")});
-async function saveScore(){if(!currentUser||!closureId)return;await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{qualityScore:{score,items:scoreItems,updatedAt:new Date().toISOString()},updatedAt:serverTimestamp()},{merge:true})}
+async function saveScore(){
+  if(!currentUser||!closureId)return;
+
+  const payload={
+    status:"generated",
+    score,
+    items:scoreItems,
+    grade:grade(score),
+    generatedAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+
+  await setDoc(doc(db,"users",currentUser.uid,"closures",closureId),{
+    scoreQualite:payload,
+    scoreQuality:payload,
+    updatedAt:serverTimestamp()
+  },{merge:true});
+}
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return}currentClosure=snap.data();$("companyLabel").textContent=currentClosure.companyName||"Société sans nom";$("yearLabel").textContent=fiscalYear(currentClosure)||"—";$("statusLine").innerHTML='<span class="okText">Clôture chargée. Score calculé automatiquement sur la dernière analyse disponible.</span>';render();await saveScore().catch(console.error)}
 onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement du score.</span>'}});
 </script>
