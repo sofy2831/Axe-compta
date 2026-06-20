@@ -108,9 +108,10 @@ saveBtnEl.addEventListener("click",async()=>{
   const loan=loanFileEl.files[0]||null;
 
   if(!isAllowedFile(balance)||!isAllowedFile(ledger)||!isAllowedFile(amort)||!isAllowedFile(loan)){
-    saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
-    return;
-  }
+  saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
+  isSavingClosure=false;
+  return;
+}
 
   saveBtnEl.disabled=true;
   saveBtnEl.textContent="Enregistrement...";
