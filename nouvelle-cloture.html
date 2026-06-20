@@ -117,7 +117,12 @@ saveBtnEl.addEventListener("click",async()=>{
   saveBtnEl.textContent="Enregistrement...";
 
   try{
-   const isExpert=currentUserData.plan==="expert" && currentUserData.subscriptionActive===true;
+   const isExpert=
+  currentUserData.plan==="expert"
+  || currentUserData.planRequested==="expert"
+  || currentUserData.subscriptionActive===true
+  || currentUserData.paymentStatus==="paid"
+  || currentUserData.stripeSubscriptionId;
 const isCabinetMember=currentUserData.cabinetMember===true;
 const isCabinetOwner=currentUserData.plan==="cabinet" || currentUserData.cabinetOwner===true;
 
