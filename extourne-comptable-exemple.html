@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Extourne comptable : exemple simple et écriture à passer | Axe Compta IA</title>
+  <meta name="description" content="Comprendre l’extourne comptable avec un exemple simple : principe, écriture d’extourne, extourne automatique en N+1, FNP, CCA, PCA et écritures de clôture." />
+  <meta name="robots" content="index,follow" />
+
+  <link rel="icon" type="image/png" href="https://compta.axe-dossier.fr/images/axe-compta.png" />
+  <link rel="canonical" href="https://compta.axe-dossier.fr/extourne-comptable-exemple.html" />
+
+  <meta property="og:title" content="Extourne comptable : exemple simple et écriture à passer" />
+  <meta property="og:description" content="Définition, logique comptable, exemple d’écriture et automatisation des extournes en clôture comptable." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://compta.axe-dossier.fr/extourne-comptable-exemple.html" />
+
+  <style>
+    :root{
+      --bg:#0b1f3a;
+      --panel:#102847;
+      --panel2:#163a63;
+      --text:#f6f8fb;
+      --muted:#c2d0e3;
+      --line:rgba(255,255,255,.14);
+      --primary:#72e0c5;
+      --primary2:#4aa3ff;
+      --warning:#ffd166;
+      --danger:#ff8b8b;
+      --ok:#8df0b3;
+      --shadow:0 28px 80px rgba(7,23,45,.34);
+      --radius:22px;
+      --max:1120px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at top left,rgba(114,224,197,.18),transparent 32%),
+        radial-gradient(circle at right 12%,rgba(74,163,255,.17),transparent 28%),
+        var(--bg);
+      color:var(--text);
+      line-height:1.65;
+    }
+
+    a{color:inherit;text-decoration:none}
+    .wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(11,31,58,.78);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--line);
+    }
+
+    .topbar-inner{
+      min-height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .brand-mark{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      color:#061728;
+      font-weight:1000;
+    }
+
+    .nav{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    .pill{
+      padding:9px 13px;
+      border-radius:999px;
+      background:rgba(255,255,255,.07);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-weight:700;
+      font-size:.92rem;
+    }
+
+    .pill:hover{background:rgba(255,255,255,.12);color:var(--text)}
+
+    .hero{padding:52px 0 24px}
+    .hero-card,.card,.side-card,.faq-card,.cta-card,.note{
+      background:rgba(16,40,71,.78);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+    }
+
+    .hero-card{
+      padding:40px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero-card::after{
+      content:"";
+      position:absolute;
+      width:260px;
+      height:260px;
+      border-radius:999px;
+      right:-90px;
+      bottom:-110px;
+      background:radial-gradient(circle,rgba(114,224,197,.22),transparent 68%);
+      pointer-events:none;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(114,224,197,.13);
+      border:1px solid rgba(114,224,197,.25);
+      color:var(--primary);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.9rem;
+      font-weight:900;
+      margin-bottom:18px;
+    }
+
+    h1,h2,h3,p{margin:0}
+    h1{
+      font-size:clamp(2.2rem,4.3vw,4.7rem);
+      line-height:1;
+      letter-spacing:-.055em;
+      max-width:13ch;
+      margin-bottom:18px;
+    }
+
+    .lead{
+      max-width:68ch;
+      color:var(--muted);
+      font-size:1.08rem;
+    }
+
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+
+    .btn{
+      min-height:52px;
+      padding:0 20px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-weight:900;
+      border:1px solid var(--line);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary),var(--primary2));
+      color:#061728;
+      border:0;
+    }
+
+    .btn-secondary{background:rgba(255,255,255,.07);color:var(--text)}
+
+    section{padding:18px 0}
+
+    .grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    .card,.side-card,.faq-card,.cta-card,.note{padding:26px}
+    .card h2{
+      font-size:1.55rem;
+      line-height:1.15;
+      letter-spacing:-.03em;
+      margin:30px 0 12px;
+    }
+    .card h2:first-child{margin-top:0}
+    .card h3,.side-card h3,.faq-card h3,.cta-card h3,.note h3{
+      font-size:1.08rem;
+      margin-bottom:8px;
+      letter-spacing:-.02em;
+    }
+
+    .card p,.side-card p,.faq-card p,.cta-card p,.note p{color:var(--muted)}
+
+    .list{margin:12px 0 0;padding-left:20px;color:var(--muted)}
+    .list li + li{margin-top:7px}
+
+    .example{
+      margin:16px 0;
+      overflow:auto;
+      border-radius:18px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+    }
+
+    table{width:100%;border-collapse:collapse;min-width:640px}
+    th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left}
+    th{color:var(--primary);font-size:.9rem}
+    td{color:var(--muted)}
+    tr:last-child td{border-bottom:0}
+    .amount{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+
+    .warning{
+      margin:18px 0;
+      padding:18px;
+      border-radius:18px;
+      background:rgba(255,209,102,.09);
+      border:1px solid rgba(255,209,102,.22);
+    }
+
+    .warning strong{color:var(--warning)}
+
+    .sidebar{display:grid;gap:18px;position:sticky;top:94px}
+
+    .mini-links{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
+    .mini-links a{
+      display:block;
+      padding:12px 14px;
+      border-radius:15px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-weight:800;
+    }
+    .mini-links a:hover{background:rgba(255,255,255,.1);color:var(--text)}
+
+    .faq-wrap{display:grid;gap:14px}
+    .footer{padding:30px 0 62px;color:var(--muted)}
+    .footer-box{border-top:1px solid var(--line);padding-top:18px}
+
+    @media(max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .sidebar{position:static}
+    }
+
+    @media(max-width:680px){
+      .topbar-inner{flex-direction:column;align-items:stretch;padding:14px 0}
+      .brand,.nav{justify-content:center}
+      .hero-card,.card,.side-card,.faq-card,.cta-card,.note{padding:20px}
+      .hero{padding-top:34px}
+      .hero-actions{flex-direction:column}
+      .btn{width:100%}
+      h1{max-width:none}
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="index.html" aria-label="Axe Compta IA">
+        <span class="brand-mark">AC</span>
+        <span>Axe Compta IA</span>
+      </a>
+
+      <nav class="nav" aria-label="Navigation principale">
+        <a class="pill" href="index.html">Accueil</a>
+        <a class="pill" href="#exemple">Exemple</a>
+        <a class="pill" href="#erreurs">Erreurs</a>
+        <a class="pill" href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <article class="hero-card">
+          <div class="eyebrow">Clôture comptable · Extournes · N+1</div>
+          <h1>Extourne comptable : exemple simple et écriture à passer</h1>
+          <p class="lead">
+            L’extourne permet d’annuler automatiquement en début d’exercice N+1 une écriture de clôture passée en N.
+            Elle évite de comptabiliser deux fois une charge ou un produit lorsque la facture réelle arrive ensuite.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="index.html">Découvrir Axe Compta IA</a>
+            <a class="btn btn-secondary" href="#exemple">Voir l’exemple</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap grid">
+        <article class="card">
+
+          <h2>Qu’est-ce qu’une extourne comptable ?</h2>
+          <p>
+            Une extourne comptable est une écriture inverse passée au début de l’exercice suivant.
+            Elle sert principalement à annuler une écriture de clôture provisoire : facture non parvenue,
+            charge constatée d’avance, produit à recevoir ou produit constaté d’avance.
+          </p>
+
+          <div class="warning">
+            <p><strong>À retenir :</strong> l’extourne ne supprime pas la logique de clôture. Elle permet simplement de repartir proprement en N+1.</p>
+          </div>
+
+          <h2>Pourquoi passer une extourne en N+1 ?</h2>
+          <p>
+            À la clôture, certaines charges ou produits doivent être rattachés au bon exercice même si la facture n’est pas encore reçue ou émise.
+            L’extourne permet ensuite d’éviter un doublon lorsque la facture réelle arrive.
+          </p>
+
+          <ul class="list">
+            <li>éviter une double comptabilisation ;</li>
+            <li>annuler une écriture provisoire de clôture ;</li>
+            <li>rattacher correctement les charges et produits au bon exercice ;</li>
+            <li>faciliter le suivi entre l’exercice N et l’exercice N+1.</li>
+          </ul>
+
+          <h2 id="exemple">Exemple d’extourne d’une facture non parvenue</h2>
+          <p>
+            Une entreprise clôture ses comptes au 31 décembre. Elle sait qu’une facture EDF de décembre doit être rattachée à l’exercice N,
+            mais la facture n’est pas encore reçue. Elle passe donc une facture non parvenue à la clôture.
+          </p>
+
+          <div class="example">
+            <table aria-label="Exemple écriture FNP à la clôture">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Compte</th>
+                  <th>Libellé</th>
+                  <th class="amount">Débit</th>
+                  <th class="amount">Crédit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>31/12/N</td>
+                  <td>6061</td>
+                  <td>Électricité décembre - FNP</td>
+                  <td class="amount">1 000,00</td>
+                  <td class="amount"></td>
+                </tr>
+                <tr>
+                  <td>31/12/N</td>
+                  <td>44586</td>
+                  <td>TVA sur factures non parvenues</td>
+                  <td class="amount">200,00</td>
+                  <td class="amount"></td>
+                </tr>
+                <tr>
+                  <td>31/12/N</td>
+                  <td>4081</td>
+                  <td>Fournisseurs - factures non parvenues</td>
+                  <td class="amount"></td>
+                  <td class="amount">1 200,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Écriture d’extourne au 1er janvier N+1</h2>
+          <p>
+            Au début de l’exercice suivant, l’écriture est extournée. L’écriture inverse annule la FNP provisoire.
+            Lorsque la facture réelle sera reçue, elle pourra être comptabilisée normalement.
+          </p>
+
+          <div class="example">
+            <table aria-label="Exemple écriture extourne N+1">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Compte</th>
+                  <th>Libellé</th>
+                  <th class="amount">Débit</th>
+                  <th class="amount">Crédit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>01/01/N+1</td>
+                  <td>4081</td>
+                  <td>Extourne FNP EDF décembre</td>
+                  <td class="amount">1 200,00</td>
+                  <td class="amount"></td>
+                </tr>
+                <tr>
+                  <td>01/01/N+1</td>
+                  <td>6061</td>
+                  <td>Extourne charge électricité</td>
+                  <td class="amount"></td>
+                  <td class="amount">1 000,00</td>
+                </tr>
+                <tr>
+                  <td>01/01/N+1</td>
+                  <td>44586</td>
+                  <td>Extourne TVA FNP</td>
+                  <td class="amount"></td>
+                  <td class="amount">200,00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h2>Quelles écritures sont généralement extournées ?</h2>
+          <p>
+            Les extournes concernent principalement les écritures d’inventaire ou de régularisation passées à la clôture.
+          </p>
+
+          <ul class="list">
+            <li>factures non parvenues ;</li>
+            <li>factures à établir ;</li>
+            <li>charges constatées d’avance ;</li>
+            <li>produits constatés d’avance ;</li>
+            <li>produits à recevoir ;</li>
+            <li>charges à payer.</li>
+          </ul>
+
+          <h2 id="erreurs">Erreurs fréquentes sur les extournes</h2>
+          <p>
+            Une extourne mal suivie peut créer des écarts dans les comptes de charges, de produits ou de tiers.
+            Le point sensible n’est pas seulement l’écriture : c’est le suivi entre N et N+1.
+          </p>
+
+          <ul class="list">
+            <li>oublier d’extourner une écriture de clôture ;</li>
+            <li>extourner deux fois la même écriture ;</li>
+            <li>comptabiliser la facture réelle sans vérifier l’extourne ;</li>
+            <li>ne pas contrôler les comptes 408, 418, 486, 487, 4686 et 4687 ;</li>
+            <li>laisser des soldes anciens dans les comptes d’attente.</li>
+          </ul>
+
+          <h2>Extourne automatique avec Axe Compta IA</h2>
+          <p>
+            L’objectif d’Axe Compta IA est d’aider à repérer les écritures de clôture qui devront être extournées en N+1 :
+            FNP, CCA, PCA, FAE, produits à recevoir, charges à payer et autres régularisations.
+          </p>
+
+          <p>
+            Le module d’extournes automatiques permettra de préparer le suivi des écritures à reprendre au début de l’exercice suivant,
+            sans perdre le lien avec la clôture initiale.
+          </p>
+
+        </article>
+
+        <aside class="sidebar">
+          <article class="cta-card">
+            <h3>Assistant clôture comptable</h3>
+            <p>
+              Axe Compta IA aide à identifier les écritures de clôture, les régularisations et les contrôles à effectuer avant bilan.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="index.html">Retour à l’accueil</a>
+            </div>
+          </article>
+
+          <article class="side-card">
+            <h3>Guides comptables proches</h3>
+            <ul class="mini-links">
+              <li><a href="checklist-cloture-comptable.html">Checklist clôture comptable</a></li>
+              <li><a href="fnp-comptabilite-exemple.html">FNP comptabilité exemple</a></li>
+              <li><a href="cca-comptabilite-exemple.html">CCA comptabilité exemple</a></li>
+              <li><a href="produit-constate-avance.html">Produit constaté d’avance</a></li>
+              <li><a href="produit-a-recevoir-comptabilite.html">Produit à recevoir</a></li>
+              <li><a href="amortissement-comptable-exemple.html">Amortissement comptable</a></li>
+            </ul>
+          </article>
+        </aside>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <div class="faq-wrap">
+
+          <article class="faq-card">
+            <h3>Une extourne est-elle obligatoire ?</h3>
+            <p>
+              Elle est très souvent nécessaire lorsque des écritures de clôture provisoires ont été passées.
+              Elle permet d’éviter les doublons en N+1.
+            </p>
+          </article>
+
+          <article class="faq-card">
+            <h3>Quelle est la différence entre extourne et contrepassation ?</h3>
+            <p>
+              Les deux notions sont proches : il s’agit de passer une écriture inverse. En pratique, on parle souvent d’extourne pour les écritures de clôture reprises en début d’exercice suivant.
+            </p>
+          </article>
+
+          <article class="faq-card">
+            <h3>Quand passer l’extourne ?</h3>
+            <p>
+              Elle est généralement passée au premier jour de l’exercice suivant, par exemple au 1er janvier N+1 pour une clôture au 31 décembre N.
+            </p>
+          </article>
+
+          <article class="faq-card">
+            <h3>Quels comptes contrôler après les extournes ?</h3>
+            <p>
+              Les comptes 408, 418, 486, 487, 4686 et 4687 doivent être suivis attentivement pour vérifier que les écritures de clôture ont bien été reprises.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <article class="cta-card">
+          <h3>Préparer une clôture plus propre</h3>
+          <p>
+            Les extournes sont un point clé de continuité entre la clôture N et le démarrage N+1.
+            Un suivi structuré évite les doublons et les oublis.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="index.html">Découvrir Axe Compta IA</a>
+            <a class="btn btn-secondary" href="checklist-cloture-comptable.html">Voir la checklist clôture</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-box">
+      <strong>Axe Compta IA</strong>
+      <br />
+      <small>Assistant de clôture comptable · Régularisations · Extournes · Contrôles bilan</small>
+    </div>
+  </footer>
+</body>
+</html>
