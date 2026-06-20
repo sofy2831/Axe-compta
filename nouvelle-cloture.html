@@ -175,14 +175,16 @@ cabinetShared:false,
     if(Object.keys(updates).length){
       updates.updatedAt=serverTimestamp();
       await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);
+      
     }
 
-    window.location.href=`cloture-analyse.html?id=${docRef.id}`;
+   window.location.replace(`cloture-analyse.html?id=${docRef.id}`);
   }catch(e){
     console.error(e);
     saveMsgEl.textContent="Erreur lors de l’enregistrement du dossier.";
     saveBtnEl.disabled=false;
     saveBtnEl.textContent="Enregistrer et continuer";
+     isSavingClosure=false;
   }
 });
 </script></body></html>
