@@ -120,9 +120,15 @@ saveBtnEl.addEventListener("click",async()=>{
    const isExpert=
   currentUserData.plan==="expert"
   || currentUserData.planRequested==="expert"
-  || currentUserData.subscriptionActive===true
-  || currentUserData.paymentStatus==="paid"
-  || currentUserData.stripeSubscriptionId;
+  || (
+    currentUserData.subscriptionActive===true
+    && currentUserData.plan==="expert"
+  )
+  || (
+    !!currentUserData.stripeSubscriptionId
+    && currentUserData.plan==="expert"
+  );
+    
 const isCabinetMember=currentUserData.cabinetMember===true;
 const isCabinetOwner=currentUserData.plan==="cabinet" || currentUserData.cabinetOwner===true;
 
