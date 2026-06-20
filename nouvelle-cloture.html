@@ -117,10 +117,20 @@ saveBtnEl.addEventListener("click",async()=>{
   saveBtnEl.textContent="Enregistrement...";
 
   try{
-    const isCabinetMember=currentUserData.cabinetMember===true;
+   const isExpert=currentUserData.plan==="expert" && currentUserData.subscriptionActive===true;
+const isCabinetMember=currentUserData.cabinetMember===true;
 const isCabinetOwner=currentUserData.plan==="cabinet" || currentUserData.cabinetOwner===true;
 
-const includedByCabinet=isCabinetMember || isCabinetOwner;
+const includedBySubscription=isExpert || isCabinetMember || isCabinetOwner;
+
+const planSource=isExpert
+  ? "expert"
+  : (isCabinetMember || isCabinetOwner ? "cabinet" : "solo");
+
+const paymentMode=isExpert
+  ? "expert"
+  : (isCabinetMember || isCabinetOwner ? "cabinet" : null);
+    
     const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
       companyName,
       startDate:startDateEl.value,
