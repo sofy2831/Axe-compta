@@ -44,6 +44,7 @@ import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/fir
 
 let currentUser=null;
 let currentUserData={};
+let isSavingClosure=false;
 const companyNameEl=document.getElementById("companyName");
 const startDateEl=document.getElementById("startDate");
 const endDateEl=document.getElementById("endDate");
@@ -83,9 +84,16 @@ onAuthStateChanged(auth,async user=>{
 logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 
 saveBtnEl.addEventListener("click",async()=>{
+  if(isSavingClosure)return;
+  isSavingClosure=true;
+
   saveMsgEl.style.display="block";
   saveMsgEl.textContent="";
-  if(!currentUser)return;
+
+  if(!currentUser){
+    isSavingClosure=false;
+    return;
+  }
 
   const companyName=companyNameEl.value.trim();
   if(!companyName){saveMsgEl.textContent="Indiquez le nom de l’entreprise.";return;}
