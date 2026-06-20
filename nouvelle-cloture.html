@@ -96,7 +96,11 @@ saveBtnEl.addEventListener("click",async()=>{
   }
 
   const companyName=companyNameEl.value.trim();
-  if(!companyName){saveMsgEl.textContent="Indiquez le nom de l’entreprise.";return;}
+  if(!companyName){
+  saveMsgEl.textContent="Indiquez le nom de l’entreprise.";
+  isSavingClosure=false;
+  return;
+}
 
   const balance=balanceFileEl.files[0]||null;
   const ledger=ledgerFileEl.files[0]||null;
