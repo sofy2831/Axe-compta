@@ -75,6 +75,23 @@ service cloud.firestore {
     && request.resource.data.active == true;
 }  
 
+match /closures/{closureId} {
+  allow read, update: if isSignedIn()
+    && (
+      isOwner(userId)
+      || isAdmin()
+      || resource.data.cabinetOwnerUid == request.auth.uid
+      || resource.data.sharedWithEmails.hasAny([userEmail()])
+      || resource.data.sharedEmails.hasAny([userEmail()])
+      || (
+        isCabinetMember()
+        && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+      )
+    );
+
+  allow create, delete: if isOwner(userId) || isAdmin();
+}
+
       match /{document=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
