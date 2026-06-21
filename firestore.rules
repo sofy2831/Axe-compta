@@ -53,22 +53,27 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
       allow read: if isAdmin();
 
-      match /cabinetCollaborators/{collabId} {
+    match /cabinetCollaborators/{collabId} {
 
-        allow read: if isSignedIn()
-          && (
-            isOwner(userId)
-            || resource.data.email == userEmail()
-            || isAdmin()
-          );
+  allow read: if isSignedIn()
+    && (
+      isOwner(userId)
+      || resource.data.email == userEmail()
+      || isAdmin()
+    );
 
-        allow create, update, delete: if isOwner(userId) || isAdmin();
+  allow create, delete: if isOwner(userId) || isAdmin();
 
-        allow update: if isSignedIn()
-          && resource.data.email == userEmail()
-          && request.resource.data.email == resource.data.email
-          && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid;
-      }
+  allow update: if isOwner(userId) || isAdmin();
+
+  allow update: if isSignedIn()
+    && resource.data.email == userEmail()
+    && request.resource.data.email == resource.data.email
+    && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid
+    && request.resource.data.collaboratorUid == request.auth.uid
+    && request.resource.data.status == "active"
+    && request.resource.data.active == true;
+}  
 
       match /{document=**} {
         allow read, write: if isOwner(userId) || isAdmin();
