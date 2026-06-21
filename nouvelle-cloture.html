@@ -117,7 +117,10 @@ saveBtnEl.addEventListener("click",async()=>{
   saveBtnEl.textContent="Enregistrement...";
 
   try{
-   const isExpert=
+   const freshUserSnap=await getDoc(doc(db,"users",currentUser.uid));
+currentUserData=freshUserSnap.exists()?freshUserSnap.data():currentUserData;
+    
+    const isExpert=
   currentUserData.plan==="expert"
   || currentUserData.planRequested==="expert"
   || (
