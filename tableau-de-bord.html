@@ -77,9 +77,24 @@ async function loadDashboard(user){
   currentMemberships=await loadCabinetMemberships(user);
   const userSnap=await getDoc(doc(db,"users",user.uid));
   let active=false;currentUserData={};
- if(userSnap.exists()){
+if(userSnap.exists()){
   const data=userSnap.data();
   currentUserData=data;
+
+  if(
+    data.cabinetMember===true
+    && data.cabinetOwnerUid
+    && !currentMemberships.some(m=>m.cabinetOwnerUid===data.cabinetOwnerUid)
+  ){
+    currentMemberships.push({
+      id:"userDocMembership",
+      email:user.email,
+      status:"active",
+      cabinetOwnerUid:data.cabinetOwnerUid,
+      cabinetName:data.cabinetName || "Cabinet"
+    });
+  }
+
   active=data.active!==false || isSubscriptionActive(data) || isCabinetMember();
 }
 
