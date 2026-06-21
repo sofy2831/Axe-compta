@@ -59,6 +59,7 @@ const saveBtnEl=document.getElementById("saveBtn");
 const saveMsgEl=document.getElementById("saveMsg");
 const logoutBtnEl=document.getElementById("logoutBtn");
 const periodLabelEl=document.getElementById("periodLabel");
+const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncStripeSubscription";
 
 function formatDateFr(v){if(!v)return"";const [y,m,d]=v.split("-");return `${d}/${m}/${y}`;}
 function updatePeriod(){periodLabelEl.textContent=`Exercice analysé : ${formatDateFr(startDateEl.value)} → ${formatDateFr(endDateEl.value)}`;}
