@@ -118,7 +118,16 @@ saveBtnEl.addEventListener("click",async()=>{
   saveBtnEl.textContent="Enregistrement...";
 
   try{
-   const freshUserSnap=await getDoc(doc(db,"users",currentUser.uid));
+   try{
+  await fetch(SYNC_STRIPE_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({uid:currentUser.uid})
+  });
+}catch(e){
+  console.warn("Sync Stripe non bloquante",e);
+}
+    const freshUserSnap=await getDoc(doc(db,"users",currentUser.uid));
 currentUserData=freshUserSnap.exists()?freshUserSnap.data():currentUserData;
     
     const isExpert=
