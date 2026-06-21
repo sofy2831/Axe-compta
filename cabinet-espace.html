@@ -149,6 +149,7 @@ async function loadCabinetPage(user){
 
 async function createInvitation(){
   const email=$("inviteEmail").value.trim().toLowerCase();
+  const name=$("inviteName").value.trim();
 
   if(!email){
     showMsg("Email obligatoire.",true);
@@ -166,6 +167,7 @@ async function createInvitation(){
 
   const data={
     email,
+    name,
     role:"collaborator",
     defaultAccess:"by_closure",
     note:$("inviteNote").value.trim(),
@@ -179,9 +181,14 @@ async function createInvitation(){
 
   await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
 
-  showMsg(`<b class="okText">Invitation créée.</b><br><span class="mono">${safe(inviteLink)}</span><br><br><a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((data.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+inviteLink)}">Envoyer par mail</a>`);
+  showMsg(`
+  <b class="okText">Invitation créée.</b><br>
+  <span>Le lien est prêt. Cliquez ci-dessous pour envoyer l’invitation par mail.</span><br><br>
+  <a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((data.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+inviteLink)}">Envoyer par mail</a>
+`);
 
   $("inviteEmail").value="";
+  $("inviteName").value="";
   $("inviteNote").value="";
 
   await loadCabinetPage(currentUser);
