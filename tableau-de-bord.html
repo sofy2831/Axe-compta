@@ -41,7 +41,22 @@ function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&
 function normEmail(v){return String(v||"").trim().toLowerCase();}
 function planDisplay(plan){if(plan==="solo")return"Solo 99 €";if(plan==="expert")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="monthly")return"Expert 149 €/mois";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
 function isCabinetOwner(data){return data.developerAccess===true||data.role==="admin"||data.cabinetOwner===true||data.plan==="cabinet"||data.planRequested==="cabinet"||data.cabinetSetup?.status==="active"||data.cabinetSetup?.status==="pending_payment";}
-function isCabinetMember(){return currentMemberships.length>0;}
+function isCabinetMember(){
+  return currentUserData.cabinetMember===true || currentMemberships.length>0;
+}
+  function dashboardPlanLabel(data){
+  if(isCabinetMember() && !isCabinetOwner(data)) return "Cabinet inclus";
+  if(data.plan==="cabinet") return "Cabinet 399 €/mois";
+  if(data.plan==="expert" || data.plan==="monthly") return "Expert 149 €/mois";
+  if(data.hasSoloPurchase===true || data.plan==="solo" || data.plan==="one-shot") return "Solo 99 €";
+  return planDisplay(data.plan);
+}
+
+function dashboardStatusLabel(data, active){
+  if(isCabinetMember() && !isCabinetOwner(data)) return "Collaborateur Cabinet";
+  if(data.cancelAtPeriodEnd===true) return "Résiliation programmée";
+  return active ? "Actif" : "À activer";
+}
 function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabinetHeaderBtn.style.display=show?"inline-flex":"none";cabinetMenuCard.classList.toggle("hidden",!show);}
 function isSubscriptionActive(data){return data.developerAccess===true||data.role==="admin"||data.subscriptionActive===true||(data.active!==false&&["expert","cabinet","extra-collab","monthly"].includes(data.plan));}
 function hasPaidAccess(){return isSubscriptionActive(currentUserData)||isCabinetMember();}
@@ -62,11 +77,18 @@ async function loadDashboard(user){
   currentMemberships=await loadCabinetMemberships(user);
   const userSnap=await getDoc(doc(db,"users",user.uid));
   let active=false;currentUserData={};
-  if(userSnap.exists()){const data=userSnap.data();currentUserData=data;currentPlanLabel=planDisplay(data.plan);active=data.active!==false||isSubscriptionActive(data);}
-  if(isCabinetMember()&&!isCabinetOwner(currentUserData)){currentPlanLabel="Collaborateur Cabinet";active=true;}
-  refreshCabinetAccess();
-  planLabelEl.textContent=currentPlanLabel;
-  accountStatusEl.textContent=isCabinetMember()&&!isCabinetOwner(currentUserData)?"Actif via Cabinet":(currentUserData.cancelAtPeriodEnd===true?"Résiliation programmée":(active?"Actif":"À activer"));
+ if(userSnap.exists()){
+  const data=userSnap.data();
+  currentUserData=data;
+  active=data.active!==false || isSubscriptionActive(data) || isCabinetMember();
+}
+
+currentPlanLabel=dashboardPlanLabel(currentUserData);
+
+refreshCabinetAccess();
+
+planLabelEl.textContent=currentPlanLabel;
+accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);
   const subscriptionOk=hasPaidAccess();
   try{
     const all=[...(await collectOwnClosures(user)),...(await collectSharedClosures(user))];
