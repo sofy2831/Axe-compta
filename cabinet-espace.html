@@ -37,10 +37,14 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
   <section class="box">
     <h2>Inviter un collaborateur</h2>
     <p class="muted">Le collaborateur est invité ici. Les dossiers autorisés se partagent ensuite depuis le bouton <b>Partager</b> dans le tableau de bord, sur chaque clôture.</p>
-    <div class="grid2">
-      <div><label>Email du collaborateur</label><input id="inviteEmail" type="email" placeholder="collaborateur@cabinet.fr"></div>
-      <div><label>Rôle</label><input type="text" value="Collaborateur" disabled></div>
-    </div>
+   <div class="grid2">
+  <div><label>Nom du collaborateur</label><input id="inviteName" type="text" placeholder="Prénom Nom"></div>
+  <div><label>Email du collaborateur</label><input id="inviteEmail" type="email" placeholder="collaborateur@cabinet.fr"></div>
+</div>
+<div class="grid2">
+  <div><label>Rôle</label><input type="text" value="Collaborateur" disabled></div>
+  <div></div>
+</div>
     <div class="notice"><b>Gestion simple :</b> pas de rôles complexes. Un collaborateur peut consulter et intervenir uniquement sur les clôtures que vous lui partagez.</div>
     <label>Message facultatif</label>
     <textarea id="inviteNote" placeholder="Ex : Bonjour, voici votre accès Axe Compta Cabinet."></textarea>
@@ -50,7 +54,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 
   <section class="box">
     <h2>Collaborateurs</h2>
-    <table><thead><tr><th>Email</th><th>Rôle</th><th>Statut</th><th>Dossiers partagés</th><th></th></tr></thead><tbody id="collabRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table>
+    <table><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Dossiers partagés</th><th></th></tr></thead><tbody id="collabRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table>
     <div class="notice warnNotice">Une licence suspendue reste réservée. Pour libérer la licence, utilisez “Retirer du cabinet”.</div>
   </section>
 
@@ -82,9 +86,9 @@ function sharedCountForEmail(email){const needle=String(email||"").toLowerCase()
 function updateMetrics(){const included=includedCount(),extra=extraCount(),used=activeCount();$("includedLicenses").textContent=included;$("extraLicenses").textContent=extra;$("activeCollaborators").textContent=used;$("availableLicenses").textContent=Math.max(0,included+extra-used);}
 
 function renderCollaborators(){
-  if(!collaborators.length){$("collabRows").innerHTML=`<tr><td colspan="5" class="muted">Aucun collaborateur invité pour le moment.</td></tr>`;updateMetrics();return;}
+  if(!collaborators.length){$("collabRows").innerHTML=`<tr><td colspan="6" class="muted">Aucun collaborateur invité pour le moment.</td></tr>`;updateMetrics();return;}
   $("collabRows").innerHTML=collaborators.map(c=>{const count=sharedCountForEmail(c.email);return`
-    <tr><td>${safe(c.email)}</td><td>Collaborateur</td><td>${statusLabel(c.status)}</td><td>${count?`${count} dossier(s) partagé(s)`:"Aucun dossier partagé"}</td><td><div class="actions inlineActions"><button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button><button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>${c.inviteLink?`<a class="btn small" href="mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((c.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+c.inviteLink)}">Envoyer par mail</a>`:""}</div></td></tr>`;}).join("");
+   <tr><td>${safe(c.name||"—")}</td><td>${safe(c.email)}</td><td>Collaborateur</td><td>${statusLabel(c.status)}</td><td>${count?`${count} dossier(s) partagé(s)`:"Aucun dossier partagé"}</td><td><div class="actions inlineActions"><button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button><button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>${c.inviteLink?`<a class="btn small" href="mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((c.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+c.inviteLink)}">Envoyer par mail</a>`:""}</div></td></tr>`;}).join("");
   document.querySelectorAll("[data-suspend]").forEach(btn=>btn.addEventListener("click",()=>suspendCollaborator(btn.dataset.suspend)));
   document.querySelectorAll("[data-remove]").forEach(btn=>btn.addEventListener("click",()=>removeCollaborator(btn.dataset.remove)));
   updateMetrics();
