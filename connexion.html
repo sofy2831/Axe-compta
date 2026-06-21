@@ -133,10 +133,18 @@ async function afterAuth(user){
       return;
     }
     await ensureUserDoc(user);
-    if(requestedPlan==="cabinet"||next==="cabinet-parametrage"){window.location.href="cabinet-parametrage.html?plan=cabinet";return;}
-    if(requestedPlan==="solo"||next==="nouvelle-cloture"){window.location.href="nouvelle-cloture.html?plan=solo";return;}
-    if(requestedPlan==="expert"){
+   if(requestedPlan==="expert"){
   await startCheckout("expert", user);
+  return;
+}
+
+if(requestedPlan==="cabinet"||next==="cabinet-parametrage"){
+  window.location.href="cabinet-parametrage.html?plan=cabinet";
+  return;
+}
+
+if(requestedPlan==="solo"||next==="nouvelle-cloture"){
+  window.location.href="nouvelle-cloture.html?plan=solo";
   return;
 }
     window.location.href="tableau-de-bord.html";
