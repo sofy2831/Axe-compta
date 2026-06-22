@@ -1504,7 +1504,7 @@ Format JSON attendu :
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+          model: "gpt-4.1-mini",
           input: prompt,
           text: {
             format: {
