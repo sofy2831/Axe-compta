@@ -113,7 +113,7 @@ function money(v){return euro(v)}
 function totalAllocated(){return totals().allocated}
 function n(id){return Number($(id).value||0)}
 function set(id,v){$(id).value=v??""}
-function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
+function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function cleanFile(s){return String(s||"document").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").toLowerCase()||"document"}
 function getCompte(row){return String(row.Compte||row.compte||row.CompteNum||row.compteNum||"").replace(/\s/g,"")}
 function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const x=Number(raw);return Number.isNaN(x)?0:x}
@@ -127,14 +127,13 @@ function showMode(){const profit=resultType==="profit";$("profitInputs").style.d
 function totals(){const allocated=resultType==="profit"?n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");const remaining=+(resultAmount-allocated).toFixed(2);return{allocated,remaining}}
 function updateSummary(){const t=totals();$("resultAmountLabel").textContent=euro(resultAmount);$("allocatedLabel").textContent=euro(t.allocated);$("remainingLabel").textContent=euro(t.remaining);const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;$("progressBar").style.width=pct+"%";if(Math.abs(t.remaining)<=0.01){$("balanceBox").innerHTML='<b class="ok">Affectation équilibrée.</b><br>Vous pouvez générer les écritures.'}else if(t.remaining>0){$("balanceBox").innerHTML=`<b class="warnText">Affectation en cours.</b><br>Il reste ${euro(t.remaining)} à affecter.`}else{$("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`}generatedRows=[];$("entriesBox").innerHTML="";$("saveBtn").disabled=true;$("pvBtn").disabled=true;$("exportBar").style.display="none"}
 ["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>$(id).addEventListener("input",updateSummary));
+
 function applyStrategy(strategy){if(resultType==="loss"||strategy==="loss"){set("lossCarryForwardAmount",resultAmount);updateSummary();return}set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);if(strategy==="distribution"){set("dividendAmount",resultAmount)}else if(strategy==="report"){set("carryForwardAmount",resultAmount)}else{const reserve=Math.min(resultAmount,Math.round(resultAmount*0.05*100)/100);set("reserveAmount",reserve);set("carryForwardAmount",+(resultAmount-reserve).toFixed(2))}updateSummary()}
+
 const AI_AFFECTATION_URL = "https://europe-west9-axe-compta.cloudfunctions.net/aiAffectationResultat";
 
 $("autoBtn").addEventListener("click",()=>applyStrategy(resultType==="loss"?"loss":"prudent"));
-
-document.querySelectorAll("[data-strategy]").forEach(b=>
-  b.addEventListener("click",()=>applyStrategy(b.dataset.strategy))
-);
+document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
 
 $("aiBtn").addEventListener("click", async ()=>{
   const btn = $("aiBtn");
@@ -186,55 +185,6 @@ $("aiBtn").addEventListener("click", async ()=>{
   }
 });
 
-$("aiBtn").addEventListener("click", async ()=>{
-  const btn = $("aiBtn");
-  btn.disabled = true;
-  btn.textContent = "IA en cours...";
-
-  try{
-    const response = await fetch(AI_AFFECTATION_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        uid:currentUser.uid,
-        closureId,
-        resultType,
-        resultAmount,
-        currentAllocation:{
-          reserveAmount:n("reserveAmount"),
-          carryForwardAmount:n("carryForwardAmount"),
-          dividendAmount:n("dividendAmount"),
-          lossCarryForwardAmount:n("lossCarryForwardAmount")
-        }
-      })
-    });
-
-    const data = await response.json().catch(()=>({}));
-    if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
-
-    set("reserveAmount", data.reserveAmount || 0);
-    set("carryForwardAmount", data.carryForwardAmount || 0);
-    set("dividendAmount", data.dividendAmount || 0);
-    set("lossCarryForwardAmount", data.lossCarryForwardAmount || 0);
-
-    updateSummary();
-
-    $("balanceBox").innerHTML = `
-      <b class="ok">Proposition IA appliquée.</b><br>
-      ${sanitize(data.explanation || "")}
-      ${Array.isArray(data.warnings) && data.warnings.length
-        ? `<br><br><b>Points à vérifier :</b><br>${data.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`
-        : ""}
-    `;
-
-  }catch(e){
-    console.error(e);
-    alert(e.message || "Erreur lors de l'appel IA.");
-  }finally{
-    btn.disabled = false;
-    btn.textContent = "IA — proposer la meilleure affectation";
-  }
-});
 function buildEntries(){const t=totals();if(Math.abs(t.remaining)>0.01)throw new Error("L’affectation doit être équilibrée avant de générer les écritures.");const rows=[];if(resultType==="profit"){rows.push({journal:"OD",label:"Affectation du résultat bénéficiaire",debit:"120000",credit:"",amount:resultAmount});const r=n("reserveAmount"),cf=n("carryForwardAmount"),d=n("dividendAmount");if(r)rows.push({journal:"OD",label:"Affectation en réserves",debit:"",credit:"106800",amount:r,affectation:"Réserve légale / autres réserves"});if(cf)rows.push({journal:"OD",label:"Report à nouveau créditeur",debit:"",credit:"110000",amount:cf,affectation:"Report à nouveau créditeur"});if(d)rows.push({journal:"OD",label:"Dividendes à payer",debit:"",credit:"457000",amount:d,affectation:"Dividendes à payer"})}else{const l=n("lossCarryForwardAmount");rows.push({journal:"OD",label:"Report à nouveau débiteur",debit:"119000",credit:"",amount:l,affectation:"Report à nouveau débiteur"});rows.push({journal:"OD",label:"Affectation du résultat déficitaire",debit:"",credit:"129000",amount:l})}return rows}
 function renderEntries(rows){$("entriesBox").innerHTML=`<table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit||"")}</td><td>${sanitize(r.credit||"")}</td><td class="amount">${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`}
 $("generateBtn").addEventListener("click",()=>{try{generatedRows=buildEntries();renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}catch(e){alert(e.message)}});
@@ -259,7 +209,65 @@ $("csvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affect
 $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`,htmlPage(docHtml()),"application/vnd.ms-excel;charset=utf-8")}catch(e){alert(e.message)}});
 $("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`,htmlPage(pvDocHtml()),"application/msword;charset=utf-8")}catch(e){alert(e.message)}});
 
-async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}}
+async function loadClosure(user){
+  if(!closureId){
+    $("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';
+    return;
+  }
+
+  $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;
+  $("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;
+
+  const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));
+  if(!snap.exists()){
+    $("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';
+    return;
+  }
+
+  currentClosure=snap.data();
+  set("companyName",currentClosure.companyName||"Société sans nom");
+  set("fiscalYear",fiscalYear(currentClosure));
+
+  const r=findResult(currentClosure);
+  if(r){
+    resultType=r.type;
+    resultAmount=r.amount;
+    $("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>';
+  }else{
+    resultType="profit";
+    resultAmount=0;
+    $("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>';
+  }
+
+  showMode();
+
+  const saved=currentClosure.affectationResult;
+
+  if(saved){
+    set("pvDate",saved.pvDate||"");
+    set("reserveAmount",saved.reserveAmount||0);
+    set("carryForwardAmount",saved.carryForwardAmount||0);
+    set("dividendAmount",saved.dividendAmount||0);
+    set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
+
+    updateSummary();
+
+    generatedRows=Array.isArray(saved.entries)?saved.entries:[];
+
+    if(generatedRows.length){
+      renderEntries(generatedRows);
+      $("saveBtn").disabled=false;
+      $("pvBtn").disabled=false;
+      $("exportBar").style.display="block";
+      renderPrint();
+    }
+  }else{
+    const today=new Date();
+    set("pvDate",`${today.getFullYear()}-06-30`);
+    applyStrategy(resultType==="loss"?"loss":"prudent");
+  }
+}
+
 onAuthStateChanged(auth,async user=>{
   if(!user){
     window.location.href="connexion.html";
