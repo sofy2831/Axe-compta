@@ -1547,6 +1547,139 @@ Format JSON attendu :
     }
   }
 );
+function fallbackScoreQuality(scoreItems = [], score = 0) {
+  const losses = scoreItems
+    .filter(i => Number(i.loss || 0) > 0)
+    .sort((a, b) => Number(b.loss || 0) - Number(a.loss || 0));
+
+  return {
+    summary: score >= 96
+      ? "Le dossier est quasiment finalisé. Les derniers points concernent surtout des contrôles de justification."
+      : "Le dossier peut encore être amélioré avant validation définitive.",
+    priorityActions: losses.slice(0, 5).map(i => ({
+      title: i.title || i.key || "Contrôle à améliorer",
+      action: i.detail || "Contrôle à reprendre.",
+      impact: Number(i.loss || 0),
+      filesNeeded: Array.isArray(i.files) ? i.files : []
+    })),
+    warnings: [
+      "Les recommandations doivent être contrôlées avant comptabilisation définitive.",
+      "L'IA ne remplace pas la validation professionnelle du dossier."
+    ],
+    finalAdvice: score >= 96
+      ? "Le dossier peut passer en revue finale."
+      : "Traiter les points les plus pénalisants, puis relancer le score qualité."
+  };
+}
+
+exports.aiScoreQualite = onRequest(
+  { secrets: ["OPENAI_API_KEY"] },
+  async (req, res) => {
+    setCors(res);
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      const { uid, closureId, score, scoreItems } = req.body || {};
+
+      if (!uid || !closureId) {
+        return res.status(400).json({ error: "uid ou closureId manquant." });
+      }
+
+      const db = admin.firestore();
+      const snap = await db.collection("users").doc(uid).collection("closures").doc(closureId).get();
+
+      if (!snap.exists) {
+        return res.status(404).json({ error: "Clôture introuvable." });
+      }
+
+      const closure = snap.data() || {};
+      const fallback = fallbackScoreQuality(scoreItems || [], score || 0);
+
+      const prompt = `
+Tu es un assistant de clôture comptable français.
+
+Objectif :
+Aider l'utilisateur à atteindre un score qualité de 100/100 sur son dossier de clôture.
+
+Données dossier :
+- Société : ${closure.companyName || "Non renseignée"}
+- Exercice : ${closure.startDate || "?"} au ${closure.endDate || "?"}
+- Score actuel : ${score}/100
+- Contrôles qualité : ${JSON.stringify(scoreItems || [])}
+
+Contraintes :
+- Réponds uniquement en JSON valide.
+- Ne donne pas de conseil juridique définitif.
+- Priorise les actions concrètes.
+- Explique quels fichiers ou justificatifs sont nécessaires.
+- Ne propose pas de refaire toute la clôture si une correction ciblée suffit.
+
+Format JSON attendu :
+{
+  "summary":"synthèse courte",
+  "priorityActions":[
+    {
+      "title":"nom du point",
+      "action":"action concrète à faire",
+      "impact":0,
+      "filesNeeded":["Balance","Grand Livre"]
+    }
+  ],
+  "warnings":["alerte 1","alerte 2"],
+  "finalAdvice":"conseil final"
+}
+`;
+
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4.1-mini",
+          input: prompt,
+          text: {
+            format: {
+              type: "json_object"
+            }
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("OpenAI score error:", data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      let ai;
+      try {
+        ai = JSON.parse(extractOpenAiText(data));
+      } catch (e) {
+        console.error("AI score JSON parse error:", e, data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      return res.json({
+        ok: true,
+        summary: ai.summary || fallback.summary,
+        priorityActions: Array.isArray(ai.priorityActions) ? ai.priorityActions : fallback.priorityActions,
+        warnings: Array.isArray(ai.warnings) ? ai.warnings : fallback.warnings,
+        finalAdvice: ai.finalAdvice || fallback.finalAdvice
+      });
+
+    } catch (error) {
+      console.error("aiScoreQualite error:", error);
+      return res.status(500).json({ error: "Erreur IA score qualité." });
+    }
+  }
+);
 exports.submitFeedback = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
