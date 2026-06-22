@@ -1547,6 +1547,22 @@ Format JSON attendu :
     }
   }
 );
+function compactForAI(value, max = 25) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, max).map(item => ({
+    type: item.type || item.key || "",
+    title: item.title || item.label || item.libelle || "",
+    score: item.score ?? null,
+    max: item.max ?? null,
+    loss: item.loss ?? null,
+    status: item.status || item.level || "",
+    detail: item.detail || item.justification || "",
+    debit: item.debit || "",
+    credit: item.credit || "",
+    amount: item.amount || ""
+  }));
+}
+
 function fallbackScoreQuality(scoreItems = [], score = 0) {
   const losses = scoreItems
     .filter(i => Number(i.loss || 0) > 0)
@@ -1554,21 +1570,22 @@ function fallbackScoreQuality(scoreItems = [], score = 0) {
 
   return {
     summary: score >= 96
-      ? "Le dossier est quasiment finalisé. Les derniers points concernent surtout des contrôles de justification."
-      : "Le dossier peut encore être amélioré avant validation définitive.",
-    priorityActions: losses.slice(0, 5).map(i => ({
-      title: i.title || i.key || "Contrôle à améliorer",
-      action: i.detail || "Contrôle à reprendre.",
+      ? "Le dossier est presque finalisé. Les derniers points concernent des contrôles de justification."
+      : "Le dossier doit être renforcé avant validation définitive.",
+    priorityActions: losses.slice(0, 6).map(i => ({
+      title: i.title || "Contrôle à améliorer",
+      action: i.detail || "Contrôle à reprendre et documenter.",
       impact: Number(i.loss || 0),
-      filesNeeded: Array.isArray(i.files) ? i.files : []
+      filesNeeded: Array.isArray(i.files) ? i.files : [],
+      expectedResult: "Point documenté, justificatif ajouté ou écriture corrigée."
     })),
     warnings: [
-      "Les recommandations doivent être contrôlées avant comptabilisation définitive.",
-      "L'IA ne remplace pas la validation professionnelle du dossier."
+      "Les recommandations IA doivent être validées avant comptabilisation définitive.",
+      "Les justificatifs comptables restent indispensables."
     ],
     finalAdvice: score >= 96
-      ? "Le dossier peut passer en revue finale."
-      : "Traiter les points les plus pénalisants, puis relancer le score qualité."
+      ? "Faire une revue finale des justificatifs, puis figer le dossier."
+      : "Corriger les pertes de points les plus fortes, réimporter les fichiers corrigés si nécessaire, puis relancer le score."
   };
 }
 
@@ -1576,6 +1593,138 @@ exports.aiScoreQualite = onRequest(
   { secrets: ["OPENAI_API_KEY"] },
   async (req, res) => {
     setCors(res);
+
+    if (req.method === "OPTIONS") return res.status(204).send("");
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      const { uid, closureId, score, scoreItems } = req.body || {};
+
+      if (!uid || !closureId) {
+        return res.status(400).json({ error: "uid ou closureId manquant." });
+      }
+
+      const db = admin.firestore();
+      const snap = await db.collection("users").doc(uid).collection("closures").doc(closureId).get();
+
+      if (!snap.exists) {
+        return res.status(404).json({ error: "Clôture introuvable." });
+      }
+
+      const closure = snap.data() || {};
+      const fallback = fallbackScoreQuality(scoreItems || [], score || 0);
+
+      const aiPayload = {
+        companyName: closure.companyName || "",
+        exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
+        score,
+        scoreItems: compactForAI(scoreItems || [], 30),
+        controls: compactForAI(closure.controls || [], 30),
+        anomalies: compactForAI(closure.anomalies || [], 30),
+        entries: compactForAI(closure.entries || [], 40),
+        affectationResult: closure.affectationResult ? {
+          status: closure.affectationResult.status || "",
+          resultType: closure.affectationResult.resultType || "",
+          resultAmount: closure.affectationResult.resultAmount || 0,
+          entriesCount: Array.isArray(closure.affectationResult.entries) ? closure.affectationResult.entries.length : 0
+        } : null,
+        extournesN1: closure.extournesN1 ? {
+          status: closure.extournesN1.status || "",
+          date: closure.extournesN1.date || "",
+          entriesCount: Array.isArray(closure.extournesN1.entries) ? closure.extournesN1.entries.length : 0
+        } : null
+      };
+
+      const prompt = `
+Tu es un assistant expert en clôture comptable française.
+
+Mission :
+Aider l'utilisateur à atteindre 100/100 sur son score qualité.
+
+Tu dois analyser le dossier et produire un plan d'action concret, priorisé, métier.
+
+Données :
+${JSON.stringify(aiPayload)}
+
+Règles de réponse :
+- Réponds uniquement en JSON valide.
+- Pas de blabla.
+- Ne répète pas seulement "dossier presque finalisé".
+- Pour chaque point perdu, indique :
+  1. ce qui bloque,
+  2. quoi vérifier,
+  3. quel justificatif ou fichier fournir,
+  4. quelle action permet de récupérer les points.
+- Si le score est supérieur ou égal à 96, indique uniquement les derniers contrôles de revue finale.
+- Ne propose pas de refaire toute la clôture si un contrôle ciblé suffit.
+- Ne donne pas de conseil juridique définitif.
+- Ton style doit être professionnel, direct, exploitable.
+
+Format JSON strict :
+{
+  "summary":"synthèse claire en 1 ou 2 phrases",
+  "priorityActions":[
+    {
+      "title":"point à traiter",
+      "action":"action concrète à faire",
+      "impact":0,
+      "filesNeeded":["Balance","Grand Livre"],
+      "expectedResult":"résultat attendu après correction"
+    }
+  ],
+  "warnings":["alerte métier 1","alerte métier 2"],
+  "finalAdvice":"conseil final opérationnel"
+}
+`;
+
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4.1-mini",
+          input: prompt,
+          text: {
+            format: {
+              type: "json_object"
+            }
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("OpenAI score error:", data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      let ai;
+      try {
+        ai = JSON.parse(extractOpenAiText(data));
+      } catch (e) {
+        console.error("AI score JSON parse error:", e, data);
+        return res.json({ ok: true, fallback: true, ...fallback });
+      }
+
+      return res.json({
+        ok: true,
+        summary: ai.summary || fallback.summary,
+        priorityActions: Array.isArray(ai.priorityActions) ? ai.priorityActions : fallback.priorityActions,
+        warnings: Array.isArray(ai.warnings) ? ai.warnings : fallback.warnings,
+        finalAdvice: ai.finalAdvice || fallback.finalAdvice
+      });
+
+    } catch (error) {
+      console.error("aiScoreQualite error:", error);
+      return res.status(500).json({ error: "Erreur IA score qualité." });
+    }
+  }
+);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
     if (req.method !== "POST") {
