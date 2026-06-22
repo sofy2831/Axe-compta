@@ -23,6 +23,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <p class="muted">Assistant de contrepassation des écritures de clôture.</p>
     </div>
     <div class="navActions">
+       <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
       <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
@@ -263,7 +264,7 @@ $("excelBtn").addEventListener("click", exportExcel);
 $("closeModalBtn").addEventListener("click", closeModal);
 $("detailsModal").addEventListener("click", e=>{ if(e.target === $("detailsModal")) closeModal(); });
 
-onAuthStateChanged(auth, async user => { if(!user){ location.href="connexion.html"; return; } currentUser=user; try{ await loadClosure(user); }catch(e){ console.error(e); $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'; } });
+onAuthStateChanged(auth, async user => {   if(!user){     location.href="connexion.html";     return;   }    currentUser=user;    try{     const userSnap=await getDoc(doc(db,"users",user.uid));     const userData=userSnap.exists()?userSnap.data():{};     showAdminFeedbackIfAllowed(user,userData);      await loadClosure(user);   }catch(e){     console.error(e);     $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';   } });
 </script>
 </body>
 </html>
