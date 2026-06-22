@@ -16,7 +16,13 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" id="cabinetHeaderBtn" href="cabinet-espace.html" style="display:none">Espace Cabinet</a><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a>
+  <a class="btn"
+     id="adminFeedbackBtn"
+     href="admin-feedback.html"
+     style="display:none">
+     Admin feedback
+  </a> <a class="btn" id="cabinetHeaderBtn" href="cabinet-espace.html" style="display:none">Espace Cabinet</a><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
 <div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
@@ -30,7 +36,8 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, collection, collectionGroup, query, orderBy, limit, getDocs, updateDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
+ import { showAdminFeedbackIfAllowed } from "./admin-access.js";
+  const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const CUSTOMER_PORTAL_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCustomerPortalSession";
 const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncStripeSubscription";
