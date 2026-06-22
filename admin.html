@@ -18,7 +18,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="tableau-de-bord.html">Tableau de bord client</a><a class="btn primary" href="admin.html">Admin</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="tableau-de-bord.html">Tableau de bord client</a><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn primary" href="admin.html">Admin</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap"><div class="top"><div><h1>Admin Axe Compta</h1><p class="muted">Console interne développeur : retours utilisateurs, tests, suivi produit et accès SaaS.</p><p id="statusLine" class="muted">Vérification de l’accès administrateur...</p></div></div>
 <section id="adminContent" style="display:none">
 <div class="grid"><div class="metric"><b id="roleLabel">—</b><span>rôle</span></div><div class="metric"><b id="planLabel">—</b><span>plan</span></div><div class="metric"><b id="developerLabel">—</b><span>accès développeur</span></div><div class="metric"><b id="activeLabel">—</b><span>compte actif</span></div></div>
@@ -35,6 +35,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <footer><div class="wrap">© Axe Compta IA — Administration interne.</div></footer>
 <script type="module">
 import { auth, db } from "./firebase-config.js";
+import { showAdminFeedbackIfAllowed } from "./admin-access.js"; 
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const ADMIN_EMAILS=["s.dumas974@gmail.com","contact@axe-dossier.fr"];
@@ -51,6 +52,7 @@ onAuthStateChanged(auth,async user=>{
   try{
     const snap=await getDoc(doc(db,"users",user.uid));
     const data=snap.exists()?snap.data():{};
+    showAdminFeedbackIfAllowed(user,data);
     const role=data.role||"admin";
     const plan=data.plan||"—";
     const developerAccess=data.developerAccess===true;
