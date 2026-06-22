@@ -23,7 +23,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <p class="muted">Assistant de contrepassation des écritures de clôture.</p>
     </div>
     <div class="navActions">
-       <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
+      <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
       <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
@@ -97,7 +97,8 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 </div>
 
 <script type="module">
-import { auth, db, storage } from "./firebase-config.js"; import { showAdminFeedbackIfAllowed } from "./admin-access.js";
+import { auth, db, storage } from "./firebase-config.js";
+import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
@@ -119,6 +120,26 @@ function nextDayAfterEnd(c){ if(!c?.endDate) return ""; const d = new Date(c.end
 function cleanFileName(name){ return String(name || "fichier").replace(/[^\w.\-]+/g,"_"); }
 function isAllowedFile(file){ if(!file) return true; const n=file.name.toLowerCase(); return n.endsWith(".xlsx") || n.endsWith(".xls") || n.endsWith(".csv"); }
 function fileInfo(file,path){ return { name:file.name, size:file.size, type:file.type || "", storagePath:path, uploadedAt:new Date().toISOString() }; }
+
+function isSoloClosureLocked(){
+  return currentClosure?.planSource === "solo" && currentClosure?.soloClosureLocked === true;
+}
+
+function isSoloClosure(){
+  return currentClosure?.planSource === "solo" || currentClosure?.paymentMode === "solo" || currentClosure?.plan === "solo";
+}
+
+function lockSoloUploadUI(){
+  ["balanceFile","ledgerFile","amortFile","loanFile","useExistingFiles","recheckBtn"].forEach(id=>{
+    const el=$(id);
+    if(el) el.disabled=true;
+  });
+
+  $("recheckMsg").innerHTML =
+    `<b class="warnText">Clôture Solo verrouillée.</b><br>
+    Les extournes ont été enregistrées. Cette clôture 99 € ne peut plus être recalculée ni remplacée par de nouveaux fichiers.
+    Pour traiter un autre exercice ou une autre société, créez une nouvelle clôture.`;
+}
 
 const modules = [
   { key:"fnp_cap", title:"FNP / CAP", patterns:["fnp","cap","charge à payer","charge a payer","facture non parvenue","facture non recue"], desc:"Factures non parvenues et charges à payer détectées." },
@@ -178,6 +199,11 @@ function generate(){ extourneRows=computeExtournes(); renderRows(extourneRows); 
 
 async function uploadCorrectedFiles(){
   if(!currentUser || !closureId) throw new Error("Clôture non sélectionnée.");
+
+  if(isSoloClosureLocked()){
+    throw new Error("Clôture Solo verrouillée après enregistrement des extournes. Créez une nouvelle clôture pour retraiter un autre dossier.");
+  }
+
   const files = { balance:$("balanceFile").files[0]||null, grandLivre:$("ledgerFile").files[0]||null, amortissements:$("amortFile").files[0]||null, emprunt:$("loanFile").files[0]||null };
   if(!Object.values(files).every(isAllowedFile)) throw new Error("Formats acceptés uniquement : XLSX, XLS ou CSV.");
   const updates = {};
@@ -207,25 +233,65 @@ async function recheckClosure(){
     renderRows([]); renderModules(); updateMetrics(); $("saveBtn").disabled=true; $("exportBar").style.display="none";
     $("recheckMsg").innerHTML = `<b class="ok">Clôture recontrôlée.</b><br>${uploaded ? `${uploaded} fichier(s) corrigé(s) importé(s).` : "Fichiers déjà enregistrés relus."}<br>${data.entries || 0} écriture(s) recalculée(s). Vous pouvez générer les extournes.`;
   }catch(e){ console.error(e); $("recheckMsg").innerHTML = `<b class="err">${sanitize(e.message || "Erreur lors du recontrôle.")}</b>`; }
-  finally{ btn.disabled=false; btn.textContent="🔍 Recontrôler la clôture"; }
+  finally{
+    if(isSoloClosureLocked()){
+      lockSoloUploadUI();
+    }else{
+      btn.disabled=false;
+      btn.textContent="🔍 Recontrôler la clôture";
+    }
+  }
 }
 
 async function saveExtournes(){
   if(!currentUser || !closureId) return alert("Clôture non sélectionnée.");
+
   if(!extourneRows.length){
     extourneRows = computeExtournes();
     renderRows(extourneRows);
     updateMetrics();
     renderPrint();
   }
+
   if(!extourneRows.length){
     return alert("Aucune extourne à enregistrer.");
   }
-  await setDoc(doc(db,"users",currentUser.uid,"closures",closureId), { extournesN1:{ date:$("extourneDate").value, journal:$("journalCode").value || "OD", entries:extourneRows, status:"generated", updatedAt:new Date().toISOString() }, updatedAt:serverTimestamp() }, { merge:true });
+
+  const payload = {
+    extournesN1:{
+      date:$("extourneDate").value,
+      journal:$("journalCode").value || "OD",
+      entries:extourneRows,
+      status:"generated",
+      updatedAt:new Date().toISOString()
+    },
+    updatedAt:serverTimestamp()
+  };
+
+  if(isSoloClosure()){
+    payload.soloClosureLocked = true;
+    payload.soloClosureLockedAt = serverTimestamp();
+    payload.soloClosureLockedStep = "extournes";
+  }
+
+  await setDoc(doc(db,"users",currentUser.uid,"closures",closureId), payload, { merge:true });
+
+  currentClosure = {
+    ...currentClosure,
+    extournesN1: payload.extournesN1,
+    soloClosureLocked: isSoloClosure() ? true : currentClosure?.soloClosureLocked,
+    soloClosureLockedStep: isSoloClosure() ? "extournes" : currentClosure?.soloClosureLockedStep
+  };
+
+  if(isSoloClosure()){
+    lockSoloUploadUI();
+  }
+
   $("saveBtn").disabled=false;
   $("exportBar").style.display="block";
   alert("Extournes enregistrées.");
 }
+
 function rowsHtml(){ return extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="num">${euro(r.amount)}</td></tr>`).join(""); }
 function docHtml(){
   return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${extourneRows.length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(extourneRows))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><p>Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. Elles doivent être contrôlées avant import définitif en comptabilité.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
@@ -249,8 +315,20 @@ async function loadClosure(user){
   sourceEntries = Array.isArray(currentClosure.entries) ? currentClosure.entries : [];
   $("statusLine").innerHTML='<span class="ok">Clôture chargée. Recontrôlez si nécessaire, puis générez les extournes.</span>';
   const saved=currentClosure.extournesN1;
-  if(saved?.entries?.length){ set("extourneDate",saved.date || $("extourneDate").value); set("journalCode",saved.journal || "OD"); extourneRows=saved.entries; renderRows(extourneRows); $("saveBtn").disabled=false; $("exportBar").style.display="block"; renderPrint(); }
-  renderModules(); updateMetrics();
+  if(saved?.entries?.length){
+    set("extourneDate",saved.date || $("extourneDate").value);
+    set("journalCode",saved.journal || "OD");
+    extourneRows=saved.entries;
+    renderRows(extourneRows);
+    $("saveBtn").disabled=false;
+    $("exportBar").style.display="block";
+    renderPrint();
+  }
+  if(isSoloClosureLocked()){
+    lockSoloUploadUI();
+  }
+  renderModules();
+  updateMetrics();
 }
 
 $("recheckBtn").addEventListener("click", recheckClosure);
@@ -264,7 +342,25 @@ $("excelBtn").addEventListener("click", exportExcel);
 $("closeModalBtn").addEventListener("click", closeModal);
 $("detailsModal").addEventListener("click", e=>{ if(e.target === $("detailsModal")) closeModal(); });
 
-onAuthStateChanged(auth, async user => {   if(!user){     location.href="connexion.html";     return;   }    currentUser=user;    try{     const userSnap=await getDoc(doc(db,"users",user.uid));     const userData=userSnap.exists()?userSnap.data():{};     showAdminFeedbackIfAllowed(user,userData);      await loadClosure(user);   }catch(e){     console.error(e);     $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';   } });
+onAuthStateChanged(auth, async user => {
+  if(!user){
+    location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+
+  try{
+    const userSnap=await getDoc(doc(db,"users",user.uid));
+    const userData=userSnap.exists()?userSnap.data():{};
+    showAdminFeedbackIfAllowed(user,userData);
+
+    await loadClosure(user);
+  }catch(e){
+    console.error(e);
+    $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';
+  }
+});
 </script>
 </body>
 </html>
