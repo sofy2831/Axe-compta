@@ -42,7 +42,7 @@
 <aside class="box"><h2>Avancement</h2><div class="steps"><div class="step"><b>Fichiers importés</b><span id="filesStatus">Vérification des fichiers...</span></div><div class="step"><b>Questions de clôture</b><span id="questionsStatus">À compléter.</span></div><div class="step"><b>Lecture des fichiers</b><span id="parseStatus">En attente des réponses.</span></div><div class="step"><b>Résultat</b><span id="resultStatus">Après analyse des fichiers.</span></div></div><div class="notice">Les réponses servent à éviter les écritures automatiques hors contexte.</div></aside></div></div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 
 <script type="module">
-import { auth, db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js"; import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
