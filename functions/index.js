@@ -1401,16 +1401,36 @@ function extractOpenAiText(data) {
   if (data.output_text) return data.output_text;
 
   const parts = [];
+
   (data.output || []).forEach(item => {
     (item.content || []).forEach(content => {
-      if (content.type === "output_text" && content.text) parts.push(content.text);
-      if (content.text) parts.push(content.text);
+      if (content.type === "output_text" && content.text) {
+        parts.push(content.text);
+      } else if (typeof content.text === "string") {
+        parts.push(content.text);
+      }
     });
   });
 
   return parts.join("\n").trim();
 }
 
+function parseOpenAiJson(data) {
+  const text = extractOpenAiText(data);
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+
+    if (start !== -1 && end !== -1 && end > start) {
+      return JSON.parse(text.slice(start, end + 1));
+    }
+
+    throw e;
+  }
+}
 function fallbackAffectation(resultType, resultAmount) {
   const amount = Number(resultAmount || 0);
 
