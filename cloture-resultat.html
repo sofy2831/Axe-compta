@@ -16,7 +16,9 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" class="logoImg" alt="Axe Compta IA"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" class="logoImg" alt="Axe Compta IA"></a><div class="navRight"><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">
+  Admin feedback
+</a><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
   <div class="top"><div><h1>Résultat de clôture</h1><p class="muted" id="closureInfo">Chargement du dossier...</p></div><a class="btn" id="backLink" href="cloture-analyse.html">Modifier les réponses</a></div>
   <div class="box" id="filesBlock"><h2>Modifier les fichiers importés</h2><p class="muted">Remplacez un ou plusieurs fichiers, puis relancez l'analyse. Les écritures seront recalculées à partir des nouveaux fichiers.</p><div class="fileGrid"><div class="fileBox"><label>Balance générale</label><input id="balanceFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentBalance">Fichier actuel : —</span></div><div class="fileBox"><label>Grand livre</label><input id="grandLivreFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentGrandLivre">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau amortissements</label><input id="amortissementsFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentAmortissements">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau emprunt</label><input id="empruntFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentEmprunt">Fichier actuel : —</span></div></div><div class="actions"><button class="btn primary" type="button" id="reparseBtn">Recharger et recalculer</button></div><div class="notice fileMsg" id="fileMsg"></div></div>
@@ -29,7 +31,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="modalOverlay" id="detailsModal"><div class="modal"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Détail</div><div class="muted" id="modalSubtitle"></div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div class="modalGrid"><div class="modalMetric"><span>Journal</span><b id="modalJournal">—</b></div><div class="modalMetric"><span>Montant</span><b id="modalAmount">—</b></div><div class="modalMetric"><span>Statut</span><b id="modalStatus">—</b></div></div><h3>Analyse</h3><div class="modalText" id="modalJustification"></div><div id="modalDetailsWrap" style="display:none"><h3>Détail des mouvements</h3><div class="detailList" id="modalDetails"></div></div></div></div>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <script type="module">
-import { auth, db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js"; import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, updateDoc, serverTimestamp, collectionGroup, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
