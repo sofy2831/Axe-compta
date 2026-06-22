@@ -82,7 +82,25 @@ async function canAccessClosure(user,c,ownerUid,u){
   return closureSharedWithMe(c,user);
 }
 async function loadPage(user){currentUser=user;if(!id){location.href="tableau-de-bord.html";return}currentOwnerUid=ownerParam||user.uid;currentMemberships=await loadCabinetMemberships(user);const userSnap=await getDoc(doc(db,"users",user.uid));currentUserData=userSnap.exists()?userSnap.data():{};const closureSnap=await getDoc(closureRef());if(!closureSnap.exists()){location.href="tableau-de-bord.html";return}const c=closureSnap.data();currentClosure=c;const allowed=await canAccessClosure(user,c,currentOwnerUid,currentUserData);if(!allowed&&currentOwnerUid!==user.uid){location.href="tableau-de-bord.html";return}$("closureInfo").textContent=`${c.companyName||"Société"} — ${c.startDate||"—"} → ${c.endDate||"—"}`+(currentOwnerUid!==user.uid?" — dossier partagé par le cabinet":"");$("backLink").href=`cloture-analyse.html?id=${id}${ownerQueryParam()}`;$("affectationBtn").href=`affectation-resultat.html?id=${id}${ownerQueryParam()}`;$("extournesBtn").href=`extournes-automatiques.html?id=${id}${ownerQueryParam()}`;renderFileNames(c);currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});currentEntries=currentEntries.map(e=>({journal:e.journal||"OD",...e,status:e.status||"À valider"}));$("cyclesCount").textContent=countCycles(c);$("entriesCount").textContent=currentEntries.length;$("docsCount").textContent=countDocs(currentEntries);renderEntries();renderPrint();if(allowed){unlockResult(currentOwnerUid!==user.uid?"Partagé":(isOwnCabinetMember()&&!userHasSubscription(currentUserData)?"Cabinet":"Actif"));if(isOwnCabinetMember()&&!userHasSubscription(currentUserData)){$("accessNotice").innerHTML="Accès débloqué via la licence Cabinet. Aucun paiement individuel n’est demandé au collaborateur.";}}else{lockResult();}}
-onAuthStateChanged(auth,async user=>{try{if(!user){location.href="connexion.html";return}await loadPage(user);}catch(e){console.error(e);$("closureInfo").textContent="Erreur lors du chargement du dossier."}});
+onAuthStateChanged(auth,async user=>{
+  try{
+    if(!user){
+      location.href="connexion.html";
+      return;
+    }
+
+    const userSnap=await getDoc(doc(db,"users",user.uid));
+    const userData=userSnap.exists()?userSnap.data():{};
+
+    showAdminFeedbackIfAllowed(user,userData);
+
+    await loadPage(user);
+
+  }catch(e){
+    console.error(e);
+    $("closureInfo").textContent="Erreur lors du chargement du dossier.";
+  }
+});
 $("closeModalBtn").addEventListener("click",closeDetailsModal);$("detailsModal").addEventListener("click",e=>{if(e.target===$("detailsModal"))closeDetailsModal()});$("exportPdfBtn").addEventListener("click",exportPdf);$("exportExcelBtn").addEventListener("click",exportExcel);$("exportCsvBtn").addEventListener("click",exportCsv);$("saveEntriesBtn").addEventListener("click",async()=>{try{await saveEntriesStatus();alert("Écritures enregistrées.");}catch(e){alert("Impossible d'enregistrer les écritures.");}});$("reparseBtn").addEventListener("click",reparseFiles);$("payOneShotBtn").addEventListener("click",()=>startCheckout("solo"));$("payExpertBtn").addEventListener("click",()=>startCheckout("expert"));$("payCabinetBtn").addEventListener("click",()=>startCheckout("cabinet"));$("payExtraCollabBtn").addEventListener("click",()=>startCheckout("extra-collab"));$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html"});
 </script>
 </body>
