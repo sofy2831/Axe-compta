@@ -96,7 +96,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 </div>
 
 <script type="module">
-import { auth, db, storage } from "./firebase-config.js";
+import { auth, db, storage } from "./firebase-config.js"; import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
