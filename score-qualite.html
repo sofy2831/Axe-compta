@@ -199,6 +199,9 @@ onAuthStateChanged(auth,async user=>{
   }
 
   currentUser=user;
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+const userData=userSnap.exists()?userSnap.data():{};
+showAdminFeedbackIfAllowed(user,userData);
 
   try{
     await loadClosure(user);
