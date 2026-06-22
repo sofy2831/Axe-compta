@@ -24,7 +24,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="connexion.html">Connexion</a></div></div></header>
+<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="connexion.html">Connexion</a></div></div></header>
 
 <main><div class="wrap">
   <h1>Paramétrage Cabinet</h1>
@@ -104,6 +104,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 
 <script type="module">
 import { auth, db } from "./firebase-config.js";
+  import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
@@ -116,13 +117,19 @@ function showMsg(text,isError=false){
   $("msg").innerHTML=isError?`<span class="err">${text}</span>`:`<span class="ok">${text}</span>`;
 }
 
-onAuthStateChanged(auth,user=>{
+onAuthStateChanged(auth,async user=>{
   if(!user){
     location.href="connexion.html?plan=cabinet&next=cabinet-parametrage";
     return;
   }
+
   currentUser=user;
   $("ownerEmail").value=user.email||"";
+
+  const userSnap=await getDoc(doc(db,"users",user.uid));
+  const userData=userSnap.exists()?userSnap.data():{};
+
+  showAdminFeedbackIfAllowed(user,userData);
 });
 
 $("activateBtn").addEventListener("click",async()=>{
