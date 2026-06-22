@@ -24,6 +24,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <p class="muted">Assistant d’affectation du résultat après clôture et préparation du PV d’assemblée générale.</p>
     </div>
     <div class="navActions">
+      <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
       <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
@@ -100,7 +101,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-  import { showAdminFeedbackIfAllowed } from "./admin-access.js";
+import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 
 const params=new URLSearchParams(window.location.search);
 const closureId=params.get("id");
@@ -155,7 +156,26 @@ $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affe
 $("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`,htmlPage(pvDocHtml()),"application/msword;charset=utf-8")}catch(e){alert(e.message)}});
 
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="err">Aucune clôture sélectionnée.</span>';return}$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}`;$("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}`;const snap=await getDoc(doc(db,"users",user.uid,"closures",closureId));if(!snap.exists()){$("statusLine").innerHTML='<span class="err">Clôture introuvable.</span>';return}currentClosure=snap.data();set("companyName",currentClosure.companyName||"Société sans nom");set("fiscalYear",fiscalYear(currentClosure));const r=findResult(currentClosure);if(r){resultType=r.type;resultAmount=r.amount;$("statusLine").innerHTML='<span class="ok">Clôture chargée. Résultat détecté automatiquement.</span>'}else{resultType="profit";resultAmount=0;$("statusLine").innerHTML='<span class="err">Résultat non détecté. Vérifiez la présence d’un compte 120 ou 129 dans la balance.</span>'}showMode();const saved=currentClosure.affectationResult;if(saved){set("pvDate",saved.pvDate||"");set("reserveAmount",saved.reserveAmount||0);set("carryForwardAmount",saved.carryForwardAmount||0);set("dividendAmount",saved.dividendAmount||0);set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);generatedRows=Array.isArray(saved.entries)?saved.entries:[]}else{const today=new Date();set("pvDate",`${today.getFullYear()}-06-30`);applyStrategy(resultType==="loss"?"loss":"prudent")}updateSummary();if(generatedRows.length){renderEntries(generatedRows);$("saveBtn").disabled=false;$("pvBtn").disabled=false;$("exportBar").style.display="block";renderPrint()}}
-onAuthStateChanged(auth,async user=>{if(!user){window.location.href="connexion.html";return}currentUser=user;try{await loadClosure(user)}catch(e){console.error(e);$("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>'}});
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    window.location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+
+  try{
+    const userSnap=await getDoc(doc(db,"users",user.uid));
+    const userData=userSnap.exists()?userSnap.data():{};
+
+    showAdminFeedbackIfAllowed(user,userData);
+
+    await loadClosure(user);
+  }catch(e){
+    console.error(e);
+    $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';
+  }
+});
 </script>
 </body>
 </html>
