@@ -23,7 +23,9 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><a class="btn" href="assistant-cloture-comptable.html">Site</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">
+  Admin feedback
+</a><a class="btn primary" href="tableau-de-bord.html">Tableau de bord</a><a class="btn" href="assistant-cloture-comptable.html">Site</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
   <div class="top"><div><h1>Espace Cabinet</h1><p class="muted" id="cabinetLine">Chargement du cabinet...</p></div></div>
 
@@ -68,6 +70,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 
 <script type="module">
 import { auth, db } from "./firebase-config.js";
+import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
@@ -133,6 +136,7 @@ async function loadCabinetPage(user){
   return;
 }
   currentUserData=userSnap.data()||{};
+  showAdminFeedbackIfAllowed(user,currentUserData);
   if(!canAccessCabinet(currentUserData)){location.href="tableau-de-bord.html";return;}
   const name=currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||"Cabinet";
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs et des dossiers partagés.`;
