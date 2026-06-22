@@ -24,7 +24,8 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 @media(max-width:960px){.grid,.layout{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}
 @media(max-width:640px){table{display:block;overflow-x:auto;white-space:nowrap}.grid{grid-template-columns:1fr 1fr}.inline{grid-template-columns:1fr}.nav{height:76px}.logoImg{height:44px}}
 </style></head><body>
-<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"> <a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a> <a class="btn" href="assistant-cloture-comptable.html">Site</a>
+  <a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap"><h1>Créer une clôture</h1><p class="muted">Renseignez l’exercice, importez les fichiers comptables puis lancez les questions de contrôle.</p>
 <div class="layout"><div class="box"><h2>1. Informations du dossier</h2><label>Nom de l’entreprise</label><input id="companyName" type="text" placeholder="Ex : SARL Exemple" required><div class="inline"><div><label>Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div><div><label>Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div></div><label>Activité</label><select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select><label>Régime TVA</label><select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select>
 <h2 style="margin-top:24px">2. Fichiers comptables</h2>
@@ -38,6 +39,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 </div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <script type="module">
 import { auth, db, storage } from "./firebase-config.js";
+  import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { collection, addDoc, updateDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
@@ -81,6 +83,7 @@ onAuthStateChanged(auth,async user=>{
 
   const userSnap=await getDoc(doc(db,"users",user.uid));
   currentUserData=userSnap.exists()?userSnap.data():{};
+  showAdminFeedbackIfAllowed(user,currentUserData);
 });
 logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);window.location.href="connexion.html";});
 
