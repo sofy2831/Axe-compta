@@ -1549,6 +1549,7 @@ Format JSON attendu :
 );
 function compactForAI(value, max = 25) {
   if (!Array.isArray(value)) return [];
+
   return value.slice(0, max).map(item => ({
     type: item.type || item.key || "",
     title: item.title || item.label || item.libelle || "",
@@ -1559,7 +1560,8 @@ function compactForAI(value, max = 25) {
     detail: item.detail || item.justification || "",
     debit: item.debit || "",
     credit: item.credit || "",
-    amount: item.amount || ""
+    amount: item.amount || "",
+    files: Array.isArray(item.files) ? item.files : []
   }));
 }
 
@@ -1573,53 +1575,7 @@ function fallbackScoreQuality(scoreItems = [], score = 0) {
       ? "Le dossier est presque finalisé. Les derniers points concernent des contrôles de justification."
       : "Le dossier doit être renforcé avant validation définitive.",
     priorityActions: losses.slice(0, 6).map(i => ({
-      title: i.title || "Contrôle à améliorer",
-      action: i.detail || "Contrôle à reprendre et documenter.",
-      impact: Number(i.loss || 0),
-      filesNeeded: Array.isArray(i.files) ? i.files : [],
-      expectedResult: "Point documenté, justificatif ajouté ou écriture corrigée."
-    })),
-    warnings: [
-      "Les recommandations IA doivent être validées avant comptabilisation définitive.",
-      "Les justificatifs comptables restent indispensables."
-    ],
-    finalAdvice: score >= 96
-      ? "Faire une revue finale des justificatifs, puis figer le dossier."
-      : "Corriger les pertes de points les plus fortes, réimporter les fichiers corrigés si nécessaire, puis relancer le score."
-  };
-}
-
-exports.aiScoreQualite = onRequest(
-  { secrets: ["OPENAI_API_KEY"] },
-  async (req, res) => {
-    
-function compactForAI(value, max = 25) {
-  if (!Array.isArray(value)) return [];
-  return value.slice(0, max).map(item => ({
-    type: item.type || item.key || "",
-    title: item.title || item.label || item.libelle || "",
-    score: item.score ?? null,
-    max: item.max ?? null,
-    loss: item.loss ?? null,
-    status: item.status || item.level || "",
-    detail: item.detail || item.justification || "",
-    debit: item.debit || "",
-    credit: item.credit || "",
-    amount: item.amount || ""
-  }));
-}
-
-function fallbackScoreQuality(scoreItems = [], score = 0) {
-  const losses = scoreItems
-    .filter(i => Number(i.loss || 0) > 0)
-    .sort((a, b) => Number(b.loss || 0) - Number(a.loss || 0));
-
-  return {
-    summary: score >= 96
-      ? "Le dossier est presque finalisé. Les derniers points concernent des contrôles de justification."
-      : "Le dossier doit être renforcé avant validation définitive.",
-    priorityActions: losses.slice(0, 6).map(i => ({
-      title: i.title || "Contrôle à améliorer",
+      title: i.title || i.key || "Contrôle à améliorer",
       action: i.detail || "Contrôle à reprendre et documenter.",
       impact: Number(i.loss || 0),
       filesNeeded: Array.isArray(i.files) ? i.files : [],
@@ -1665,7 +1621,7 @@ exports.aiScoreQualite = onRequest(
       const aiPayload = {
         companyName: closure.companyName || "",
         exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
-        score,
+        score: Number(score || 0),
         scoreItems: compactForAI(scoreItems || [], 30),
         controls: compactForAI(closure.controls || [], 30),
         anomalies: compactForAI(closure.anomalies || [], 30),
