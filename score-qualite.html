@@ -145,17 +145,60 @@ $("aiBtn").addEventListener("click", async ()=>{
         uid: currentUser.uid,
         closureId,
         score,
-        scoreItems,
-        companyName: currentClosure?.companyName || "",
-        fiscalYear: fiscalYear(currentClosure),
-        controls: currentClosure?.controls || [],
-        anomalies: currentClosure?.anomalies || [],
-        entries: currentClosure?.entries || [],
-        affectationResult: currentClosure?.affectationResult || null,
-        extournesN1: currentClosure?.extournesN1 || null
+        scoreItems
       })
     });
 
+    const data = await response.json().catch(()=>({}));
+    if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
+
+    const actions = Array.isArray(data.priorityActions) ? data.priorityActions : [];
+
+    $("improveBox").innerHTML = `
+      <b class="okText">Analyse IA pour atteindre 100/100</b><br><br>
+      ${sanitize(data.summary || "")}
+
+      ${actions.length ? `
+        <br><br><b>Plan d’action priorisé :</b><br>
+        ${actions.map((a,idx)=>`
+          <div style="margin:14px 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.05)">
+            <b>${idx+1}. ${sanitize(a.title || "Point à traiter")}</b><br>
+            <span class="warnText">Impact : +${sanitize(a.impact ?? 0)} point(s)</span><br><br>
+            <b>Action :</b><br>
+            ${sanitize(a.action || "")}<br><br>
+            ${Array.isArray(a.filesNeeded) && a.filesNeeded.length ? `
+              <b>Fichiers / justificatifs :</b><br>
+              ${a.filesNeeded.map(f=>`- ${sanitize(f)}`).join("<br>")}<br><br>
+            ` : ""}
+            ${a.expectedResult ? `
+              <b>Résultat attendu :</b><br>
+              ${sanitize(a.expectedResult)}
+            ` : ""}
+          </div>
+        `).join("")}
+      ` : ""}
+
+      ${Array.isArray(data.warnings) && data.warnings.length ? `
+        <br><b>Alertes métier :</b><br>
+        ${data.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}
+      ` : ""}
+
+      ${data.finalAdvice ? `
+        <br><br><b>Conseil final :</b><br>
+        ${sanitize(data.finalAdvice)}
+      ` : ""}
+    `;
+
+    $("statusLine").innerHTML='<span class="okText">Analyse IA générée.</span>';
+
+  }catch(e){
+    console.error(e);
+    alert(e.message || "Erreur lors de l’appel IA.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "IA - atteindre 100/100";
+  }
+});
     const data = await response.json().catch(()=>({}));
     if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
 
