@@ -1543,7 +1543,7 @@ Format JSON attendu :
 
       let ai;
       try {
-        ai = JSON.parse(extractOpenAiText(data));
+        ai = parseOpenAiJson(data);
       } catch (e) {
         console.error("AI JSON parse error:", e, data);
         return res.json({ ok: true, fallback: true, ...fallback });
@@ -1727,7 +1727,7 @@ Format JSON strict :
 
       let ai;
       try {
-        ai = JSON.parse(extractOpenAiText(data));
+        ai = parseOpenAiJson(data);
       } catch (e) {
         console.error("AI score JSON parse error:", e, data);
         return res.json({ ok: true, fallback: true, ...fallback });
