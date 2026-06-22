@@ -130,7 +130,8 @@ function rowsForKey(k){if(k==="files")return[];if(k==="waiting")return rowsWithP
 function entriesTableHtml(rows){if(!rows.length)return`<div class="notice">Aucune écriture détaillée détectée pour ce contrôle.</div>`;return`<table class="modalTable"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${sanitize(r.journal||"OD")}</td><td>${sanitize(r.label||r.libelle||r.sourceLabel||"")}</td><td>${sanitize(r.debit||"")}</td><td>${sanitize(r.credit||"")}</td><td class="num">${euro(amount(r))}</td></tr>`).join("")}</tbody></table>`}
 function openView(k){const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=i.title;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("fileInputs").innerHTML="";$("modalImportBtn").style.display="none";$("modalBack").style.display="flex"}
 function openRecheck(k){const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=`Recontrôler - ${i.title}`;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}<br><br>Réimportez uniquement les fichiers nécessaires :`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("fileInputs").innerHTML=i.files.map(f=>`<label>${sanitize(f)}</label><input type="file" accept=".xls,.xlsx,.csv">`).join("");$("modalImportBtn").style.display="inline-flex";$("modalImportBtn").onclick=()=>alert("Étape suivante à brancher : upload des fichiers actualisés puis relance du parsing ciblé. Le score sera recalculé automatiquement après réanalyse.");$("modalBack").style.display="flex"}
-$("modalCloseBtn").addEventListener("click",()=>$("modalBack").style.display="none");$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").style.display="none"});const AI_SCORE_URL = "https://europe-west9-axe-compta.cloudfunctions.net/aiScoreQualite";
+$("modalCloseBtn").addEventListener("click",()=>$("modalBack").style.display="none");$("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").style.display="none"});
+  const AI_SCORE_URL = "https://europe-west9-axe-compta.cloudfunctions.net/aiScoreQualite";
 
 $("aiBtn").addEventListener("click", async ()=>{
   const btn = $("aiBtn");
@@ -199,33 +200,8 @@ $("aiBtn").addEventListener("click", async ()=>{
     btn.textContent = "IA - atteindre 100/100";
   }
 });
-    const data = await response.json().catch(()=>({}));
-    if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
-
-    $("improveBox").innerHTML = `
-      <b class="okText">Analyse IA pour atteindre 100/100</b><br><br>
-      ${sanitize(data.summary || "")}
-      ${Array.isArray(data.priorities) && data.priorities.length
-        ? `<br><br><b>Priorités :</b><br>${data.priorities.map(p=>`- ${sanitize(p)}`).join("<br>")}`
-        : ""}
-      ${Array.isArray(data.actions) && data.actions.length
-        ? `<br><br><b>Actions recommandées :</b><br>${data.actions.map(a=>`- ${sanitize(a)}`).join("<br>")}`
-        : ""}
-      ${Array.isArray(data.filesToCheck) && data.filesToCheck.length
-        ? `<br><br><b>Fichiers / justificatifs à vérifier :</b><br>${data.filesToCheck.map(f=>`- ${sanitize(f)}`).join("<br>")}`
-        : ""}
-    `;
-
-    $("statusLine").innerHTML='<span class="okText">Analyse IA générée.</span>';
-
-  }catch(e){
-    console.error(e);
-    alert(e.message || "Erreur lors de l’appel IA.");
-  }finally{
-    btn.disabled = false;
-    btn.textContent = "IA - atteindre 100/100";
-  }
-});$("saveScoreBtn").addEventListener("click",async()=>{
+  
+  $("saveScoreBtn").addEventListener("click",async()=>{
   const btn=$("saveScoreBtn");
   try{
     btn.disabled=true;
