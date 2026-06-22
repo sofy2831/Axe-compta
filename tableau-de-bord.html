@@ -34,9 +34,10 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="modalOverlay" id="menuModal"><div class="modal" role="dialog" aria-modal="true"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Menu Axe Compta</div><div class="muted" id="modalSubtitle">Axe Compta évolue grâce aux retours de ses utilisateurs.</div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div id="modalContent"></div></div></div>
 <script type="module">
 import { auth, db } from "./firebase-config.js";
+  import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, collection, collectionGroup, query, orderBy, limit, getDocs, updateDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
- import { showAdminFeedbackIfAllowed } from "./admin-access.js";
+
   const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const CUSTOMER_PORTAL_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCustomerPortalSession";
