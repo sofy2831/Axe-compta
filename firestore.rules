@@ -1,1 +1,169 @@
-rules_version = '2'; service cloud.firestore { match /databases/{database}/documents { function isSignedIn() { return request.auth != null; } function userEmail() { return isSignedIn() ? request.auth.token.email : ""; } function isAdmin() { return isSignedIn() && userEmail() in [ "s.dumas974@gmail.com", "contact@axe-dossier.fr" ]; } function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; } function userDocExists(uid) { return exists(/databases/$(database)/documents/users/$(uid)); } function currentUserData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; } function myCabinetOwnerUid() { return userDocExists(request.auth.uid) ? currentUserData().cabinetOwnerUid : ""; } function isCabinetMember() { return isSignedIn() && userDocExists(request.auth.uid) && currentUserData().cabinetMember == true && currentUserData().cabinetOwnerUid != null; } function isCabinetOwnerOfUser(userId) { return isSignedIn() && userDocExists(userId) && get(/databases/$(database)/documents/users/$(userId)).data.cabinetOwnerUid == request.auth.uid; } function hasSharedWithEmails(data) { return "sharedWithEmails" in data && data.sharedWithEmails is list && data.sharedWithEmails.hasAny([userEmail()]); } function hasSharedEmails(data) { return "sharedEmails" in data && data.sharedEmails is list && data.sharedEmails.hasAny([userEmail()]); } function hasSharedWithMap(data) { return "sharedWith" in data && data.sharedWith is map && userEmail() in data.sharedWith && data.sharedWith[userEmail()].active == true; } function isSharedClosureData(data) { return isSignedIn() && ( hasSharedWithEmails(data) || hasSharedEmails(data) || hasSharedWithMap(data) ); } function canReadOrUpdateClosure(userId, data) { return isSignedIn() && ( isOwner(userId) || isAdmin() || data.cabinetOwnerUid == request.auth.uid || isSharedClosureData(data) || ( isCabinetMember() && data.cabinetOwnerUid == myCabinetOwnerUid() ) ); } match /users/{userId} { allow read, write: if isOwner(userId); allow read: if isAdmin(); match /cabinetCollaborators/{collabId} { allow read: if isSignedIn() && ( isOwner(userId) || isAdmin() || resource.data.email == userEmail() ); allow create, delete: if isOwner(userId) || isAdmin(); allow update: if isOwner(userId) || isAdmin(); allow update: if isSignedIn() && resource.data.email == userEmail() && request.resource.data.email == resource.data.email && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid && request.resource.data.collaboratorUid == request.auth.uid && request.resource.data.status == "active" && request.resource.data.active == true; } match /cabinetSharedClosures/{sharedId} { allow read, write: if isOwner(userId) || isAdmin(); } match /closures/{closureId} { allow create: if isOwner(userId) || isAdmin(); allow read, update: if canReadOrUpdateClosure(userId, resource.data); allow delete: if isOwner(userId) || isAdmin(); } match /{document=**} { allow read, write: if isOwner(userId) || isAdmin(); } } match /closures/{closureId} { allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid; allow read, update, delete: if isSignedIn() && ( resource.data.ownerUid == request.auth.uid || isAdmin() || resource.data.cabinetOwnerUid == request.auth.uid || isSharedClosureData(resource.data) || ( isCabinetMember() && resource.data.cabinetOwnerUid == myCabinetOwnerUid() ) ); } match /feedback/{feedbackId} { allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid; allow read: if isSignedIn() && resource.data.uid == request.auth.uid; allow read, update, delete: if isAdmin(); } } }
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return isSignedIn() ? request.auth.token.email : "";
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && userEmail() in [
+          "s.dumas974@gmail.com",
+          "contact@axe-dossier.fr"
+        ];
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function userDocExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function currentUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function myCabinetOwnerUid() {
+      return userDocExists(request.auth.uid)
+        ? currentUserData().cabinetOwnerUid
+        : "";
+    }
+
+    function isCabinetMember() {
+      return isSignedIn()
+        && userDocExists(request.auth.uid)
+        && currentUserData().cabinetMember == true
+        && currentUserData().cabinetOwnerUid != null;
+    }
+
+    function isCabinetOwnerOfUser(userId) {
+      return isSignedIn()
+        && userDocExists(userId)
+        && get(/databases/$(database)/documents/users/$(userId)).data.cabinetOwnerUid == request.auth.uid;
+    }
+
+    function hasSharedWithEmails(data) {
+      return "sharedWithEmails" in data
+        && data.sharedWithEmails is list
+        && data.sharedWithEmails.hasAny([userEmail()]);
+    }
+
+    function hasSharedEmails(data) {
+      return "sharedEmails" in data
+        && data.sharedEmails is list
+        && data.sharedEmails.hasAny([userEmail()]);
+    }
+
+    function hasSharedWithMap(data) {
+      return "sharedWith" in data
+        && data.sharedWith is map
+        && userEmail() in data.sharedWith
+        && data.sharedWith[userEmail()].active == true;
+    }
+
+    function isSharedClosureData(data) {
+      return isSignedIn()
+        && (
+          hasSharedWithEmails(data)
+          || hasSharedEmails(data)
+          || hasSharedWithMap(data)
+        );
+    }
+
+    function canReadOrUpdateClosure(userId, data) {
+      return isSignedIn()
+        && (
+          isOwner(userId)
+          || isAdmin()
+          || data.cabinetOwnerUid == request.auth.uid
+          || isSharedClosureData(data)
+          || (
+            isCabinetMember()
+            && data.cabinetOwnerUid == myCabinetOwnerUid()
+          )
+        );
+    }
+
+    match /users/{userId} {
+
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin();
+
+      match /cabinetCollaborators/{collabId} {
+
+        allow read: if isSignedIn()
+          && (
+            isOwner(userId)
+            || isAdmin()
+            || resource.data.email == userEmail()
+          );
+
+        allow create, delete: if isOwner(userId) || isAdmin();
+
+        allow update: if isOwner(userId) || isAdmin();
+
+        allow update: if isSignedIn()
+          && resource.data.email == userEmail()
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid
+          && request.resource.data.collaboratorUid == request.auth.uid
+          && request.resource.data.status == "active"
+          && request.resource.data.active == true;
+      }
+
+      match /cabinetSharedClosures/{sharedId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      match /closures/{closureId} {
+
+        allow create: if isOwner(userId) || isAdmin();
+
+        allow read, update: if canReadOrUpdateClosure(userId, resource.data);
+
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /{document=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /closures/{closureId} {
+
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      allow read, update, delete: if isSignedIn()
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isAdmin()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+          || isSharedClosureData(resource.data)
+          || (
+            isCabinetMember()
+            && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+          )
+        );
+    }
+
+    match /feedback/{feedbackId} {
+
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow read: if isSignedIn()
+        && resource.data.uid == request.auth.uid;
+
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
