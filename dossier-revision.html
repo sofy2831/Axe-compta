@@ -94,7 +94,20 @@ function renderPrint(){$("printArea").innerHTML=docHtml();}
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 $("saveBtn").addEventListener("click",()=>saveReview().catch(e=>{console.error(e);alert("Erreur enregistrement dossier de révision.");}));
 $("printBtn").addEventListener("click",()=>{renderPrint();window.print();});
-$("wordBtn").addEventListener("click",()=>download("dossier-revision.doc",`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,"application/msword;charset=utf-8"));
+$("excelBtn").addEventListener("click",()=>download(
+  "dossier-revision.xls",
+  `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,
+  "application/vnd.ms-excel;charset=utf-8"
+));
+
+$("csvBtn").addEventListener("click",()=>{
+  const header=["Écriture","Journal","Débit","Crédit","Montant","Statut","Pourquoi","Calcul","Justificatif","Commentaire"];
+  const rows=reviewItems.map(r=>[
+    r.label,r.journal,r.debit,r.credit,r.amount,r.status,r.why,r.calculation,r.document,r.comment
+  ]);
+  const csv="\ufeff"+[header,...rows].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n");
+  download("dossier-revision.csv",csv,"text/csv;charset=utf-8");
+});
 
 async function loadClosure(user){
   if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
