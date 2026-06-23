@@ -139,7 +139,6 @@ exports.stripeWebhook = onRequest(
 
     try {
       switch (event.type) {
-
         case "checkout.session.completed": {
           const session = event.data.object;
           const uid = session.metadata?.uid;
@@ -163,60 +162,60 @@ exports.stripeWebhook = onRequest(
               { merge: true }
             );
 
-           await db.collection("users").doc(uid).set(
-  {
-    active: true,
-    plan: "solo",
-    hasSoloPurchase: true,
-    subscriptionActive: false,
-    paymentStatus: "paid",
-    cancelAtPeriodEnd: false,
-    stripeCustomerId: session.customer || null,
-    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-  },
-  { merge: true }
-);
+            await db.collection("users").doc(uid).set(
+              {
+                active: true,
+                plan: "solo",
+                hasSoloPurchase: true,
+                subscriptionActive: false,
+                paymentStatus: "paid",
+                cancelAtPeriodEnd: false,
+                stripeCustomerId: session.customer || null,
+                lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
           }
 
-  if (["expert", "cabinet", "extra-collab"].includes(plan)) {
-  const userRef = db.collection("users").doc(uid);
-  const userSnap = await userRef.get();
-  const userData = userSnap.exists ? userSnap.data() || {} : {};
+          if (["expert", "cabinet", "extra-collab"].includes(plan)) {
+            const userRef = db.collection("users").doc(uid);
+            const userSnap = await userRef.get();
+            const userData = userSnap.exists ? userSnap.data() || {} : {};
 
-  const updateData = {
-    active: true,
-    paymentStatus: "paid",
-    stripeCustomerId: session.customer || userData.stripeCustomerId || null,
-    lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
-  };
+            const updateData = {
+              active: true,
+              paymentStatus: "paid",
+              stripeCustomerId: session.customer || userData.stripeCustomerId || null,
+              lastPaymentAt: admin.firestore.FieldValue.serverTimestamp(),
+            };
 
-  if (plan === "expert") {
-    updateData.plan = "expert";
-    updateData.subscriptionActive = true;
-    updateData.stripeSubscriptionId = session.subscription || null;
-  }
+            if (plan === "expert") {
+              updateData.plan = "expert";
+              updateData.subscriptionActive = true;
+              updateData.stripeSubscriptionId = session.subscription || null;
+            }
 
-  if (plan === "cabinet") {
-    updateData.plan = "cabinet";
-    updateData.subscriptionActive = true;
-    updateData.cabinetOwner = true;
-    updateData.cabinetMember = false;
-    updateData.role = "owner";
-    updateData.stripeSubscriptionId = session.subscription || null;
-    updateData["cabinetSetup.status"] = "active";
-    updateData["cabinetSetup.includedLicenses"] = userData.cabinetSetup?.includedLicenses || 3;
-  }
+            if (plan === "cabinet") {
+              updateData.plan = "cabinet";
+              updateData.subscriptionActive = true;
+              updateData.cabinetOwner = true;
+              updateData.cabinetMember = false;
+              updateData.role = "owner";
+              updateData.stripeSubscriptionId = session.subscription || null;
+              updateData["cabinetSetup.status"] = "active";
+              updateData["cabinetSetup.includedLicenses"] = userData.cabinetSetup?.includedLicenses || 3;
+            }
 
-  if (plan === "extra-collab") {
-    updateData.plan = "cabinet";
-    updateData.subscriptionActive = true;
-    updateData.cabinetOwner = true;
-    updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
-    updateData.lastExtraCollabSubscriptionId = session.subscription || null;
-  }
+            if (plan === "extra-collab") {
+              updateData.plan = "cabinet";
+              updateData.subscriptionActive = true;
+              updateData.cabinetOwner = true;
+              updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
+              updateData.lastExtraCollabSubscriptionId = session.subscription || null;
+            }
 
-  await userRef.set(updateData, { merge: true });
-}
+            await userRef.set(updateData, { merge: true });
+          }
 
           break;
         }
@@ -230,76 +229,72 @@ exports.stripeWebhook = onRequest(
             break;
           }
 
-         const plan = planFromSubscription(subscription);
-const isActive = ["active", "trialing"].includes(subscription.status);
+          const plan = planFromSubscription(subscription);
+          const isActive = ["active", "trialing"].includes(subscription.status);
+          const cancelAtPeriodEnd = subscription.cancel_at_period_end === true || !!subscription.cancel_at;
+          const subscriptionEndsAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
+          const userData = userDoc.data() || {};
 
-const cancelAtPeriodEnd =
-  subscription.cancel_at_period_end === true || !!subscription.cancel_at;
-
-const subscriptionEndsAt = subscription.cancel_at
-  ? new Date(subscription.cancel_at * 1000)
-  : null;
-
-await userDoc.ref.set(
-  {
-    plan: plan === "extra-collab" ? "cabinet" : (plan || userDoc.data().plan || ""),
-    active: isActive,
-    subscriptionActive: isActive,
-    paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
-    cancelAtPeriodEnd,
-    subscriptionEndsAt,
-    cabinetOwner: (plan || userDoc.data().plan) === "cabinet" ? true : userDoc.data().cabinetOwner || false,
-    stripeCustomerId: subscription.customer || userDoc.data().stripeCustomerId || null,
-    stripeSubscriptionId: subscription.id,
-    subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-  },
-  { merge: true }
-);
+          await userDoc.ref.set(
+            {
+              plan: plan === "extra-collab" ? "cabinet" : (plan || userData.plan || ""),
+              active: isActive,
+              subscriptionActive: isActive,
+              paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
+              cancelAtPeriodEnd,
+              subscriptionEndsAt,
+              cabinetOwner: (plan || userData.plan) === "cabinet" ? true : userData.cabinetOwner || false,
+              stripeCustomerId: subscription.customer || userData.stripeCustomerId || null,
+              stripeSubscriptionId: subscription.id,
+              subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
 
           break;
         }
 
-       case "customer.subscription.deleted": {
-  const subscription = event.data.object;
-  const userDoc = await findUserBySubscription(subscription.id);
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object;
+          const userDoc = await findUserBySubscription(subscription.id);
 
-  if (!userDoc) {
-    console.warn("No user found for deleted subscription:", subscription.id);
-    break;
-  }
+          if (!userDoc) {
+            console.warn("No user found for deleted subscription:", subscription.id);
+            break;
+          }
 
-  const userData = userDoc.data() || {};
-  const deletedPlan = planFromSubscription(subscription);
+          const userData = userDoc.data() || {};
+          const deletedPlan = planFromSubscription(subscription);
 
-  if (deletedPlan === "extra-collab") {
-    await userDoc.ref.set(
-      {
-        cabinetExtraLicenses: admin.firestore.FieldValue.increment(-1),
-        lastExtraCollabCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-    break;
-  }
+          if (deletedPlan === "extra-collab") {
+            await userDoc.ref.set(
+              {
+                cabinetExtraLicenses: admin.firestore.FieldValue.increment(-1),
+                lastExtraCollabCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+            break;
+          }
 
-  const fallbackPlan = userData.hasSoloPurchase === true ? "solo" : "";
+          const fallbackPlan = userData.hasSoloPurchase === true ? "solo" : "";
 
-  await userDoc.ref.set(
-    {
-      active: fallbackPlan === "solo",
-      subscriptionActive: false,
-      paymentStatus: "canceled",
-      plan: fallbackPlan,
-      cabinetOwner: false,
-      cancelAtPeriodEnd: false,
-      subscriptionEndsAt: null,
-      subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
+          await userDoc.ref.set(
+            {
+              active: fallbackPlan === "solo",
+              subscriptionActive: false,
+              paymentStatus: "canceled",
+              plan: fallbackPlan,
+              cabinetOwner: false,
+              cancelAtPeriodEnd: false,
+              subscriptionEndsAt: null,
+              subscriptionCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
 
-  break;
-}
+          break;
+        }
 
         case "invoice.payment_failed": {
           const invoice = event.data.object;
@@ -333,7 +328,6 @@ await userDoc.ref.set(
       }
 
       return res.status(200).send("ok");
-
     } catch (error) {
       console.error("Webhook processing error:", error);
       return res.status(500).send("Webhook processing error");
@@ -458,12 +452,12 @@ function cleanEntryLabel(prefix, row) {
     .replace(/valeur nette comptable/gi, "")
     .replace(/vnc/gi, "")
     .replace(/variation stock matières premières/gi, "")
-.replace(/variation stock matieres premieres/gi, "")
-.replace(/variation stock marchandises/gi, "")
-.replace(/production stockée travaux en cours/gi, "")
-.replace(/production stockee travaux en cours/gi, "")
-.replace(/production stockée produits finis/gi, "")
-.replace(/production stockee produits finis/gi, "")
+    .replace(/variation stock matieres premieres/gi, "")
+    .replace(/variation stock marchandises/gi, "")
+    .replace(/production stockée travaux en cours/gi, "")
+    .replace(/production stockee travaux en cours/gi, "")
+    .replace(/production stockée produits finis/gi, "")
+    .replace(/production stockee produits finis/gi, "")
     .replace(/\s+/g, " ")
     .replace(/^[-–—:\s]+/, "")
     .trim();
@@ -1124,8 +1118,7 @@ Contrôles à effectuer :
 - contrôler qu'il ne s'agit pas d'erreurs d'imputation.
 Cliquer sur « Voir » pour afficher le détail des mouvements.`,
       confidence: 0.85,
-
-           source: "balance/grandLivre",
+      source: "balance/grandLivre",
       details: waitingRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
     controls.push({ type: "waiting_account_detected", label: "Compte d'attente détecté", level: "warning" });
@@ -1151,7 +1144,6 @@ Contrôles à effectuer :
 - vérifier l'absence d'amortissement avant mise en service ;
 - rapprocher les montants des factures et situations de travaux.`,
       confidence: 0.85,
-      
       source: "balance/grandLivre",
       details: constructionRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
@@ -1397,6 +1389,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     return res.status(500).json({ error: "Erreur parsing fichiers." });
   }
 });
+
 function extractOpenAiText(data) {
   if (data.output_text) return data.output_text;
 
@@ -1431,6 +1424,7 @@ function parseOpenAiJson(data) {
     throw e;
   }
 }
+
 function fallbackAffectation(resultType, resultAmount) {
   const amount = Number(resultAmount || 0);
 
@@ -1496,6 +1490,8 @@ Données :
 - Nature du résultat : ${resultType === "loss" ? "perte" : "bénéfice"}
 - Montant : ${amount}
 - Affectation actuelle : ${JSON.stringify(currentAllocation || {})}
+- Activité : ${closure.activity || "Non renseignée"}
+- Régime TVA : ${closure.vatRegime || closure.regimeTva || "Non renseigné"}
 
 Contraintes :
 - Réponds uniquement en JSON valide.
@@ -1503,6 +1499,7 @@ Contraintes :
 - Ne propose pas de dividendes si la prudence impose de renforcer les capitaux propres.
 - Si perte : affectation en report à nouveau débiteur.
 - Si bénéfice : privilégier une affectation prudente sauf indication contraire.
+- Explique clairement l'impact de l'activité et du régime TVA uniquement si cela apporte une vraie valeur métier.
 
 Format JSON attendu :
 {
@@ -1567,6 +1564,7 @@ Format JSON attendu :
     }
   }
 );
+
 function compactForAI(value, max = 25) {
   if (!Array.isArray(value)) return [];
 
@@ -1641,6 +1639,8 @@ exports.aiScoreQualite = onRequest(
       const aiPayload = {
         companyName: closure.companyName || "",
         exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
+        activity: closure.activity || "",
+        vatRegime: closure.vatRegime || closure.regimeTva || "",
         score: Number(score || 0),
         scoreItems: compactForAI(scoreItems || [], 30),
         controls: compactForAI(closure.controls || [], 30),
@@ -1842,13 +1842,8 @@ exports.syncStripeSubscription = onRequest(
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-     const cancelAtPeriodEnd =
-  subscription.cancel_at_period_end === true || !!subscription.cancel_at;
-
-const subscriptionEndsAt = subscription.cancel_at
-  ? new Date(subscription.cancel_at * 1000)
-  : null;
-
+      const cancelAtPeriodEnd = subscription.cancel_at_period_end === true || !!subscription.cancel_at;
+      const subscriptionEndsAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
       const isActive = ["active", "trialing"].includes(subscription.status);
 
       await userRef.set(
