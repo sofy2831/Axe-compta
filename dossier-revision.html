@@ -38,7 +38,12 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="box">
     <h2>Points de révision</h2>
     <div id="reviewRows"></div>
-    <div class="actions"><button class="btn warn" id="saveBtn" type="button">Enregistrer le dossier de révision</button><button class="btn secondary" id="printBtn" type="button">Imprimer / PDF</button><button class="btn secondary" id="wordBtn" type="button">Word</button></div>
+    <div class="actions">
+<button class="btn secondary" type="button" id="printBtn">Imprimer / PDF</button>
+<button class="btn secondary" type="button" id="excelBtn">XLSX</button>
+<button class="btn secondary" type="button" id="csvBtn">CSV</button>
+<button class="btn warn" type="button" id="saveBtn">Enregistrer le dossier de révision</button>
+<a class="btn primary" id="affectationBtn" href="affectation-resultat.html">Affectation</a>
   </section>
 
   <section class="printArea printable" id="printArea"></section>
