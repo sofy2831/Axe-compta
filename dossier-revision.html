@@ -106,7 +106,28 @@ async function loadClosure(user){
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
   renderRows();
 }
-onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    location.href="connexion.html";
+    return;
+  }
+
+  currentUser=user;
+
+  try{
+
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+
+    showAdminFeedbackIfAllowed(user,userData);
+
+    await loadClosure(user);
+
+  }catch(e){
+    console.error(e);
+    $("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';
+  }
+});
 </script>
 </body>
 </html>
