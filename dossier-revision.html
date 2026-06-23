@@ -80,9 +80,22 @@ function renderRows(){
 }
 async function saveReview(){
   const validCount=reviewItems.filter(x=>x.status==="Validé"||x.status==="Documenté").length;
-  const payload={status:validCount===reviewItems.length&&reviewItems.length?"completed":"in_progress",items:reviewItems,itemsCount:reviewItems.length,validCount,updatedAt:new Date().toISOString()};
-  await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{dossierRevision:payload,updatedAt:serverTimestamp()},{merge:true});
+  const payload={
+    status:validCount===reviewItems.length&&reviewItems.length?"completed":"in_progress",
+    items:reviewItems,
+    itemsCount:reviewItems.length,
+    validCount,
+    updatedAt:new Date().toISOString()
+  };
+
+  await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
+    dossierRevision:payload,
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
   $("statusLine").innerHTML='<span class="okText">Dossier de révision enregistré.</span>';
+
+  alert("Dossier de révision enregistré.");
 }
 function docHtml(){
   return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Dossier de révision</div><div class="docSub">Justificatifs et validation des OD de clôture</div></div>
