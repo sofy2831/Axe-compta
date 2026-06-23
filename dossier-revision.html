@@ -100,7 +100,9 @@ async function loadClosure(user){
   if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
   currentOwnerUid=owner||user.uid;
   $("backBtn").href=`cloture-resultat.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
-  $("affectationBtn").href=`affectation-resultat.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
+ const affectationHref = `affectation-resultat.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
+$("affectationTopBtn").href = affectationHref;
+$("affectationBtn").href = affectationHref;
   const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
   if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return;}
   currentClosure=snap.data();
