@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Validation définitive | Axe Compta IA</title><meta name="robots" content="noindex,nofollow"/>
+<style>
+:root{--bg:#102847;--panel:#1c4371;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}
+h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.muted{color:var(--muted)}
+.navActions,.actions{display:flex;gap:10px;flex-wrap:wrap}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metric,.card{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:11px 16px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn.danger{background:rgba(255,155,155,.10);color:#ffe1e1;border-color:rgba(255,155,155,.35)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:7px 11px;font-size:12px}
+.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.warnNotice{border-left-color:var(--warn);background:rgba(255,209,102,.10)}.errText{color:var(--danger)}.okText{color:var(--ok)}.warnText{color:var(--warn)}
+table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.num{text-align:right;white-space:nowrap}
+input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:12px 13px;font:inherit}textarea{min-height:90px;resize:vertical}label{display:block;margin:12px 0 6px;font-weight:850;font-size:14px}
+.pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:900;background:rgba(114,224,197,.12);color:var(--ok);border:1px solid rgba(114,224,197,.28)}.pill.warn{background:rgba(255,209,102,.12);color:var(--warn);border-color:rgba(255,209,102,.3)}.pill.err{background:rgba(255,155,155,.10);color:var(--danger);border-color:rgba(255,155,155,.3)}
+.printArea{display:none!important}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px;color:#111}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.doc th,.doc td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px;color:#111}.doc th{background:#f3f6fa;color:#111}.doc .num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}
+@media(max-width:900px){.grid,.grid3,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
+@media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable){display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docFooter{margin-top:auto}@page{size:A4;margin:12mm}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div><img src="images/axe-compta.png" class="logo" alt="Axe Compta IA" onerror="this.style.display='none'"><h1>Validation définitive</h1><p class="muted">Figer la clôture après OD définitives, dossier de révision, affectation, extournes et score qualité final.</p><p id="statusLine" class="muted">Chargement...</p></div>
+    <div class="navActions"><a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a><a class="btn secondary" id="scoreBtn" href="score-qualite.html">Score qualité</a><a class="btn" id="rapportBtn" href="rapport-cloture.html">Rapport</a></div>
+  </div>
+
+  <section class="box">
+    <h2>Synthèse de validation</h2>
+    <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Score final</span><b id="scoreLabel">—</b></div></div>
+    <div id="checklistBox"></div>
+  </section>
+
+  <section class="box">
+    <h2>Décision</h2>
+    <label>Commentaire final</label>
+    <textarea id="finalComment" placeholder="Ex : Dossier validé après contrôle des écritures et justificatifs."></textarea>
+    <label class="card" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px"><input id="confirmCheck" type="checkbox" style="width:auto;margin-top:4px"> <span>Je confirme que la clôture est revue, que les écritures définitives sont validées et que le dossier peut être figé.</span></label>
+    <div class="actions"><button class="btn warn" id="validateBtn" type="button">Valider définitivement</button><button class="btn danger" id="unvalidateBtn" type="button">Déverrouiller la validation</button></div>
+    <div id="validationMsg" class="notice">La validation définitive bloque le workflow métier : le rapport de clôture devient la pièce finale.</div>
+  </section>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const params=new URLSearchParams(location.search), closureId=params.get("id"), owner=params.get("owner")||"";
+let currentUser=null,currentOwnerUid="",currentClosure=null;
+const $=id=>document.getElementById(id);
+function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
+function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?? null;}
+function hasEntries(c){return Array.isArray(c?.entries)&&c.entries.length>0;}
+function hasReview(c){return c?.dossierRevision?.status==="completed" || (Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length>0);}
+function hasAffect(c){return Array.isArray(c?.affectationResult?.entries)&&c.affectationResult.entries.length>0;}
+function hasExt(c){return Array.isArray(c?.extournesN1?.entries)&&c.extournesN1.entries.length>0;}
+function hasScore(c){return typeof scoreValue(c)==="number";}
+function statusPill(ok,label){return `<span class="pill ${ok?"":"err"}">${ok?"OK":"Manquant"}</span> ${sanitize(label)}`;}
+function renderChecklist(){
+ const items=[
+  {ok:hasEntries(currentClosure),label:"OD de clôture définitives présentes"},
+  {ok:hasReview(currentClosure),label:"Dossier de révision préparé"},
+  {ok:hasAffect(currentClosure),label:"Affectation du résultat enregistrée"},
+  {ok:hasExt(currentClosure),label:"Extournes N+1 enregistrées"},
+  {ok:hasScore(currentClosure),label:"Score qualité final enregistré"}
+ ];
+ $("checklistBox").innerHTML=`<table><thead><tr><th>Contrôle</th><th>Statut</th></tr></thead><tbody>${items.map(i=>`<tr><td>${sanitize(i.label)}</td><td>${i.ok?'<span class="pill">OK</span>':'<span class="pill err">Manquant</span>'}</td></tr>`).join("")}</tbody></table>`;
+ return items;
+}
+async function validateClosure(){
+ const items=renderChecklist();
+ const blocking=items.filter(i=>!i.ok);
+ if(blocking.length) return alert("Validation bloquée : il manque encore des étapes.");
+ if(!$("confirmCheck").checked) return alert("Coche la confirmation avant validation.");
+ const payload={validated:true,status:"completed",validatedAt:serverTimestamp(),validation:{status:"validated",comment:$("finalComment").value||"",validatedAt:new Date().toISOString(),validatedBy:currentUser.email||currentUser.uid},updatedAt:serverTimestamp()};
+ await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),payload,{merge:true});
+ $("validationMsg").innerHTML='<b class="okText">Clôture validée définitivement.</b><br>Vous pouvez générer le rapport de clôture final.';
+}
+async function unvalidateClosure(){
+ await updateDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{validated:false,"validation.status":"unlocked",updatedAt:serverTimestamp()});
+ $("validationMsg").innerHTML='<b class="warnText">Validation déverrouillée.</b><br>Le dossier peut être repris.';
+}
+$("validateBtn").addEventListener("click",()=>validateClosure().catch(e=>{console.error(e);alert("Erreur validation.");}));
+$("unvalidateBtn").addEventListener("click",()=>unvalidateClosure().catch(e=>{console.error(e);alert("Erreur déverrouillage.");}));
+async function loadClosure(user){
+ if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
+ currentOwnerUid=owner||user.uid;
+ const ownerQuery=owner?`&owner=${encodeURIComponent(owner)}`:"";
+ $("scoreBtn").href=`score-qualite.html?id=${closureId}${ownerQuery}`;
+ $("rapportBtn").href=`rapport-cloture.html?id=${closureId}${ownerQuery}`;
+ const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
+ if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return;}
+ currentClosure=snap.data();
+ $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
+ $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
+ const s=scoreValue(currentClosure); $("scoreLabel").textContent=s===null?"—":`${s}/100`;
+ $("finalComment").value=currentClosure.validation?.comment||"";
+ $("statusLine").innerHTML=currentClosure.validated?'<span class="okText">Clôture déjà validée.</span>':'<span class="okText">Clôture chargée.</span>';
+ renderChecklist();
+}
+onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
+</script>
+</body>
+</html>
