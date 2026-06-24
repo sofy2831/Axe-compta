@@ -847,23 +847,29 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
   const leasingRows = uniqueRows(allRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
-    return (
-      compte.startsWith("612") ||
-      compte.startsWith("486") ||
-      compte.startsWith("408") ||
-      text.includes("credit bail") ||
-      text.includes("crédit bail") ||
-      text.includes("leasing") ||
-      text.includes("loyer vehicule") ||
-      text.includes("loyer véhicule") ||
-      text.includes("photocopieur") ||
-      text.includes("location materiel") ||
-      text.includes("location matériel") ||
-      text.includes("levee option") ||
-      text.includes("levée option") ||
-      text.includes("rachat option")
-    );
-  }));
+
+ const leasingKeyword =
+    text.includes("credit bail") ||
+    text.includes("crédit bail") ||
+    text.includes("leasing") ||
+    text.includes("loyer vehicule") ||
+    text.includes("loyer véhicule") ||
+    text.includes("photocopieur") ||
+    text.includes("location materiel") ||
+    text.includes("location matériel") ||
+    text.includes("levee option") ||
+    text.includes("levée option") ||
+    text.includes("rachat option");
+
+     return leasingKeyword && (
+    compte.startsWith("612") ||
+    compte.startsWith("486") ||
+    compte.startsWith("408") ||
+    compte.startsWith("218") ||
+    compte.startsWith("404")
+  );
+}));
+   
 
   if (!leasingRows.length) return;
 
