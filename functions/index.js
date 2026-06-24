@@ -1308,40 +1308,74 @@ ${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
     });
   }
 
-  // Paie : congés payés
-  if (hasAcc(["428"]) && answers.paie === "yes") {
-    const amount428 = getBalanceAmount(["428"]) || 0;
-    const payrollRate = detectPayrollRate(balanceRows, grandLivreRows);
-    const socialAmount = payrollRate ? Math.round(amount428 * payrollRate) : "À contrôler";
-
-    entries.push({ journal: "OD", label: "Congés payés à payer - charge salariale", debit: "641000", credit: "428200", amount: amount428 || "À contrôler", justification: `Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    entries.push({ journal: "OD", label: "Charges sociales sur congés payés", debit: "645000", credit: "438600", amount: socialAmount, justification: payrollRate ? `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.${userContext}` : `Charges sociales sur congés payés à calculer : comptes 641/645 insuffisants.${userContext}`, confidence: payrollRate ? 0.8 : 0.55, source: payrollRate ? "balance/grandLivre" : "analyse", status: "À valider" });
-  }
+  // Paie / charges sociales
+if (answers.paie === "yes" || hasAcc(["421", "428", "431", "437", "438", "641", "645"])) {
+  detectPayroll(balanceRows, grandLivreRows, entries, controls, answers, details);
+}
 
   // Provisions
-  if (answers.provisions === "yes") {
-    const provisionRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
+if (answers.provisions === "yes") {
+  const provisionRows = uniqueRows(allRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+    return (
+      compte.startsWith("151") ||
+      compte.startsWith("6815") ||
+      compte.startsWith("7815") ||
+      text.includes("provision") ||
+      text.includes("litige") ||
+      text.includes("prudhom") ||
+      text.includes("prud'hom") ||
+      text.includes("risque")
+    );
+  }));
+
+  const dotationRows = provisionRows.filter(row => getCompte(row).startsWith("6815"));
+  const provisionBalanceRows = provisionRows.filter(row => getCompte(row).startsWith("151"));
+
+  if (dotationRows.length) {
+    dotationRows.forEach(row => {
       const text = getRowText(row);
-      return compte.startsWith("6815") || text.includes("provision") || text.includes("litige") || text.includes("prudhom") || text.includes("prud'hom") || text.includes("risque");
+      let credit = "151000";
+      if (text.includes("prudhom") || text.includes("prud'hom")) credit = "151100";
+      if (text.includes("commercial") || text.includes("autre risque")) credit = "151800";
+      entries.push(makeEntryFromRow(row, {
+        label: "Provision",
+        debit: getCompte(row) || "681500",
+        credit,
+        justification: "Dotation aux provisions détectée dans le grand livre. À rapprocher du dossier de justification du risque.",
+        confidence: 0.85,
+      }));
     });
+  } else if (provisionBalanceRows.length) {
+    entries.push(makeAnalysisEntry({
+      label: "Analyse provisions",
+      amount: provisionBalanceRows.reduce((s, r) => s + getAmount(r), 0) || "À contrôler",
+      justification:
+`Provision inscrite au bilan sans dotation 6815 détectée dans le grand livre.
 
-    const dotationRows = provisionRows.filter(row => getCompte(row).startsWith("6815"));
+Conclusion : aucune OD automatique 6815 / 151 n'est proposée.
+Action : vérifier si la provision est antérieure, reprise, maintenue ou à compléter avec un justificatif de risque.`,
+      confidence: 0.75,
+      source: "balance/grandLivre",
+      details: provisionBalanceRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+    }));
+  } else {
+    entries.push(makeAnalysisEntry({
+      label: "Analyse provisions",
+      amount: "À contrôler",
+      justification:
+`L'utilisateur a indiqué un point de provision, mais aucun compte 151, 6815 ou 7815 exploitable n'a été détecté.
 
-    if (dotationRows.length) {
-      dotationRows.forEach(row => {
-        const text = getRowText(row);
-        let credit = "151000";
-        if (text.includes("prudhom") || text.includes("prud'hom")) credit = "151100";
-        if (text.includes("commercial") || text.includes("autre risque")) credit = "151800";
-        entries.push(makeEntryFromRow(row, { label: "Provision", debit: "681500", credit, justification: `Provision ou risque détecté dans le grand livre.${userContext}`, confidence: 0.8 }));
-      });
-    } else {
-      entries.push({ journal: "OD", label: "Provision à documenter", debit: "681500", credit: "151000", amount: "À documenter", justification: `Provision déclarée par l'utilisateur, mais aucune dotation 6815 exploitable n'a été détectée dans le grand livre.${userContext}`, confidence: 0.5, source: "questionnaire", status: "À valider" });
-    }
-
-    controls.push({ type: "provision_detected", label: "Provision ou risque détecté", level: "info" });
+Aucune écriture automatique n'est proposée.
+À vérifier uniquement si un litige, risque ou engagement existe réellement à la clôture.`,
+      confidence: 0.55,
+      source: "questionnaire",
+    }));
   }
+
+  controls.push({ type: "provision_detected", label: "Provision ou risque contrôlé", level: provisionRows.length ? "info" : "warning" });
+}
 
   // Dépréciations
   if (answers.provisions === "yes") {
