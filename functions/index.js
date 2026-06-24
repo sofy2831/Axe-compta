@@ -650,6 +650,109 @@ function getUserContext(details, usefulInfo, keys = []) {
   return "\n\nInformations fournies par l'utilisateur :\n\n" + parts.join("\n\n");
 }
 
+function isLeasingRow(row) {
+  const compte = getCompte(row);
+  const text = getRowText(row);
+  return (
+    compte.startsWith("612") ||
+    text.includes("credit bail") ||
+    text.includes("crédit bail") ||
+    text.includes("leasing") ||
+    text.includes("loyer vehicule") ||
+    text.includes("loyer véhicule") ||
+    text.includes("photocopieur") ||
+    text.includes("location materiel") ||
+    text.includes("location matériel")
+  );
+}
+
+function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers = {}, details = {}) {
+  const allRows = [...balanceRows, ...grandLivreRows];
+  const hasPayrollAccounts = hasAccount(allRows, ["421", "428", "431", "437", "438", "641", "645"]);
+  if (!hasPayrollAccounts && answers.paie !== "yes") return;
+
+  const payrollRows = uniqueRows(allRows.filter(row => {
+    const compte = getCompte(row);
+    const text = getRowText(row);
+    return (
+      compte.startsWith("421") || compte.startsWith("428") || compte.startsWith("431") ||
+      compte.startsWith("437") || compte.startsWith("438") || compte.startsWith("641") ||
+      compte.startsWith("645") || text.includes("paie") || text.includes("salaire") ||
+      text.includes("conges payes") || text.includes("congés payés") || text.includes("urssaf")
+    );
+  }));
+
+  const amount428 = amountByPrefixes(allRows, ["428"]);
+  const amount438 = amountByPrefixes(allRows, ["438"]);
+  const salaries = amountByPrefixes(allRows, ["641"]);
+  const socialCharges = amountByPrefixes(allRows, ["645"]);
+  const payrollRate = salaries && socialCharges ? socialCharges / salaries : null;
+
+  if (amount428) {
+    entries.push({
+      journal: "OD",
+      label: "Congés payés à payer - charge salariale",
+      debit: "641000",
+      credit: "428200",
+      amount: amount428,
+      justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.",
+      confidence: 0.85,
+      source: "balance/grandLivre",
+      status: "À valider",
+    });
+  }
+
+  if (amount438) {
+    entries.push({
+      journal: "OD",
+      label: "Charges sociales à payer",
+      debit: "645000",
+      credit: "438600",
+      amount: amount438,
+      justification: "Compte 438 détecté : charges sociales à payer à rattacher à la clôture.",
+      confidence: 0.85,
+      source: "balance/grandLivre",
+      status: "À valider",
+    });
+  } else if (amount428 && payrollRate && payrollRate > 0 && payrollRate <= 1) {
+    const socialAmount = Math.round(amount428 * payrollRate * 100) / 100;
+    entries.push({
+      journal: "OD",
+      label: "Charges sociales sur congés payés",
+      debit: "645000",
+      credit: "438600",
+      amount: socialAmount,
+      justification: `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.`,
+      confidence: 0.75,
+      source: "balance/grandLivre",
+      status: "À valider",
+    });
+  }
+
+  entries.push(makeAnalysisEntry({
+    label: "Analyse paie / charges sociales",
+    amount: amount428 || amount438 || socialCharges || salaries || "À contrôler",
+    justification:
+`Paie et charges sociales détectées.
+
+Salaires / compte 641 : ${formatEuro(salaries)}
+Charges sociales / compte 645 : ${formatEuro(socialCharges)}
+Personnel - charges à payer / compte 428 : ${formatEuro(amount428)}
+Organismes sociaux - charges à payer / compte 438 : ${formatEuro(amount438)}
+
+Contrôles à effectuer :
+- rapprocher les montants du journal de paie ;
+- contrôler les congés payés à payer ;
+- vérifier les charges sociales rattachées ;
+- vérifier les comptes 421, 428, 431, 437 et 438 avant validation définitive.`,
+    confidence: 0.8,
+    source: "balance/grandLivre",
+    details: payrollRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+  }));
+
+  controls.push({ type: "payroll_detected", label: "Paie et charges sociales détectées", level: "info" });
+}
+
 function detectSubventions(balanceRows, grandLivreRows, entries, controls, details = {}, usefulInfo = "") {
   const userContext = getUserContext(details, "", []);
   const allRows = [...balanceRows, ...grandLivreRows];
