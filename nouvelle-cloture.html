@@ -175,6 +175,11 @@ const paymentMode=isExpert
       paid:includedBySubscription ? true : false,
 paymentMode,
 planSource,
+
+initialFilesLocked: planSource === "solo",
+initialFilesLockedAt: planSource === "solo" ? new Date().toISOString() : null,
+initialFilesLockedStep: planSource === "solo" ? "creation" : "",
+      
 ownerUid:currentUser.uid,
 ownerEmail:currentUser.email || "",
 cabinetOwnerUid:isCabinetMember ? currentUserData.cabinetOwnerUid : (isCabinetOwner ? currentUser.uid : ""),
