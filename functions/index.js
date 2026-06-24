@@ -1020,7 +1020,12 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
 
   // FNP
   if (hasAcc(["408"]) && answers.fournisseurs === "yes") {
-    
+    const fnpRows = grandLivreRows.filter(row => {
+  const compte = getCompte(row);
+  const text = getRowText(row);
+  if (isLeasingRow(row)) return false;
+  return compte.startsWith("6") && (text.includes("fnp") || text.includes("facture non parvenue") || text.includes("facture non recue"));
+});
 
     if (fnpRows.length) {
       fnpRows.forEach(row => entries.push(makeEntryFromRow(row, {
@@ -1034,6 +1039,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: `Compte 408 détecté : facture fournisseur non parvenue à vérifier.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
+
 
   // CCA
   if (hasAcc(["486"]) && answers.cca === "yes") {
