@@ -1020,11 +1020,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
 
   // FNP
   if (hasAcc(["408"]) && answers.fournisseurs === "yes") {
-    const fnpRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("6") && (text.includes("fnp") || text.includes("facture non parvenue") || text.includes("facture non recue"));
-    });
+    
 
     if (fnpRows.length) {
       fnpRows.forEach(row => entries.push(makeEntryFromRow(row, {
