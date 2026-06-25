@@ -677,6 +677,9 @@ function getUserContext(details, usefulInfo, keys = []) {
 
   return "\n\nInformations fournies par l'utilisateur :\n\n" + parts.join("\n\n");
 }
+function answerYes(answers, key) {
+  return answers?.[key] === "yes" || answers?.[key] === true;
+}
 
 function isLeasingRow(row) {
   const compte = getCompte(row);
