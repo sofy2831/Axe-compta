@@ -90,6 +90,15 @@ function renderRows(){
   document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.calc)].calculation=el.value));
   document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.doc)].document=el.value));
   document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.comment)].comment=el.value));
+   const completed =
+    reviewItems.length &&
+    reviewItems.every(x => x.status === "Validé");
+
+  $("affectationBtn").style.pointerEvents = completed ? "auto" : "none";
+  $("affectationBtn").style.opacity = completed ? "1" : ".45";
+
+  $("affectationTopBtn").style.pointerEvents = completed ? "auto" : "none";
+  $("affectationTopBtn").style.opacity = completed ? "1" : ".45";
   renderPrint();
 }
 async function saveReview(){
