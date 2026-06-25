@@ -67,18 +67,16 @@ function closureConfidence(entries){
 }
 
 function renderConfidenceNotice(){
-  const score = closureConfidence(currentEntries);
-  let text = `${score} % — votre clôture est en cours de validation.`;
+  const final = odFinalized(currentClosure);
 
-  if(score >= 98 && score < 100){
-    text = `${score} % — votre clôture est cohérente. Vous pouvez finaliser les derniers points puis valider les OD définitives.`;
+  if(final){
+    $("confidenceNotice").innerHTML =
+      `<b>100 % — OD définitives validées. Vous pouvez poursuivre vers le dossier de révision.</b>`;
+    return;
   }
 
-  if(score === 100){
-    text = `100 % — vous pouvez enregistrer, valider définitivement les OD et poursuivre vers le dossier de révision.`;
-  }
-
-  $("confidenceNotice").innerHTML = `<b>${text}</b>`;
+  $("confidenceNotice").innerHTML =
+    `<b>Prêt pour validation — enregistrez les écritures, puis validez les OD définitives pour figer la clôture.</b>`;
 }
 function closureRef(){return doc(db,"users",currentOwnerUid,"closures",id)}
 function ownerQueryParam(){return currentOwnerUid&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
