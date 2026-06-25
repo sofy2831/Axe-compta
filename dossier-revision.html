@@ -61,7 +61,21 @@ const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
-function makeReviewItem(e,i){return {id:e.id||`entry_${i}`,label:e.label||"Écriture",journal:e.journal||"OD",debit:e.debit||"",credit:e.credit||"",amount:e.amount||0,why:e.justification||"",calculation:e.calculation||"",comment:e.reviewComment||"",document:e.reviewDocument||"",status:e.reviewStatus||"À documenter"};}
+function makeReviewItem(e,i){
+  return {
+    id:e.id||`entry_${i}`,
+    label:e.label||"Écriture",
+    journal:e.journal||"OD",
+    debit:e.debit||"",
+    credit:e.credit||"",
+    amount:e.amount||0,
+    why:e.justification||"",
+    calculation:e.calculation||"",
+    comment:e.reviewComment||"",
+    document:e.reviewDocument||"",
+    status:e.reviewStatus || (e.status==="Validée" ? "Validé" : "À documenter")
+  };
+}
 function renderRows(){
   $("reviewCount").textContent=reviewItems.length;
   $("reviewRows").innerHTML=reviewItems.length?reviewItems.map((r,i)=>`
