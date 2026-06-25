@@ -109,6 +109,7 @@ function renderEntries(){
   $("entriesRows").innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
   document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
   document.querySelectorAll("[data-view-index]").forEach(btn=>btn.addEventListener("click",()=>openDetailsModal(currentEntries[Number(btn.dataset.viewIndex)])));
+  renderConfidenceNotice();
 }
 async function saveEntriesStatus(showAlert=true){if(!currentUser||!id)return;await updateDoc(closureRef(),{entries:currentEntries,entriesSavedAt:serverTimestamp(),updatedAt:serverTimestamp()});if(showAlert)alert("Écritures enregistrées.")}
 function renderDetailCard(d,i){return `<div class="detailCard"><b>${i+1}. ${safe((d.compte||"—")+" "+(d.libelle||""))}</b><p><strong>Montant :</strong> ${formatAmount(d.amount)}</p>${d.caseLabel?`<p><strong>Cas détecté :</strong> ${safe(d.caseLabel)}</p>`:""}${d.recommendation?`<p><strong>Recommandation :</strong> ${safe(d.recommendation)}</p>`:""}</div>`}
