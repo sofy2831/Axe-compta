@@ -1056,7 +1056,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   if (hasAcc(["706", "707"])) controls.push({ type: "revenue_detected", label: "Chiffre d'affaires détecté", level: "info" });
 
   // FNP
-  if (hasAcc(["408"]) && answers.fournisseurs === "yes") {
+  if (hasAcc(["408"]) && (answerYes(answers, "fournisseurs") || hasAcc(["408"]))) {
     const fnpRows = grandLivreRows.filter(row => {
   const compte = getCompte(row);
   const text = getRowText(row);
@@ -1079,7 +1079,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
 
 
   // CCA
-  if (hasAcc(["486"]) && answers.cca === "yes") {
+  if (hasAcc(["486"]) && (answerYes(answers, "cca") || hasAcc(["486"]))) {
     const ccaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
@@ -1094,7 +1094,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // PCA
-  if (hasAcc(["487"]) && answers.cca === "yes") {
+  if (hasAcc(["487"]) && (answerYes(answers, "cca") || hasAcc(["487"]))) {
     const pcaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
@@ -1109,7 +1109,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // FAE
-  if (hasAcc(["418"]) && answers.clients === "yes") {
+  if (hasAcc(["418"]) && (answerYes(answers, "clients") || hasAcc(["418"]))) {
     const faeRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
@@ -1124,7 +1124,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // PAR
-  if (hasAcc(["4187", "4687"]) && answers.clients === "yes") {
+  if (hasAcc(["4187", "4687"]) && (answerYes(answers, "clients") || hasAcc(["4187", "4687"]))) {
     const parRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
@@ -1142,12 +1142,24 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // CAP hors FNP et paie
-  if (answers.fournisseurs === "yes") {
-    const capRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("448") || compte.startsWith("4686") || text.includes("cap") || text.includes("charge a payer") || text.includes("charge à payer") || text.includes("charges a payer") || text.includes("charges à payer");
-    });
+  if (answerYes(answers, "fournisseurs") || hasAcc(["448", "4686"])) {
+   const capRows = grandLivreRows.filter(row => {
+  const compte = getCompte(row);
+  const text = getRowText(row);
+
+  const isCapAccount = compte.startsWith("448") || compte.startsWith("4686");
+  const isCapText =
+    text.includes("cap") ||
+    text.includes("charge a payer") ||
+    text.includes("charge à payer") ||
+    text.includes("charges a payer") ||
+    text.includes("charges à payer");
+
+  if (isLeasingRow(row)) return false;
+  if (compte.startsWith("428") || compte.startsWith("438")) return false;
+
+  return isCapAccount || isCapText;
+}); 
 
     capRows.forEach(row => {
       const compte = getCompte(row);
