@@ -55,21 +55,13 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div class="progress"><div class="bar" id="progressBar"></div></div>
     <div id="balanceBox" class="notice"></div>
     <div class="notice" id="strategyNotice">
-  <b>Choix recommandé</b><br><br>
-
-  Axe Compta IA analyse votre activité, votre régime fiscal et le résultat
-  afin de proposer une affectation cohérente.
-
-  <br><br>
-
-  <b>✓ Appliquer la recommandation</b> :
-  applique automatiquement la proposition la plus adaptée.
-
-  <br><br>
-
-  Vous pouvez ensuite modifier librement les montants si votre Assemblée
-  Générale décide une autre répartition.
-</div>
+      <b>Choix recommandé</b><br><br>
+      Axe Compta IA analyse votre activité, votre régime fiscal et le résultat afin de proposer une affectation cohérente.
+      <br><br>
+      <b>✓ Appliquer la recommandation</b> : applique automatiquement la proposition la plus adaptée.
+      <br><br>
+      Vous pouvez ensuite modifier librement les montants si votre Assemblée Générale décide une autre répartition.
+    </div>
   </section>
 
   <section class="box">
@@ -77,10 +69,10 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div class="actions" style="margin-top:0">
       <button class="btn warn" type="button" id="autoBtn">✓ Appliquer la recommandation</button>
       <button class="btn secondary" type="button" id="aiBtn">Analyser avec l'IA</button>
-         </div>
-    
-   <div id="allocationJustificationBox" class="notice" style="display:none"></div>
-    
+    </div>
+
+    <div id="allocationJustificationBox" class="notice" style="display:none"></div>
+
     <div id="profitInputs">
       <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
         <div><label>Réserve légale / autres réserves - 1068</label><input id="reserveAmount" type="number" step="0.01" value="0"></div>
@@ -190,7 +182,7 @@ function totals(){
   return{allocated,remaining};
 }
 
-function (){
+function updateSummary(){
   const t=totals();
   $("resultAmountLabel").textContent=euro(resultAmount);
   $("allocatedLabel").textContent=euro(t.allocated);
@@ -209,14 +201,20 @@ function (){
     $("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`;
   }
 
-  function renderAllocationJustification(source="auto"){
+  generatedRows=[];
+  $("entriesBox").innerHTML="";
+  $("saveBtn").disabled=true;
+  $("pvBtn").disabled=true;
+  $("exportBar").style.display="none";
+}
+
+function renderAllocationJustification(source="auto"){
   const result = Math.abs(resultAmount || 0);
   const reserve = n("reserveAmount");
   const carry = n("carryForwardAmount");
   const dividend = n("dividendAmount");
   const lossCarry = n("lossCarryForwardAmount");
   const isLoss = resultType === "loss";
-
   const total = isLoss ? lossCarry : reserve + carry + dividend;
   const remaining = Math.round((result - total) * 100) / 100;
 
@@ -248,13 +246,6 @@ function (){
 
   $("allocationJustificationBox").style.display = "block";
   $("allocationJustificationBox").innerHTML = html;
-}
-  
-  generatedRows=[];
-  $("entriesBox").innerHTML="";
-  $("saveBtn").disabled=true;
-  $("pvBtn").disabled=true;
-  $("exportBar").style.display="none";
 }
 
 ["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>$(id).addEventListener("input",updateSummary));
@@ -355,7 +346,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     set("lossCarryForwardAmount", data.lossCarryForwardAmount || 0);
 
     updateSummary();
-    renderAllocationJustification();
+    renderAllocationJustification("ia");
 
     $("balanceBox").className="notice";
     $("balanceBox").innerHTML = `
@@ -368,7 +359,6 @@ $("aiBtn").addEventListener("click", async ()=>{
         ? `<br><br><b>Points à vérifier :</b><br>${data.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`
         : ""}
     `;
-
   }catch(e){
     console.error(e);
     alert(e.message || "Erreur lors de l'appel IA.");
