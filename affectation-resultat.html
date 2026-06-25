@@ -238,8 +238,8 @@ function renderAllocationJustification(source="auto"){
       Total affecté : <b>${money(total)}</b><br>
       Reste à affecter : <b>${money(remaining)}</b><br><br>
       ${dividend > 0
-        ? "Une distribution est proposée : elle doit être validée au regard de la trésorerie disponible, des statuts et de la décision d’Assemblée Générale."
-        : "Aucune distribution n’est proposée : l’affectation privilégie le renforcement des réserves et/ou le report à nouveau."
+        ? "Une distribution de dividendes est proposée. Elle devra être validée par l'Assemblée Générale et rester compatible avec la trésorerie disponible ainsi qu'avec les dispositions légales."
+        : "Cette proposition privilégie le renforcement des capitaux propres afin de consolider la situation financière de l'entreprise."
       }
     `;
   }
