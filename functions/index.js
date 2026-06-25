@@ -762,7 +762,7 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
 
   entries.push(makeAnalysisEntry({
     label: "Analyse paie / charges sociales",
-    amount: amount428 || amount438 || socialCharges || salaries || "À contrôler",
+    amount: (amount428 || 0) + (amount438 || 0) + (socialCharges || 0) + (salaries || 0) || "À contrôler",
     justification:
 `Paie et charges sociales détectées.
 
@@ -1009,7 +1009,7 @@ function detectExchangeDifferences(balanceRows, grandLivreRows, entries, control
 
   entries.push(makeAnalysisEntry({
     label: "Analyse écarts de change",
-    amount: amount476 || amount477 || amount666 || amount766 || "À contrôler",
+    amount: (amount476 || 0) + (amount477 || 0) + (amount666 || 0) + (amount766 || 0) || "À contrôler",
     justification:
 `Écarts de change détectés.
 
@@ -1388,13 +1388,17 @@ if (answers.provisions === "yes") {
       let credit = "151000";
       if (text.includes("prudhom") || text.includes("prud'hom")) credit = "151100";
       if (text.includes("commercial") || text.includes("autre risque")) credit = "151800";
-      entries.push(makeEntryFromRow(row, {
-        label: "Provision",
-        debit: getCompte(row) || "681500",
-        credit,
-        justification: "Dotation aux provisions détectée dans le grand livre. À rapprocher du dossier de justification du risque.",
-        confidence: 0.85,
-      }));
+     entries.push({
+  journal: "OD",
+  label: getLibelle(row),
+  debit: getCompte(row) || "681500",
+  credit,
+  amount: getAmount(row) || "À contrôler",
+  justification: "Dotation aux provisions détectée dans le grand livre. À rapprocher du dossier de justification du risque.",
+  confidence: 0.85,
+  source: "grandLivre",
+  status: "À valider",
+});
     });
   } else if (provisionBalanceRows.length) {
     entries.push(makeAnalysisEntry({
