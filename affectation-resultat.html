@@ -79,7 +79,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <button class="btn secondary" type="button" id="aiBtn">Analyser avec l'IA</button>
          </div>
     
- <div id="allocationJustificationBox" class="notice" style="display:none"></div>
+   <div id="allocationJustificationBox" class="notice" style="display:none"></div>
     
     <div id="profitInputs">
       <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
@@ -190,7 +190,7 @@ function totals(){
   return{allocated,remaining};
 }
 
-function updateSummary(){
+function (){
   const t=totals();
   $("resultAmountLabel").textContent=euro(resultAmount);
   $("allocatedLabel").textContent=euro(t.allocated);
@@ -209,6 +209,47 @@ function updateSummary(){
     $("balanceBox").innerHTML=`<b class="err">Affectation supérieure au résultat.</b><br>Dépassement : ${euro(Math.abs(t.remaining))}.`;
   }
 
+  function renderAllocationJustification(source="auto"){
+  const result = Math.abs(resultAmount || 0);
+  const reserve = n("reserveAmount");
+  const carry = n("carryForwardAmount");
+  const dividend = n("dividendAmount");
+  const lossCarry = n("lossCarryForwardAmount");
+  const isLoss = resultType === "loss";
+
+  const total = isLoss ? lossCarry : reserve + carry + dividend;
+  const remaining = Math.round((result - total) * 100) / 100;
+
+  let html = "";
+
+  if(isLoss){
+    html = `
+      <b>Justification chiffrée de l’affectation</b><br><br>
+      Résultat de l’exercice : <b>perte de ${money(result)}</b><br>
+      Affectation proposée : <b>${money(lossCarry)}</b> en report à nouveau débiteur <b>119</b>.<br><br>
+      La perte est affectée en report à nouveau débiteur afin d’être suivie sur les exercices suivants.<br><br>
+      Reste à affecter : <b>${money(remaining)}</b>.
+    `;
+  }else{
+    html = `
+      <b>Justification chiffrée de l’affectation</b><br><br>
+      Résultat bénéficiaire à affecter : <b>${money(result)}</b><br>
+      Réserve légale / autres réserves <b>1068</b> : <b>${money(reserve)}</b><br>
+      Report à nouveau créditeur <b>110</b> : <b>${money(carry)}</b><br>
+      Dividendes à payer <b>457</b> : <b>${money(dividend)}</b><br><br>
+      Total affecté : <b>${money(total)}</b><br>
+      Reste à affecter : <b>${money(remaining)}</b><br><br>
+      ${dividend > 0
+        ? "Une distribution est proposée : elle doit être validée au regard de la trésorerie disponible, des statuts et de la décision d’Assemblée Générale."
+        : "Aucune distribution n’est proposée : l’affectation privilégie le renforcement des réserves et/ou le report à nouveau."
+      }
+    `;
+  }
+
+  $("allocationJustificationBox").style.display = "block";
+  $("allocationJustificationBox").innerHTML = html;
+}
+  
   generatedRows=[];
   $("entriesBox").innerHTML="";
   $("saveBtn").disabled=true;
@@ -222,6 +263,7 @@ function applyStrategy(strategy){
   if(resultType==="loss"||strategy==="loss"){
     set("lossCarryForwardAmount",resultAmount);
     updateSummary();
+    renderAllocationJustification();
     return;
   }
   set("reserveAmount",0);
@@ -237,6 +279,7 @@ function applyStrategy(strategy){
     set("carryForwardAmount",+(resultAmount-reserve).toFixed(2));
   }
   updateSummary();
+  renderAllocationJustification();
 }
 
 function entriesValidated(){
@@ -312,6 +355,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     set("lossCarryForwardAmount", data.lossCarryForwardAmount || 0);
 
     updateSummary();
+    renderAllocationJustification();
 
     $("balanceBox").className="notice";
     $("balanceBox").innerHTML = `
@@ -497,6 +541,7 @@ async function loadClosure(user){
     set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
 
     updateSummary();
+    renderAllocationJustification();
 
     generatedRows=Array.isArray(saved.entries)?saved.entries:[];
 
