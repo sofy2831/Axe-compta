@@ -130,7 +130,46 @@ function fileNameFor(path){return path?.split("/").pop()||"—"}
 function renderFileNames(c){$("currentBalance").textContent="Fichier actuel : "+(c.files?.balance?.name||fileNameFor(c.files?.balance?.storagePath));$("currentGrandLivre").textContent="Fichier actuel : "+(c.files?.grandLivre?.name||fileNameFor(c.files?.grandLivre?.storagePath));$("currentAmortissements").textContent="Fichier actuel : "+(c.files?.amortissements?.name||fileNameFor(c.files?.amortissements?.storagePath));$("currentEmprunt").textContent="Fichier actuel : "+(c.files?.emprunt?.name||fileNameFor(c.files?.emprunt?.storagePath))}
 async function uploadReplacementFile(kind,inputId){if(isSoloClosureLocked(currentClosure))throw new Error("Clôture Solo verrouillée : réimport impossible.");const file=$(inputId).files?.[0];if(!file)return null;const cleanName=file.name.replace(/[^a-zA-Z0-9_.-]/g,"_");const storagePath=`closures/${currentOwnerUid}/${id}/${kind}-${Date.now()}-${cleanName}`;await uploadBytes(ref(storage,storagePath),file);return {name:file.name,storagePath,uploadedAt:new Date().toISOString()}}
 async function reparseFiles(){if(!currentUser||!id)return;if(isSoloClosureLocked(currentClosure)){$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Réimport bloqué.</b><br>Cette clôture Solo 99 € est verrouillée après validation des extournes.`;return}const msg=$("fileMsg");msg.style.display="block";msg.className="notice";msg.innerHTML="Téléversement et recalcul en cours...";$("reparseBtn").disabled=true;$("reparseBtn").textContent="Recalcul en cours...";try{const files={};const balance=await uploadReplacementFile("balance","balanceFile");const grandLivre=await uploadReplacementFile("grandLivre","grandLivreFile");const amortissements=await uploadReplacementFile("amortissements","amortissementsFile");const emprunt=await uploadReplacementFile("emprunt","empruntFile");if(balance)files.balance=balance;if(grandLivre)files.grandLivre=grandLivre;if(amortissements)files.amortissements=amortissements;if(emprunt)files.emprunt=emprunt;if(!Object.keys(files).length)throw new Error("Aucun fichier sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...files},odStatus:"draft",odFinalized:false,entriesFinalized:false,odFinalizedAt:deleteField(),affectationResult:deleteField(),extournesN1:deleteField(),scoreQualite:deleteField(),scoreQuality:deleteField(),validatedAt:deleteField(),finalValidation:deleteField(),closingReport:deleteField(),archivedAt:deleteField(),status:"reanalysis_pending",updatedAt:serverTimestamp()});const r=await fetch(PARSE_CLOSURE_FILES_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId:id})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok!==true)throw new Error(d.error||"Erreur recalcul fichiers.");msg.className="notice";msg.innerHTML=`<b class="ok">Nouvelle analyse terminée.</b><br>${d.entries||0} écriture(s), ${d.controls||0} contrôle(s), ${d.anomalies||0} anomalie(s). Les étapes suivantes ont été remises à zéro.`;setTimeout(()=>location.reload(),800)}catch(e){console.error(e);msg.className="notice err";msg.innerHTML=`<b class="err">${safe(e.message||"Erreur pendant le recalcul.")}</b>`;$("reparseBtn").disabled=false;$("reparseBtn").textContent="Recharger et recalculer"}}
-async function finalizeEntries(){if(!currentEntries.length){alert("Aucune OD à valider.");return}const notValidated=currentEntries.filter(e=>entryStatus(e)!=="Validée"&&!isAnalysisEntry(e));if(notValidated.length&&!confirm(`${notValidated.length} écriture(s) ne sont pas marquées comme validées. Valider quand même les OD définitives ?`))return;const finalized=currentEntries.map(e=>({...e,status:isAnalysisEntry(e)?entryStatus(e):(e.status||"Validée")}));await updateDoc(closureRef(),{entries:finalized,odStatus:"finalized",odFinalized:true,entriesFinalized:true,odFinalizedAt:serverTimestamp(),updatedAt:serverTimestamp()});currentEntries=finalized;currentClosure={...currentClosure,entries:finalized,odStatus:"finalized",odFinalized:true,entriesFinalized:true};renderEntries();applyStepLocks(currentClosure);renderWorkflow(currentClosure);alert("OD définitives validées. Vous pouvez passer au dossier de révision.")}
+async function finalizeEntries(){
+  if(!currentEntries.length){
+    alert("Aucune OD à valider.");
+    return;
+  }
+
+  if(!confirm("Valider définitivement toutes les OD de clôture ? Les lignes passeront automatiquement en statut Validée.")){
+    return;
+  }
+
+  const finalized = currentEntries.map(e => ({
+    ...e,
+    status: "Validée",
+    validatedAt: new Date().toISOString()
+  }));
+
+  await updateDoc(closureRef(),{
+    entries: finalized,
+    odStatus: "finalized",
+    odFinalized: true,
+    entriesFinalized: true,
+    odFinalizedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  currentEntries = finalized;
+  currentClosure = {
+    ...currentClosure,
+    entries: finalized,
+    odStatus: "finalized",
+    odFinalized: true,
+    entriesFinalized: true
+  };
+
+  renderEntries();
+  applyStepLocks(currentClosure);
+  renderWorkflow(currentClosure);
+
+  alert("OD définitives validées. Vous pouvez passer au dossier de révision.");
+}
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
 function userHasSubscription(u){return u.developerAccess===true||u.role==="admin"||u.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(u.plan)}
