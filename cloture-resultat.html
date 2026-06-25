@@ -57,9 +57,12 @@ function detailsButtonHtml(e,i){return (isAnalysisEntry(e)||hasDetails(e)||Strin
 function countCycles(c){const controls=Array.isArray(c.controls)?c.controls:[];const b=controls.filter(x=>!["balance_loaded","grand_livre_loaded","amortissements_loaded","emprunt_loaded"].includes(x.type));return b.length||Object.values(c.answers||{}).filter(v=>v==="yes"||v==="check").length}
 function countDocs(entries){return entries.filter(e=>String(e.amount||"").toLowerCase().includes("à")||isAnalysisEntry(e)).length}
 function closureConfidence(entries){
-  if(!entries.length) return 0;
-  const validated = entries.filter(e => entryStatus(e)==="Validée" || isAnalysisEntry(e)).length;
-  const score = Math.round((validated / entries.length) * 100);
+  const odEntries = entries.filter(e => !isAnalysisEntry(e));
+  if(!odEntries.length) return 0;
+
+  const validated = odEntries.filter(e => entryStatus(e)==="Validée").length;
+  const score = Math.round((validated / odEntries.length) * 100);
+
   return Math.min(100, Math.max(0, score));
 }
 
