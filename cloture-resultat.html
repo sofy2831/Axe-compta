@@ -56,27 +56,16 @@ function compactJustification(e){const text=stripUserContext(e.justification||""
 function detailsButtonHtml(e,i){return (isAnalysisEntry(e)||hasDetails(e)||String(e.justification||"").length>160)?`<button class="viewBtn" type="button" data-view-index="${i}">Voir</button>`:""}
 function countCycles(c){const controls=Array.isArray(c.controls)?c.controls:[];const b=controls.filter(x=>!["balance_loaded","grand_livre_loaded","amortissements_loaded","emprunt_loaded"].includes(x.type));return b.length||Object.values(c.answers||{}).filter(v=>v==="yes"||v==="check").length}
 function countDocs(entries){return entries.filter(e=>String(e.amount||"").toLowerCase().includes("à")||isAnalysisEntry(e)).length}
-function closureConfidence(entries){
-  const odEntries = entries.filter(e => !isAnalysisEntry(e));
-  if(!odEntries.length) return 0;
-
-  const validated = odEntries.filter(e => entryStatus(e)==="Validée").length;
-  const score = Math.round((validated / odEntries.length) * 100);
-
-  return Math.min(100, Math.max(0, score));
-}
-
 function renderConfidenceNotice(){
-  const final = odFinalized(currentClosure);
 
-  if(final){
+    if(odFinalized(currentClosure)){
+        $("confidenceNotice").innerHTML =
+        "<b>100 % — Les écritures de clôture sont validées définitivement. Vous pouvez poursuivre vers le dossier de révision.</b>";
+        return;
+    }
+
     $("confidenceNotice").innerHTML =
-      `<b>100 % — OD définitives validées. Vous pouvez poursuivre vers le dossier de révision.</b>`;
-    return;
-  }
-
-  $("confidenceNotice").innerHTML =
-    `<b>Prêt pour validation — enregistrez les écritures, puis validez les OD définitives pour figer la clôture.</b>`;
+    "<b>Votre analyse est terminée. Enregistrez les écritures puis cliquez sur « Valider les OD définitives » afin de figer la clôture.</b>";
 }
 function closureRef(){return doc(db,"users",currentOwnerUid,"closures",id)}
 function ownerQueryParam(){return currentOwnerUid&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
