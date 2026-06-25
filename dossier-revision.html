@@ -102,7 +102,7 @@ function renderRows(){
   renderPrint();
 }
 async function saveReview(){
-  const validCount=reviewItems.filter(x=>x.status==="Validé"||x.status==="Documenté").length;
+  const validCount=reviewItems.filter(x => x.status==="Validé").length;
   const payload={
     status:validCount===reviewItems.length&&reviewItems.length?"completed":"in_progress",
     items:reviewItems,
