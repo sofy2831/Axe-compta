@@ -358,28 +358,56 @@ function toNumber(value) {
   if (value === null || value === undefined || value === "") return 0;
   if (typeof value === "number") return value;
 
-  const raw = String(value)
-    .replace(/\u00a0/g, "")
-    .replace(/\s/g, "")
-    .replace(",", ".")
-    .replace(/[^0-9.\-]/g, "");
+  let raw = String(value)
+    .replace(/\u00a0/g, " ")
+    .trim();
+
+  if (!raw) return 0;
+
+  raw = raw.replace(/\s/g, "");
+
+  if (raw.includes(",") && raw.includes(".")) {
+    raw = raw.replace(/\./g, "").replace(",", ".");
+  } else if (raw.includes(",")) {
+    raw = raw.replace(",", ".");
+  }
+
+  raw = raw.replace(/[^0-9.\-]/g, "");
 
   const n = Number(raw);
   return Number.isNaN(n) ? 0 : n;
 }
 
 function getAmount(row) {
-  const keys = Object.keys(row || {});
-  const preferredKeys = keys.filter(k => {
+  if (!row) return 0;
+
+  const keys = Object.keys(row);
+
+  const findKey = names => keys.find(k => {
     const nk = normalizeText(k);
-    return nk.includes("montant") || nk.includes("solde") || nk.includes("debit") || nk.includes("credit");
+    return names.some(name => nk === normalizeText(name) || nk.includes(normalizeText(name)));
   });
 
-  const searchKeys = preferredKeys.length ? preferredKeys : keys;
-  for (const key of searchKeys) {
-    const n = toNumber(row[key]);
-    if (!Number.isNaN(n) && n !== 0 && Math.abs(n) > 0.01) return Math.abs(n);
+  const montantKey = findKey(["montant"]);
+  if (montantKey) {
+    const n = toNumber(row[montantKey]);
+    if (n !== 0) return Math.abs(n);
   }
+
+  const soldeKey = findKey(["solde"]);
+  if (soldeKey) {
+    const n = toNumber(row[soldeKey]);
+    if (n !== 0) return Math.abs(n);
+  }
+
+  const debitKey = findKey(["debit", "débit"]);
+  const creditKey = findKey(["credit", "crédit"]);
+
+  const debit = debitKey ? toNumber(row[debitKey]) : 0;
+  const credit = creditKey ? toNumber(row[creditKey]) : 0;
+
+  if (debit || credit) return Math.abs(debit || credit);
+
   return 0;
 }
 
