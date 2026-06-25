@@ -58,7 +58,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <b>Choix recommandé</b><br><br>
       Axe Compta IA analyse votre activité, votre régime fiscal et le résultat afin de proposer une affectation cohérente.
       <br><br>
-      <b>✓ Appliquer la recommandation</b> : applique automatiquement la proposition la plus adaptée.
+      <b>>✓ Choisir la recommandation</b> : applique automatiquement la proposition la plus adaptée.
       <br><br>
       Vous pouvez ensuite modifier librement les montants si votre Assemblée Générale décide une autre répartition.
     </div>
@@ -67,8 +67,8 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   <section class="box">
     <h2>2. Répartition</h2>
     <div class="actions" style="margin-top:0">
-      <button class="btn warn" type="button" id="autoBtn">✓ Appliquer la recommandation</button>
-      <button class="btn secondary" type="button" id="aiBtn">Analyser avec l'IA</button>
+      <button class="btn warn" type="button" id="autoBtn">>✓ Choisir la recommandation</button>
+      <button class="btn secondary" type="button" id="aiBtn">Demander l'avis de l'IA</button>
     </div>
 
     <div id="allocationJustificationBox" class="notice" style="display:none"></div>
@@ -80,9 +80,9 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
         <div><label>Dividendes à payer - 457</label><input id="dividendAmount" type="number" step="0.01" value="0"></div>
       </div>
       <div class="cards3">
-        <div class="choice"><b>Prudent</b><p>Réserve légale estimée puis solde en report à nouveau.</p><button class="btn secondary small" type="button" data-strategy="prudent">Appliquer</button></div>
-        <div class="choice"><b>Report intégral</b><p>100 % du bénéfice en report à nouveau créditeur.</p><button class="btn secondary small" type="button" data-strategy="report">Appliquer</button></div>
-        <div class="choice"><b>Distribution</b><p>100 % du bénéfice en dividendes à payer.</p><button class="btn secondary small" type="button" data-strategy="distribution">Appliquer</button></div>
+        <div class="choice"><b>Prudent</b><p>Réserve légale estimée puis solde en report à nouveau.  ✔ Renforce les capitaux propres.</p><button class="btn secondary small" type="button" data-strategy="prudent">Choisir</button></div>
+        <div class="choice"><b>Report intégral</b><p>100 % du bénéfice en report à nouveau créditeur. ✔ Préserve la trésorerie.</p><button class="btn secondary small" type="button" data-strategy="report">Choisir</button></div>
+        <div class="choice"><b>Distribution</b><p>100 % du bénéfice en dividendes à payer. ✔ Sous réserve de la décision de l'Assemblée Générale.</p><button class="btn secondary small" type="button" data-strategy="distribution">Choisir</button></div>
       </div>
     </div>
 
@@ -364,7 +364,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     alert(e.message || "Erreur lors de l'appel IA.");
   }finally{
     btn.disabled = false;
-    btn.textContent = "Analyser avec l'IA";
+    btn.textContent = "Demander l'avis de l'IA";
   }
 });
 
