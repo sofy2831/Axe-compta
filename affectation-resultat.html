@@ -76,7 +76,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <h2>2. Répartition</h2>
     <div class="actions" style="margin-top:0">
       <button class="btn warn" type="button" id="autoBtn">✓ Appliquer la recommandation</button>
-      <button class="btn secondary" type="button" id="aiBtn">IA — proposer la meilleure affectation</button>
+      <button class="btn secondary" type="button" id="aiBtn">Analyser avec l'IA</button>
     </div>
 
     <div id="profitInputs">
@@ -328,7 +328,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     alert(e.message || "Erreur lors de l'appel IA.");
   }finally{
     btn.disabled = false;
-    btn.textContent = "IA — proposer la meilleure affectation";
+    btn.textContent = "Analyser avec l'IA";
   }
 });
 
