@@ -32,7 +32,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="box">
     <h2>Clôture</h2>
     <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Points de révision</span><b id="reviewCount">0</b></div></div>
-    <div class="notice">Chaque écriture doit être documentée avant affectation définitive : justification, calcul, pièce attendue et statut.</div>
+    <div class="notice">Chaque OD doit être documentée puis validée avant de poursuivre vers l'affectation du résultat. : justification, calcul, pièce attendue et statut.</div>
   </section>
 
   <section class="box">
@@ -85,7 +85,12 @@ function renderRows(){
       <div class="grid"><div><label>Calcul / méthode</label><textarea data-calc="${i}">${sanitize(r.calculation)}</textarea></div><div><label>Justificatif attendu ou déposé</label><textarea data-doc="${i}">${sanitize(r.document)}</textarea></div></div>
       <label>Commentaire de révision</label><textarea data-comment="${i}">${sanitize(r.comment)}</textarea>
     </div>`).join(""):`<div class="notice warnNotice">Aucune écriture à documenter.</div>`;
-  document.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("change",()=>reviewItems[Number(el.dataset.status)].status=el.value));
+  document.querySelectorAll("[data-status]").forEach(el=>{
+    el.addEventListener("change",()=>{
+        reviewItems[Number(el.dataset.status)].status = el.value;
+        renderRows();
+    });
+});
   document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.why)].why=el.value));
   document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.calc)].calculation=el.value));
   document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.doc)].document=el.value));
