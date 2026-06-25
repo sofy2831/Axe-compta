@@ -394,10 +394,34 @@ function buildEntries(){
 
 function renderEntries(rows){
   $("entriesBox").innerHTML=`
-<div class="notice">
-  Les écritures ci-dessous seront enregistrées dans le journal OD lors de la validation de l'affectation.
-</div>
-<table>
+    <div class="notice">
+      Les écritures ci-dessous seront enregistrées dans le journal OD lors de la validation de l'affectation.
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Journal</th>
+          <th>Libellé</th>
+          <th>Débit</th>
+          <th>Crédit</th>
+          <th>Montant</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rows.map(r=>`
+          <tr>
+            <td>${sanitize(r.journal)}</td>
+            <td>${sanitize(r.label)}</td>
+            <td>${sanitize(r.debit||"")}</td>
+            <td>${sanitize(r.credit||"")}</td>
+            <td class="amount">${euro(r.amount)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
 }
 
 $("generateBtn").addEventListener("click",()=>{
@@ -448,9 +472,7 @@ async function saveAffectation(){
   },{merge:true});
 
   currentClosure.affectationResult=data;
-  alert("Affectation enregistrée avec succès.
-
-Vous pouvez désormais générer le PV d'Assemblée Générale ou poursuivre vers les extournes automatiques N+1.");
+  alert("Affectation enregistrée avec succès.\n\nVous pouvez désormais générer le PV d'Assemblée Générale ou poursuivre vers les extournes automatiques N+1.");
 }
 
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
