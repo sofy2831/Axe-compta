@@ -116,10 +116,10 @@ function item(key,title,score,max,status,detail,loss,files){return{key,title,sco
 
 function computeScore(){
   const items=[];
-  const affect = Array.isArray(currentClosure.affectationResult?.entries);
+  const affect = Array.isArray(currentClosure?.affectationResult?.entries);
 
 const ext =
-  !!currentClosure.extournesN1 &&
+  !!currentClosure?.extournesN1 &&
   Array.isArray(currentClosure.extournesN1.entries);
   const entries=arr(currentClosure.entries);
   const validatedEntries=entries.filter(e=>String(e.status||"").toLowerCase().includes("valid")).length;
@@ -374,7 +374,9 @@ async function loadClosure(user){
   }
 
   currentClosure=snap.data();
-
+if(!currentClosure){
+  throw new Error("Données de clôture vides.");
+}
   $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
   $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
   $("statusLine").innerHTML='<span class="okText">Clôture chargée. Score final calculé, non enregistré.</span>';
@@ -382,22 +384,24 @@ async function loadClosure(user){
   render();
 }
 
-onAuthStateChanged(auth,async user=>{
+onAuthStateChanged(auth, async user => {
   if(!user){
-    window.location.href="connexion.html";
+    window.location.href = "connexion.html";
     return;
   }
 
-  currentUser=user;
-  const userSnap=await getDoc(doc(db,"users",user.uid));
-  const userData=userSnap.exists()?userSnap.data():{};
-  showAdminFeedbackIfAllowed(user,userData);
+  currentUser = user;
 
   try{
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+
+    showAdminFeedbackIfAllowed(user, userData);
+
     await loadClosure(user);
   }catch(e){
-    console.error(e);
-    $("statusLine").innerHTML='<span class="errText">Erreur de chargement du score.</span>';
+    console.error("Erreur score qualité :", e);
+    $("statusLine").innerHTML = `<span class="errText">Erreur de chargement du score : ${sanitize(e.message || e)}</span>`;
   }
 });
 </script>
