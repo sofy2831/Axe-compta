@@ -332,9 +332,10 @@ function renderRows(rows){
       const keep=btn.dataset.action==="keep";
       if(!extourneRows[i])return;
       extourneRows[i].manualIncluded=keep;
-      renderRows(extourneRows);
-      updateMetrics();
-      renderPrint();
+renderRows(extourneRows);
+updateMetrics();
+renderPrint();
+$("saveBtn").disabled = !includedRows().length;
     });
   });
 
@@ -449,7 +450,7 @@ async function loadClosure(user){
   $("statusLine").innerHTML='<span class="ok">Clôture chargée. Générez les extournes à partir des OD définitives.</span>';
 
   const saved=currentClosure.extournesN1;
-  if(saved?.entries?.length){
+  if(saved && (saved.entries?.length || saved.excludedEntries?.length)){
     set("extourneDate",saved.date || $("extourneDate").value);
     set("journalCode",saved.journal || "OD");
     extourneRows=[
@@ -462,7 +463,7 @@ async function loadClosure(user){
     renderPrint();
   }
   
-if(saved?.entries?.length){
+if(saved && (saved.entries?.length || saved.excludedEntries?.length)){
   unlockScore();
 }else{
   lockScore();
