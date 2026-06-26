@@ -248,6 +248,22 @@ function openModuleModal(moduleKey){
 }
 function closeModal(){ $("detailsModal").classList.remove("open"); }
 
+function isTvaRow(row){
+  const text = String(row?.label || row?.sourceLabel || "").toLowerCase();
+  return text.includes("tva");
+}
+
+function tvaActionHtml(row,index){
+  if(!isTvaRow(row)) return "—";
+
+  const kept = row.manualIncluded !== false;
+
+  return `
+    <button class="badgeAction ${kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="keep">Garder</button>
+    <button class="badgeAction remove ${!kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="remove">Retirer</button>
+  `;
+}
+  
 function renderRows(rows){
   if(!rows.length){
     $("entriesBox").innerHTML="";
