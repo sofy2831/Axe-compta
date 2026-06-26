@@ -354,7 +354,7 @@ function generate(){
   renderRows(extourneRows);
   updateMetrics();
   renderModules();
-  $("saveBtn").disabled=!extourneRows.length;
+  $("saveBtn").disabled=!includedRows().length;
   $("exportBar").style.display=extourneRows.length?"block":"none";
   renderPrint();
   lockScore();
