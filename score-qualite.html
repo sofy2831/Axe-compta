@@ -207,7 +207,7 @@ function unlockReport(){
 }
 
 function updateFinalButtons(){
-  if(scoreSaved || finalValidated){
+  if(scoreSaved && finalValidated){
     unlockReport();
   }else{
     lockReport();
@@ -450,7 +450,11 @@ if(!currentClosure){
 }
   $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
   $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
-  $("statusLine").innerHTML='<span class="okText">Clôture chargée. Score final calculé, non enregistré.</span>';
+$("statusLine").innerHTML = finalValidated
+  ? '<span class="okText">Clôture chargée. Dossier validé définitivement.</span>'
+  : scoreSaved
+    ? '<span class="okText">Clôture chargée. Score qualité déjà enregistré.</span>'
+    : '<span class="okText">Clôture chargée. Score final calculé, non enregistré.</span>';
 
   render();
 }
