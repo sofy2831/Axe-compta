@@ -9,7 +9,12 @@
 :root{--bg:#102847;--panel:#1c4371;--panel2:#14365f;--text:#f6f8fb;--muted:#c2d0e3;--line:rgba(255,255,255,.16);--primary:#72e0c5;--primary2:#4aa3ff;--warn:#ffd166;--danger:#ff9b9b;--ok:#8df0b3;--radius:22px}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,rgba(74,163,255,.25),transparent 36rem),linear-gradient(180deg,#10294a,#102847);color:var(--text);min-height:100vh;line-height:1.45}
-a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.scoreHero{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:stretch}.scoreCircle{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:22px;padding:26px;text-align:center}.scoreCircle .score{font-size:72px;font-weight:950;line-height:1;letter-spacing:-.07em}.scoreCircle .score small{font-size:32px;color:var(--muted)}.grade{margin-top:12px;font-weight:900;border-radius:999px;padding:8px 13px;background:rgba(114,224,197,.12);border:1px solid rgba(114,224,197,.25);color:var(--ok)}.progress{height:14px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin:14px 0}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.metric,.module{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.module{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-top:10px}.moduleMain b{font-size:17px}.moduleMain p{margin:5px 0 0;color:#d7e4f3;font-size:13px}.points{text-align:right;min-width:100px}.points b{font-size:22px}.pill{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warn);border-color:rgba(255,209,102,.25)}.pill.err{background:rgba(255,155,155,.10);color:var(--danger);border-color:rgba(255,155,155,.25)}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:11px 16px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn.danger{background:rgba(255,155,155,.10);color:#ffe1e1;border-color:rgba(255,155,155,.35)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:7px 11px;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.errText{color:var(--danger)}.okText{color:var(--ok)}.warnText{color:var(--warn)}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.num{text-align:right;white-space:nowrap}.modalBack{position:fixed;inset:0;background:rgba(3,10,20,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal{width:min(860px,100%);max-height:88vh;overflow:auto;background:#102847;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.45)}.modalTable{font-size:13px}.modalTable th,.modalTable td{padding:8px}.printArea{display:none}.printArea *{color:#111}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#111;background:#fff;width:100%;max-width:100%;overflow:visible}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:9px;margin-bottom:12px}.docLogo{max-height:38px;margin-bottom:5px}.docTitle{font-size:20pt;font-weight:800;text-transform:uppercase;letter-spacing:.01em}.docSub{font-size:9.5pt;color:#333}.docScore{border-left:5px solid #2fbf8f;background:#eefbf6;padding:8px 10px;margin:10px 0 12px;font-weight:700;font-size:10pt}.docInfo{border-collapse:collapse;width:58%;margin:8px 0 12px}.docInfo th,.docInfo td{border:1px solid #c8d0da;padding:5px 7px;font-size:8.8pt}.docInfo th{background:#f3f6fa;text-align:left;width:32%}.doc h2{font-size:13pt;margin:12px 0 7px;color:#111}.docTable{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:8px;border:1px solid #c8d0da}.docTable th,.docTable td{border:1px solid #c8d0da;padding:4px 5px;font-size:8.2pt;line-height:1.16;vertical-align:top;overflow-wrap:anywhere;word-break:normal}.docTable th{background:#f3f6fa;color:#111;text-transform:uppercase;font-weight:700}.docTable .c-control{width:28%}.docTable .c-score{width:9%;text-align:center}.docTable .c-statut{width:12%;text-align:center}.docTable .c-obs{width:51%}.docFooter{margin-top:22px;border-top:1px solid #ccd3dc;padding-top:8px;font-size:8pt;text-align:center;color:#555}@media(max-width:980px){.scoreHero,.grid,.grid3,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}.module{flex-direction:column}.points{text-align:left}table{display:block;overflow-x:auto;white-space:nowrap}}@media print{@page{size:A4;margin:13mm 12mm 14mm 12mm}html,body{background:#fff!important;color:#111!important;margin:0!important;padding:0!important}.wrap{width:100%!important;padding:0!important;margin:0!important}.topbar,.box:not(.printable),.modalBack{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important;padding:0!important;margin:0!important;border-radius:0!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column;padding:0!important}.docTable{display:table!important;overflow:visible!important;white-space:normal!important}.docFooter{margin-top:auto}.doc tr{page-break-inside:avoid;break-inside:avoid}}
+a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));margin:0 auto;padding:34px 0 70px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:28px}.logo{height:52px;width:auto;display:block;margin-bottom:12px}h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.05em}.muted{color:var(--muted)}.navActions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}.box h2{margin:0 0 16px;font-size:22px;letter-spacing:-.03em}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.scoreHero{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:stretch}.scoreCircle{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:22px;padding:26px;text-align:center}.scoreCircle .score{font-size:72px;font-weight:950;line-height:1;letter-spacing:-.07em}.scoreCircle .score small{font-size:32px;color:var(--muted)}.grade{margin-top:12px;font-weight:900;border-radius:999px;padding:8px 13px;background:rgba(114,224,197,.12);border:1px solid rgba(114,224,197,.25);color:var(--ok)}.progress{height:14px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin:14px 0}.bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--primary2));transition:.2s}.metric,.module{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}.module{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-top:10px}.moduleMain b{font-size:17px}.moduleMain p{margin:5px 0 0;color:#d7e4f3;font-size:13px}.points{text-align:right;min-width:100px}.points b{font-size:22px}.pill{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:850;background:rgba(114,224,197,.10);color:var(--ok);border:1px solid rgba(114,224,197,.25)}.pill.warn{background:rgba(255,209,102,.10);color:var(--warn);border-color:rgba(255,209,102,.25)}.pill.err{background:rgba(255,155,155,.10);color:var(--danger);border-color:rgba(255,155,155,.25)}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:11px 16px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn.danger{background:rgba(255,155,155,.10);color:#ffe1e1;border-color:rgba(255,155,155,.35)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.btn.disabledLink{
+  opacity:.45;
+  cursor:not-allowed;
+  pointer-events:none;
+  transform:none;
+}.small{padding:7px 11px;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.errText{color:var(--danger)}.okText{color:var(--ok)}.warnText{color:var(--warn)}table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.num{text-align:right;white-space:nowrap}.modalBack{position:fixed;inset:0;background:rgba(3,10,20,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal{width:min(860px,100%);max-height:88vh;overflow:auto;background:#102847;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 30px 90px rgba(0,0,0,.45)}.modalTable{font-size:13px}.modalTable th,.modalTable td{padding:8px}.printArea{display:none}.printArea *{color:#111}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#111;background:#fff;width:100%;max-width:100%;overflow:visible}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:9px;margin-bottom:12px}.docLogo{max-height:38px;margin-bottom:5px}.docTitle{font-size:20pt;font-weight:800;text-transform:uppercase;letter-spacing:.01em}.docSub{font-size:9.5pt;color:#333}.docScore{border-left:5px solid #2fbf8f;background:#eefbf6;padding:8px 10px;margin:10px 0 12px;font-weight:700;font-size:10pt}.docInfo{border-collapse:collapse;width:58%;margin:8px 0 12px}.docInfo th,.docInfo td{border:1px solid #c8d0da;padding:5px 7px;font-size:8.8pt}.docInfo th{background:#f3f6fa;text-align:left;width:32%}.doc h2{font-size:13pt;margin:12px 0 7px;color:#111}.docTable{width:100%;table-layout:fixed;border-collapse:collapse;margin-top:8px;border:1px solid #c8d0da}.docTable th,.docTable td{border:1px solid #c8d0da;padding:4px 5px;font-size:8.2pt;line-height:1.16;vertical-align:top;overflow-wrap:anywhere;word-break:normal}.docTable th{background:#f3f6fa;color:#111;text-transform:uppercase;font-weight:700}.docTable .c-control{width:28%}.docTable .c-score{width:9%;text-align:center}.docTable .c-statut{width:12%;text-align:center}.docTable .c-obs{width:51%}.docFooter{margin-top:22px;border-top:1px solid #ccd3dc;padding-top:8px;font-size:8pt;text-align:center;color:#555}@media(max-width:980px){.scoreHero,.grid,.grid3,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}.module{flex-direction:column}.points{text-align:left}table{display:block;overflow-x:auto;white-space:nowrap}}@media print{@page{size:A4;margin:13mm 12mm 14mm 12mm}html,body{background:#fff!important;color:#111!important;margin:0!important;padding:0!important}.wrap{width:100%!important;padding:0!important;margin:0!important}.topbar,.box:not(.printable),.modalBack{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important;padding:0!important;margin:0!important;border-radius:0!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column;padding:0!important}.docTable{display:table!important;overflow:visible!important;white-space:normal!important}.docFooter{margin-top:auto}.doc tr{page-break-inside:avoid;break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -66,7 +71,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));m
       <button class="btn warn" type="button" id="saveScoreBtn">Enregistrer le score qualité</button>
       <button class="btn warn" type="button" id="aiBtn">IA - atteindre 100/100</button>
       <button class="btn primary" type="button" id="validateBtn">Validation définitive</button>
-      <a class="btn secondary" id="reportBtn" href="rapport-cloture.html">Rapport de clôture</a>
+      <a class="btn secondary disabledLink" id="reportBtn" href="rapport-cloture.html">Rapport de clôture</a>
     </div>
     <div class="notice" id="validationNotice">
       La validation définitive doit intervenir après les OD de clôture définitives, le dossier de révision, l'affectation du résultat et les extournes N+1.
@@ -190,6 +195,24 @@ items.push(item(
 }
 
 function grade(s){if(s>=100)return"Dossier finalisé";if(s>=96)return"Dossier quasi finalisé";if(s>=81)return"Excellent dossier";if(s>=61)return"Dossier correct à améliorer";if(s>=41)return"Dossier fragile";return"Dossier incomplet"}
+let scoreSaved = false;
+let finalValidated = false;
+
+function lockReport(){
+  $("reportBtn").classList.add("disabledLink");
+}
+
+function unlockReport(){
+  $("reportBtn").classList.remove("disabledLink");
+}
+
+function updateFinalButtons(){
+  if(scoreSaved || finalValidated){
+    unlockReport();
+  }else{
+    lockReport();
+  }
+}
 
 function render(){
   computeScore();
@@ -206,9 +229,19 @@ function render(){
   $("modulesBox").innerHTML=scoreItems.map(i=>`<div class="module"><div class="moduleMain"><b>${sanitize(i.title)}</b> <span class="pill ${i.status==='ok'?'':i.status==='danger'?'err':'warn'}">${i.status==='ok'?'OK':i.status==='danger'?'À corriger':'À contrôler'}</span><p>${sanitize(i.detail)}</p><div class="actions"><button class="btn secondary small" type="button" data-view="${i.key}">Voir</button></div></div><div class="points"><b>${i.score}/${i.max}</b><br><span class="muted">${i.loss?`-${i.loss} pt(s)`:"complet"}</span></div></div>`).join("");
 
   const losses=scoreItems.filter(i=>i.loss>0).sort((a,b)=>b.loss-a.loss);
-  $("improveBox").innerHTML=losses.length
-    ?`Vous perdez actuellement <b>${losses.reduce((s,i)=>s+i.loss,0)} point(s)</b> sur les contrôles ci-dessous.<br><br>${losses.map(i=>`<div style="margin:8px 0"><b>-${i.loss}</b> - ${sanitize(i.title)}<br><span class="muted">${sanitize(i.detail)}</span></div>`).join("")}<br><b class="warnText">Important :</b> ce score est final. Les corrections doivent être faites dans les étapes précédentes du workflow, puis le score doit être recalculé.`
-    :"<b class='okText'>Objectif atteint.</b><br>Aucune anomalie pénalisante dans le score actuel.";
+const missingOn100 = Math.max(0, 100 - score);
+
+$("improveBox").innerHTML=losses.length
+  ?`Il manque actuellement <b>${missingOn100} point(s)</b> pour atteindre 100/100.<br><br>
+  Les contrôles ci-dessous expliquent les pénalités appliquées :<br><br>
+  ${losses.map(i=>`
+    <div style="margin:8px 0">
+      <b>-${i.loss}</b> - ${sanitize(i.title)}<br>
+      <span class="muted">${sanitize(i.detail)}</span>
+    </div>
+  `).join("")}
+  <br><b class="warnText">Important :</b> le score est ramené sur 100. Les corrections doivent être faites dans les étapes précédentes, puis le score doit être recalculé.`
+  :"<b class='okText'>Objectif atteint.</b><br>Aucune anomalie pénalisante dans le score actuel.";
 
   const finalized=currentClosure?.validationDefinitive?.status==="validated"||currentClosure?.status==="validated"||currentClosure?.status==="archived";
   $("validationNotice").innerHTML=finalized
@@ -303,6 +336,8 @@ $("saveScoreBtn").addEventListener("click",async()=>{
     btn.disabled=true;
     btn.textContent="Enregistrement...";
     await saveScore();
+    scoreSaved = true;
+updateFinalButtons();
     btn.textContent="Score enregistré";
     $("statusLine").innerHTML=`<span class="okText">Score qualité enregistré. Le tableau de bord sera mis à jour.</span>`;
   }catch(e){
@@ -341,6 +376,9 @@ $("validateBtn").addEventListener("click",async()=>{
     },{merge:true});
     currentClosure.validationDefinitive={status:"validated"};
     currentClosure.status="validated";
+    finalValidated = true;
+scoreSaved = true;
+updateFinalButtons();
     $("statusLine").innerHTML='<span class="okText">Dossier validé définitivement.</span>';
     btn.textContent="Dossier validé";
     render();
@@ -400,6 +438,13 @@ async function loadClosure(user){
   }
 
   currentClosure=snap.data();
+  scoreSaved = !!currentClosure?.scoreQualite || !!currentClosure?.scoreQuality;
+finalValidated =
+  currentClosure?.validationDefinitive?.status === "validated" ||
+  currentClosure?.status === "validated" ||
+  currentClosure?.status === "archived";
+
+updateFinalButtons();
 if(!currentClosure){
   throw new Error("Données de clôture vides.");
 }
