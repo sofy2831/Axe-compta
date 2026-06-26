@@ -304,12 +304,12 @@ $("saveScoreBtn").addEventListener("click",async()=>{
     btn.textContent="Enregistrement...";
     await saveScore();
     btn.textContent="Score enregistré";
-    $("statusLine").innerHTML='<span class="okText">Score qualité enregistré. Le tableau de bord sera mis à jour.</span>';
+    $("statusLine").innerHTML=`<span class="okText">Score qualité enregistré. Le tableau de bord sera mis à jour.</span>`;
   }catch(e){
     console.error(e);
     btn.disabled=false;
     btn.textContent="Enregistrer le score qualité";
-    $("statusLine").innerHTML='<span class="errText">Erreur lors de l'enregistrement du score.</span>';
+    $("statusLine").innerHTML=`<span class="errText">Erreur lors de l'enregistrement du score.</span>`;
   }
 });
 
