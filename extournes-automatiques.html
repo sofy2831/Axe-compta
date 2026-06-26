@@ -299,13 +299,13 @@ function renderRows(rows){
             <td>${sanitize(r.debit)}</td>
             <td>${sanitize(r.credit)}</td>
             <td class="num">${euro(r.amount)}</td>
-            <td>${tvaActionHtml(r,i)}</td>
+            <td>${actionHtml(r,i)}</td>
           </tr>
         `).join("")}
       </tbody>
     </table>`;
 
-  document.querySelectorAll("[data-toggle-tva]").forEach(btn=>{
+  document.querySelectorAll("[data-toggle-review]").forEach(btn=>{
     btn.addEventListener("click",()=>{
       const i=Number(btn.dataset.index);
       const keep=btn.dataset.action==="keep";
