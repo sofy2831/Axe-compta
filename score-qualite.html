@@ -116,8 +116,11 @@ function item(key,title,score,max,status,detail,loss,files){return{key,title,sco
 
 function computeScore(){
   const items=[];
-  const affect=!!currentClosure.affectationResult?.entries?.length;
-  const ext=!!currentClosure.extournesN1?.entries?.length;
+  const affect = Array.isArray(currentClosure.affectationResult?.entries);
+
+const ext =
+  !!currentClosure.extournesN1 &&
+  Array.isArray(currentClosure.extournesN1.entries);
   const entries=arr(currentClosure.entries);
   const validatedEntries=entries.filter(e=>String(e.status||"").toLowerCase().includes("valid")).length;
   const allEntriesValidated=entries.length?validatedEntries===entries.length:false;
@@ -138,7 +141,22 @@ function computeScore(){
   items.push(item("loans","Emprunts / ICNE",hasControl(["loan_analysis_detected"])?9:8,10,hasControl(["loan_analysis_detected"])?"ok":"warning",hasControl(["loan_analysis_detected"])?"Emprunts ou ICNE analysés. Tableau d'emprunt conseillé pour un contrôle robuste.":"Aucun emprunt exploitable ou tableau non fourni.",hasControl(["loan_analysis_detected"])?1:2,["Balance","Grand Livre","Tableau emprunts"]));
   items.push(item("subventions","Subventions / crédit-bail",hasControl(["subvention_detected","leasing_detected"])?8:9,10,hasControl(["subvention_detected","leasing_detected"])?"warning":"ok",hasControl(["subvention_detected","leasing_detected"])?"Contrôle avancé à finaliser : subventions, crédit-bail ou leasing détecté.":"Aucun point subvention/crédit-bail bloquant détecté.",hasControl(["subvention_detected","leasing_detected"])?2:1,["Balance","Grand Livre"]));
   items.push(item("vat","TVA",hasControl(["vat_due_detected"])?9:8,10,hasControl(["vat_due_detected"])?"ok":"warning",hasControl(["vat_due_detected"])?"TVA à décaisser détectée et contrôlée.":"TVA non significative ou non détectée : à confirmer selon le régime.",hasControl(["vat_due_detected"])?1:2,["Balance","Grand Livre"]));
-  items.push(item("revision","Dossier de révision",currentClosure.revisionFile||currentClosure.revisionDossier?.status==="ready"?10:8,10,currentClosure.revisionFile||currentClosure.revisionDossier?.status==="ready"?"ok":"warning",currentClosure.revisionFile||currentClosure.revisionDossier?.status==="ready"?"Dossier de révision présent.":"Vérifier que les justificatifs, commentaires et calculs sont stockés pour les écritures importantes.",currentClosure.revisionFile||currentClosure.revisionDossier?.status==="ready"?0:2,["Justificatifs","Commentaires","Calculs"]));
+  const revisionDone =
+  currentClosure.dossierRevision?.status === "completed" ||
+  Array.isArray(currentClosure.dossierRevision?.items);
+
+items.push(item(
+  "revision",
+  "Dossier de révision",
+  revisionDone ? 10 : 8,
+  10,
+  revisionDone ? "ok" : "warning",
+  revisionDone
+    ? "Dossier de révision enregistré avec justificatifs, commentaires et calculs."
+    : "Vérifier que les justificatifs, commentaires et calculs sont stockés pour les écritures importantes.",
+  revisionDone ? 0 : 2,
+  ["Justificatifs","Commentaires","Calculs"]
+));
   items.push(item("affectation","Affectation du résultat",affect?10:0,10,affect?"ok":"danger",affect?"Affectation enregistrée et PV générable.":"Affectation du résultat non encore enregistrée.",affect?0:10,["Affectation du résultat"]));
   items.push(item("extournes","Extournes N+1",ext?10:0,10,ext?"ok":"danger",ext?"Extournes automatiques enregistrées.":"Extournes N+1 non encore générées/enregistrées.",ext?0:10,["Extournes automatiques"]));
   scoreItems=items;
