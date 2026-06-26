@@ -187,9 +187,9 @@ function entriesForModule(moduleKey){
 }
 function updateMetrics(){
   $("sourceCount").textContent=String(sourceEntries.length||0);
-  $("extourneCount").textContent=String(extourneRows.length||0);
+  $("extourneCount").textContent=String(includedRows().length||0);
   $("dateLabel").textContent=isoToFr($("extourneDate").value);
-  $("amountLabel").textContent=euro(totalAmount(extourneRows));
+  $("amountLabel").textContent=euro(totalAmount(includedRows()));
 }
 function renderWorkflowBox(){
   const issues = [];
