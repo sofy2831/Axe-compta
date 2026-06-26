@@ -224,11 +224,11 @@ function closeModal(){ $("detailsModal").classList.remove("open"); }
 
 function renderRows(rows){
   if(!rows.length){
-    $("entriesBox").innerHTML="";
-    $("noticeBox").className="notice warningBox";
-    $("noticeBox").innerHTML='<b class="warnText">Aucune extourne automatique détectée.</b><br>Vérifiez les OD de clôture définitives.';
-    return;
-  }
+  $("entriesBox").innerHTML="";
+  $("noticeBox").className="notice";
+  $("noticeBox").innerHTML='<b class="ok">Aucune extourne automatique détectée.</b><br>Aucune contrepassation N+1 n’est nécessaire pour les écritures analysées.';
+  return;
+}
   $("entriesBox").innerHTML = `<table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="num">${euro(r.amount)}</td></tr>`).join("")}</tbody></table>`;
   $("noticeBox").className="notice";
   $("noticeBox").innerHTML = `<b class="ok">${rows.length} extourne(s) proposée(s).</b><br>Les écritures sont inversées automatiquement à la date N+1. Contrôle conseillé avant export.`;
