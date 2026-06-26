@@ -264,8 +264,8 @@ function tvaActionHtml(row,index){
   const kept = row.manualIncluded !== false;
 
   return `
-    <button class="badgeAction ${kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="keep">Garder</button>
-    <button class="badgeAction remove ${!kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="remove">Retirer</button>
+    <button class="badgeAction ${kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="keep">Inclure</button>
+    <button class="badgeAction remove ${!kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="remove"> Exclure</button>
   `;
 }
   
