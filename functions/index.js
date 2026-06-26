@@ -1828,67 +1828,71 @@ exports.aiScoreQualite = onRequest(
       const closure = snap.data() || {};
       const fallback = fallbackScoreQuality(scoreItems || [], score || 0);
 
+      const importantPrefixes = ["471", "472", "455", "23", "408", "418", "486", "487", "445", "1688"];
+      const relevantBalance = (closure.balance || []).filter(r =>
+        importantPrefixes.some(p =>
+          String(r.Compte || r.compte || r.CompteNum || r.compteNum || "").replace(/\s/g, "").startsWith(p)
+        )
+      );
+
+      const relevantGrandLivre = (closure.grandLivre || []).filter(r =>
+        importantPrefixes.some(p =>
+          String(r.Compte || r.compte || r.CompteNum || r.compteNum || "").replace(/\s/g, "").startsWith(p)
+        )
+      ).slice(0, 120);
+
       const aiPayload = {
         companyName: closure.companyName || "",
         exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
-        activity: closure.activity || "",
+        activity: closure.activity || closure.activite || "",
         vatRegime: closure.vatRegime || closure.regimeTva || "",
         score: Number(score || 0),
-        scoreItems: compactForAI(scoreItems || [], 30),
-        controls: compactForAI(closure.controls || [], 30),
-        anomalies: compactForAI(closure.anomalies || [], 30),
-        entries: compactForAI(closure.entries || [], 40),
-        affectationResult: closure.affectationResult ? {
-          status: closure.affectationResult.status || "",
-          resultType: closure.affectationResult.resultType || "",
-          resultAmount: closure.affectationResult.resultAmount || 0,
-          entriesCount: Array.isArray(closure.affectationResult.entries) ? closure.affectationResult.entries.length : 0
-        } : null,
-        extournesN1: closure.extournesN1 ? {
-          status: closure.extournesN1.status || "",
-          date: closure.extournesN1.date || "",
-          entriesCount: Array.isArray(closure.extournesN1.entries) ? closure.extournesN1.entries.length : 0
-        } : null
+        scoreItems: compactForAI(scoreItems || [], 40),
+        controls: compactForAI(closure.controls || [], 50),
+        anomalies: compactForAI(closure.anomalies || [], 50),
+        entries: compactForAI(closure.entries || [], 80),
+        balanceSensitiveRows: compactForAI(relevantBalance, 120),
+        grandLivreSensitiveRows: compactForAI(relevantGrandLivre, 120),
+        affectationResult: closure.affectationResult || null,
+        extournesN1: closure.extournesN1 || null,
+        dossierRevision: closure.dossierRevision || closure.revisionDossier || null
       };
 
       const prompt = `
-Tu es un assistant expert en clôture comptable française.
+Tu es un expert-comptable français spécialisé en clôture comptable.
 
 Mission :
-Aider l'utilisateur à atteindre 100/100 sur son score qualité.
+Aider l'utilisateur à récupérer les derniers points manquants du score qualité.
 
-Tu dois analyser le dossier et produire un plan d'action concret, priorisé, métier.
-
-Données :
+Données du dossier :
 ${JSON.stringify(aiPayload)}
 
-Règles de réponse :
+Règles :
 - Réponds uniquement en JSON valide.
-- Pas de blabla.
-- Ne répète pas seulement "dossier presque finalisé".
-- Pour chaque point perdu, indique :
-  1. ce qui bloque,
-  2. quoi vérifier,
-  3. quel justificatif ou fichier fournir,
-  4. quelle action permet de récupérer les points.
-- Si le score est supérieur ou égal à 96, indique uniquement les derniers contrôles de revue finale.
-- Ne propose pas de refaire toute la clôture si un contrôle ciblé suffit.
-- Ne donne pas de conseil juridique définitif.
-- Ton style doit être professionnel, direct, exploitable.
+- Ne fais pas de généralités.
+- Appuie-toi sur les comptes, écritures, anomalies et lignes sensibles fournies.
+- Pour chaque point perdu, donne une action concrète.
+- Si un compte 471/472 existe, propose le reclassement ou la justification attendue.
+- Si un compte 455 existe, demande la justification du solde et des mouvements.
+- Si un compte 23 existe, demande mise en service, maintien justifié ou reclassement.
+- Si une immobilisation sort, demande contrôle VNC, prix de cession et écriture de sortie.
+- Si TVA, ICNE, provisions, crédit-bail ou écart de change : indique le contrôle métier à faire.
+- Ne propose pas de refaire toute la clôture.
+- Style direct, professionnel, exploitable.
 
 Format JSON strict :
 {
-  "summary":"synthèse claire en 1 ou 2 phrases",
+  "summary":"synthèse courte",
   "priorityActions":[
     {
       "title":"point à traiter",
       "action":"action concrète à faire",
       "impact":0,
       "filesNeeded":["Balance","Grand Livre"],
-      "expectedResult":"résultat attendu après correction"
+      "expectedResult":"résultat attendu"
     }
   ],
-  "warnings":["alerte métier 1","alerte métier 2"],
+  "warnings":["alerte métier"],
   "finalAdvice":"conseil final opérationnel"
 }
 `;
@@ -1903,9 +1907,7 @@ Format JSON strict :
           model: "gpt-4.1-mini",
           input: prompt,
           text: {
-            format: {
-              type: "json_object"
-            }
+            format: { type: "json_object" }
           }
         })
       });
