@@ -108,20 +108,44 @@ function amount(r){return Math.abs(Number(String(r?.amount||r?.Montant||r?.monta
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
 function ownerQueryParam(){return currentOwnerUid&&currentUser&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
 function closureRef(){return doc(db,"users",currentOwnerUid,"closures",closureId)}
-function hasEntry(labels){const entries=arr(currentClosure.entries);return entries.some(e=>labels.some(l=>txt(e.label).includes(l)))}
-function hasControl(types){return arr(currentClosure.controls).some(c=>types.includes(c.type))}
-function hasAnomaly(types){return arr(currentClosure.anomalies).some(a=>types.includes(a.type))}
-function rowsWithPrefixes(prefixes){const rows=[...arr(currentClosure.balance),...arr(currentClosure.grandLivre)];return rows.filter(r=>prefixes.some(p=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").startsWith(p)))}
+function hasEntry(labels){
+  const entries=arr(currentClosure?.entries);
+  return entries.some(e=>labels.some(l=>txt(e?.label).includes(l)));
+}
+
+function hasControl(types){
+  return arr(currentClosure?.controls).some(c=>types.includes(c?.type));
+}
+
+function hasAnomaly(types){
+  return arr(currentClosure?.anomalies).some(a=>types.includes(a?.type));
+}
+
+function rowsWithPrefixes(prefixes){
+  const rows=[...arr(currentClosure?.balance),...arr(currentClosure?.grandLivre)];
+  return rows.filter(r=>prefixes.some(p=>
+    String(r?.Compte||r?.compte||r?.CompteNum||r?.compteNum||"")
+      .replace(/\s/g,"")
+      .startsWith(p)
+  ));
+}
 function item(key,title,score,max,status,detail,loss,files){return{key,title,score,max,status,detail,loss,files}}
 
 function computeScore(){
-  const items=[];
-  const affect = Array.isArray(currentClosure?.affectationResult?.entries);
+  if(!currentClosure){
+    throw new Error("Clôture non chargée.");
+  }
 
-const ext =
-  !!currentClosure?.extournesN1 &&
-  Array.isArray(currentClosure.extournesN1.entries);
-  const entries=arr(currentClosure.entries);
+  const items=[];
+
+  const affect =
+    Array.isArray(currentClosure?.affectationResult?.entries);
+
+  const ext =
+    !!currentClosure?.extournesN1 &&
+    Array.isArray(currentClosure?.extournesN1?.entries);
+
+  const entries=arr(currentClosure?.entries);
   const validatedEntries=entries.filter(e=>String(e.status||"").toLowerCase().includes("valid")).length;
   const allEntriesValidated=entries.length?validatedEntries===entries.length:false;
 
@@ -142,8 +166,10 @@ const ext =
   items.push(item("subventions","Subventions / crédit-bail",hasControl(["subvention_detected","leasing_detected"])?8:9,10,hasControl(["subvention_detected","leasing_detected"])?"warning":"ok",hasControl(["subvention_detected","leasing_detected"])?"Contrôle avancé à finaliser : subventions, crédit-bail ou leasing détecté.":"Aucun point subvention/crédit-bail bloquant détecté.",hasControl(["subvention_detected","leasing_detected"])?2:1,["Balance","Grand Livre"]));
   items.push(item("vat","TVA",hasControl(["vat_due_detected"])?9:8,10,hasControl(["vat_due_detected"])?"ok":"warning",hasControl(["vat_due_detected"])?"TVA à décaisser détectée et contrôlée.":"TVA non significative ou non détectée : à confirmer selon le régime.",hasControl(["vat_due_detected"])?1:2,["Balance","Grand Livre"]));
   const revisionDone =
-  currentClosure.dossierRevision?.status === "completed" ||
-  Array.isArray(currentClosure.dossierRevision?.items);
+  currentClosure?.dossierRevision?.status === "completed" ||
+  Array.isArray(currentClosure?.dossierRevision?.items) ||
+  currentClosure?.revisionDossier?.status === "ready" ||
+  !!currentClosure?.revisionFile;
 
 items.push(item(
   "revision",
