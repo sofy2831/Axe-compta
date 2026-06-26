@@ -343,13 +343,15 @@ $("saveBtn").disabled = !includedRows().length;
   $("noticeBox").innerHTML = `<b class="ok">${rows.filter(r=>r.manualIncluded!==false).length} écritures de contrepassation N+1 générées automatiquement.</b><br>Contrôle conseillé avant export et enregistrement.`;
 }
 
- function lockScore(){
+function lockScore(){
   $("scoreBtn").classList.add("disabledLink");
+  $("scoreBtn").setAttribute("aria-disabled","true");
 }
 
 function unlockScore(){
   $("scoreBtn").classList.remove("disabledLink");
-} 
+  $("scoreBtn").removeAttribute("aria-disabled");
+}
 function generate(){
   extourneRows=computeExtournes();
   renderRows(extourneRows);
