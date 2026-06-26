@@ -253,20 +253,41 @@ function openModuleModal(moduleKey){
 }
 function closeModal(){ $("detailsModal").classList.remove("open"); }
 
-function isTvaRow(row){
+function isManualReviewRow(row){
   const text = String(row?.label || row?.sourceLabel || "").toLowerCase();
-  return text.includes("tva");
+
+  return (
+    text.includes("tva") ||
+    text.includes("provision") ||
+    text.includes("dépréciation") ||
+    text.includes("depreciation") ||
+    text.includes("crédit-bail") ||
+    text.includes("credit-bail") ||
+    text.includes("leasing") ||
+    text.includes("perte de change") ||
+    text.includes("écart de change") ||
+    text.includes("ecart de change") ||
+    text.includes("intérêts courus") ||
+    text.includes("interets courus") ||
+    text.includes("icne")
+  );
 }
 
-function tvaActionHtml(row,index){
-  if(!isTvaRow(row)) return "—";
+function actionHtml(row,index){
+  if(!isManualReviewRow(row)) return "—";
 
   const kept = row.manualIncluded !== false;
 
   return `
-    <button class="badgeAction ${kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="keep">Inclure</button>
-    <button class="badgeAction remove ${!kept ? "active" : ""}" type="button" data-toggle-tva data-index="${index}" data-action="remove"> Exclure</button>
+    <div class="badgeWrap">
+      <button class="badgeAction ${kept ? "active" : ""}" type="button" data-toggle-review data-index="${index}" data-action="keep">Inclure</button>
+      <button class="badgeAction remove ${!kept ? "active" : ""}" type="button" data-toggle-review data-index="${index}" data-action="remove">Exclure</button>
+    </div>
   `;
+}
+
+function includedRows(){
+  return extourneRows.filter(r => r.manualIncluded !== false);
 }
   
 function renderRows(rows){
