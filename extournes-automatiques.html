@@ -358,7 +358,8 @@ async function saveExtournes(){
     extournesN1:{
       date:$("extourneDate").value,
       journal:$("journalCode").value || "OD",
-      entries:extourneRows,
+      entries:includedRows(),
+excludedEntries:extourneRows.filter(r => r.manualIncluded === false),
       status:"generated",
       generatedAfterAffectationAt:currentClosure?.affectationResult?.updatedAt || null,
       updatedAt:new Date().toISOString()
@@ -389,15 +390,17 @@ unlockScore();
   alert("Extournes enregistrées. Vous pouvez passer au score qualité final.");
 }
 
-function rowsHtml(){ return extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="num">${euro(r.amount)}</td></tr>`).join(""); }
+function rowsHtml(){
+  return includedRows().map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="num">${euro(r.amount)}</td></tr>`).join("");
+}
 function docHtml(){
-  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${extourneRows.length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(extourneRows))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. L'affectation du résultat est contrôlée mais non contrepassée automatiquement.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
+  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${includedRows().length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(includedRows()))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. L'affectation du résultat est contrôlée mais non contrepassée automatiquement.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 function renderPrint(){ if(!extourneRows.length) return; $("printArea").innerHTML=docHtml(); }
 function download(name,content,type){ const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
 function fileBase(){ return `extournes-n1-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`; }
-function exportCsv(){ const csv=["Date;Journal;Libellé;Débit;Crédit;Montant",...extourneRows.map(r=>`${isoToFr(r.date)};${r.journal};${r.label};${r.debit};${r.credit};${String(r.amount).replace(".",",")}`)].join("\n"); download(fileBase()+".csv","\ufeff"+csv,"text/csv;charset=utf-8"); }
-function exportExcel(){ const html=`<html><head><meta charset="UTF-8"></head><body><table><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${extourneRows.map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td>${r.amount}</td></tr>`).join("")}</table></body></html>`; download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8"); }
+function exportCsv(){ const csv=["Date;Journal;Libellé;Débit;Crédit;Montant",...includedRows().map(r=>`${isoToFr(r.date)};${r.journal};${r.label};${r.debit};${r.credit};${String(r.amount).replace(".",",")}`)].join("\n"); download(fileBase()+".csv","\ufeff"+csv,"text/csv;charset=utf-8"); }
+function exportExcel(){ const html=`<html><head><meta charset="UTF-8"></head><body><table><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th></tr>${includedRows().map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td>${r.amount}</td></tr>`).join("")}</table></body></html>`; download(fileBase()+".xls",html,"application/vnd.ms-excel;charset=utf-8"); }
 
 async function loadClosure(user){
   if(!closureId){
