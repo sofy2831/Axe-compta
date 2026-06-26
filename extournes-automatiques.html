@@ -139,10 +139,34 @@ function isExtournable(entry){
   // On la liste comme module contrôlé, mais on ne la contrepasse pas automatiquement.
   if(m.key === "affectation") return false;
 
+if(m.key === "provisions"){
+  const label = String(entry?.label || "").toLowerCase();
+
+  const isExchangeProvision =
+    label.includes("perte de change") ||
+    label.includes("change latente") ||
+    label.includes("écart de change") ||
+    label.includes("ecart de change");
+
+  if(!isExchangeProvision) return false;
+}
+  
   return true;
 }
 function makeExtourne(entry){
-  return { journal:$("journalCode").value || "OD", date:$("extourneDate").value || "", label:`Extourne N+1 - ${entry.label || "écriture de clôture"}`, debit:entry.credit || "", credit:entry.debit || "", amount:amountNumber(entry.amount), sourceLabel:entry.label || "", sourceDebit:entry.debit || "", sourceCredit:entry.credit || "", status:"À valider" };
+return {
+  journal:$("journalCode").value || "OD",
+  date:$("extourneDate").value || "",
+  label:`Extourne N+1 - ${entry.label || "écriture de clôture"}`,
+  debit:entry.credit || "",
+  credit:entry.debit || "",
+  amount:amountNumber(entry.amount),
+  sourceLabel:entry.label || "",
+  sourceDebit:entry.debit || "",
+  sourceCredit:entry.credit || "",
+  status:"À valider",
+  manualIncluded:true
+};
 }
 function computeExtournes(){
   sourceEntries = Array.isArray(currentClosure?.entries) ? currentClosure.entries : [];
