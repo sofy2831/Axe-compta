@@ -452,7 +452,10 @@ async function loadClosure(user){
   if(saved?.entries?.length){
     set("extourneDate",saved.date || $("extourneDate").value);
     set("journalCode",saved.journal || "OD");
-    extourneRows=saved.entries;
+    extourneRows=[
+  ...(Array.isArray(saved.entries) ? saved.entries : []),
+  ...(Array.isArray(saved.excludedEntries) ? saved.excludedEntries : [])
+];
     renderRows(extourneRows);
     $("saveBtn").disabled=false;
     $("exportBar").style.display="block";
