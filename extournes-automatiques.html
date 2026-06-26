@@ -373,7 +373,7 @@ async function saveExtournes(){
     renderPrint();
   }
 
-  if(!extourneRows.length) return alert("Aucune extourne à enregistrer.");
+  if(!includedRows().length) return alert("Aucune extourne incluse à enregistrer.");
 
   const payload = {
     extournesN1:{
