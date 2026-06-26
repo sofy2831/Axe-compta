@@ -272,11 +272,23 @@ $("aiBtn").addEventListener("click", async ()=>{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        uid: currentOwnerUid,
-        closureId,
-        score,
-        scoreItems
-      })
+  uid: currentOwnerUid,
+  closureId,
+  score,
+  scoreItems,
+  closureData:{
+    companyName: currentClosure?.companyName || "",
+    fiscalYear: fiscalYear(currentClosure),
+    entries: arr(currentClosure?.entries),
+    controls: arr(currentClosure?.controls),
+    anomalies: arr(currentClosure?.anomalies),
+    balance: arr(currentClosure?.balance).slice(0, 300),
+    grandLivre: arr(currentClosure?.grandLivre).slice(0, 500),
+    affectationResult: currentClosure?.affectationResult || null,
+    extournesN1: currentClosure?.extournesN1 || null,
+    dossierRevision: currentClosure?.dossierRevision || currentClosure?.revisionDossier || null
+  }
+})
     });
 
     const data = await response.json().catch(()=>({}));
