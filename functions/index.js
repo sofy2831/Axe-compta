@@ -1566,7 +1566,7 @@ anomalies = [
         emprunt: empruntRows,
         controls,
         anomalies,
-        entries: detected.entries,
+       entries: detected.entries || [],
         aiAnalysis: {
           status: "parsed",
           model: null,
@@ -1586,7 +1586,7 @@ anomalies = [
       grandLivreRows: grandLivreRows.length,
       amortissementRows: amortissementRows.length,
       empruntRows: empruntRows.length,
-      entries: detected.entries.length,
+      entries: (detected.entries || []).length,
       controls: controls.length,
       anomalies: anomalies.length,
     });
