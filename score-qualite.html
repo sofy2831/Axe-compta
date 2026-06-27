@@ -135,7 +135,35 @@ function rowsWithPrefixes(prefixes){
   ));
 }
 function item(key,title,score,max,status,detail,loss,files){return{key,title,score,max,status,detail,loss,files}}
+function isCorrected(key){
+  return currentClosure?.scoreCorrections?.[key]?.status === "corrected";
+}
 
+function applyCorrection(item){
+  if(!isCorrected(item.key)) return item;
+
+  return {
+    ...item,
+    score: item.max,
+    status: "ok",
+    detail: item.detail + " Correction utilisateur marquée comme traitée.",
+    loss: 0
+  };
+}
+
+function aiActionKey(a){
+  const text = txt(`${a.module || ""} ${a.key || ""} ${a.title || ""} ${a.action || ""}`);
+
+  if(text.includes("471") || text.includes("472") || text.includes("attente")) return "waiting";
+  if(text.includes("455") || text.includes("associe")) return "associate";
+  if(text.includes("immobilisation") || text.includes("amortissement") || text.includes("vnc")) return "immo";
+  if(text.includes("subvention") || text.includes("credit bail") || text.includes("leasing")) return "subventions";
+  if(text.includes("tva")) return "vat";
+  if(text.includes("emprunt") || text.includes("icne")) return "loans";
+  if(text.includes("change") || text.includes("provision")) return "provisions";
+
+  return "general";
+}
 function computeScore(){
   if(!currentClosure){
     throw new Error("Clôture non chargée.");
