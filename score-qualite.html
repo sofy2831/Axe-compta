@@ -89,6 +89,30 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1180px,calc(100% - 36px));m
     <div class="actions">
       <button class="btn secondary" type="button" id="modalCloseBtn">Fermer</button>
     </div>
+
+    <div class="modalBack" id="scoreCorrectionModal">
+  <div class="modal">
+    <h2>Correction score uniquement</h2>
+    <p class="muted" id="scoreCorrectionText"></p>
+
+    <label>Balance corrigée</label>
+    <input id="scoreBalanceFile" type="file" accept=".xlsx,.xls,.csv">
+
+    <label>Grand livre corrigé</label>
+    <input id="scoreGrandLivreFile" type="file" accept=".xlsx,.xls,.csv">
+
+    <div class="actions">
+      <button class="btn warn" type="button" id="applyScoreCorrectionBtn">
+        Importer et recalculer le score
+      </button>
+      <button class="btn secondary" type="button" id="closeScoreCorrectionBtn">
+        Fermer
+      </button>
+    </div>
+
+    <div class="notice" id="scoreCorrectionMsg" style="display:none"></div>
+  </div>
+</div>
   </div>
 </div>
 
@@ -216,6 +240,107 @@ function correctionUrlForKey(key){
   };
 
   return routes[key] || `cloture-resultat.html?${q}`;
+}
+
+function openScoreCorrectionModal(key){
+  correctionKey = key || "general";
+  $("scoreCorrectionText").textContent =
+    "Importez uniquement les fichiers corrigés nécessaires au recalcul du score. Les OD, l’affectation et les extournes ne seront pas remis à zéro.";
+
+  $("scoreCorrectionMsg").style.display = "none";
+  $("scoreCorrectionModal").style.display = "flex";
+}
+
+function closeScoreCorrectionModal(){
+  $("scoreCorrectionModal").style.display = "none";
+}
+
+async function uploadScoreCorrectionFile(kind, inputId){
+  const file = $(inputId).files?.[0];
+  if(!file) return null;
+
+  const cleanName = file.name.replace(/[^a-zA-Z0-9_.-]/g,"_");
+  const storagePath = `closures/${currentOwnerUid}/${closureId}/score-correction-${kind}-${Date.now()}-${cleanName}`;
+
+  await uploadBytes(ref(storage, storagePath), file);
+
+  return {
+    name: file.name,
+    storagePath,
+    uploadedAt: new Date().toISOString()
+  };
+}
+
+async function applyScoreCorrection(){
+  const msg = $("scoreCorrectionMsg");
+  const btn = $("applyScoreCorrectionBtn");
+
+  try{
+    btn.disabled = true;
+    btn.textContent = "Recalcul en cours...";
+    msg.style.display = "block";
+    msg.className = "notice";
+    msg.innerHTML = "Import des fichiers corrigés...";
+
+    const balance = await uploadScoreCorrectionFile("balance", "scoreBalanceFile");
+    const grandLivre = await uploadScoreCorrectionFile("grandLivre", "scoreGrandLivreFile");
+
+    if(!balance && !grandLivre){
+      throw new Error("Aucun fichier corrigé sélectionné.");
+    }
+
+    const filesUpdate = {};
+    if(balance) filesUpdate.balance = balance;
+    if(grandLivre) filesUpdate.grandLivre = grandLivre;
+
+    await updateDoc(closureRef(), {
+      files: {
+        ...(currentClosure.files || {}),
+        ...filesUpdate
+      },
+      scoreCorrections: {
+        ...(currentClosure.scoreCorrections || {}),
+        [correctionKey]: {
+          status: "corrected",
+          label: correctionKey,
+          correctedAt: new Date().toISOString()
+        }
+      },
+      scoreQualite: null,
+      scoreQuality: null,
+      updatedAt: serverTimestamp()
+    });
+
+    currentClosure.files = {
+      ...(currentClosure.files || {}),
+      ...filesUpdate
+    };
+
+    currentClosure.scoreCorrections = {
+      ...(currentClosure.scoreCorrections || {}),
+      [correctionKey]: {
+        status: "corrected",
+        label: correctionKey,
+        correctedAt: new Date().toISOString()
+      }
+    };
+
+    computeScore();
+    render();
+
+    msg.className = "notice";
+    msg.innerHTML = `<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l’affectation ni les extournes.`;
+
+    $("statusLine").innerHTML = `<span class="okText">Score recalculé après correction.</span>`;
+
+  }catch(e){
+    console.error(e);
+    msg.className = "notice err";
+    msg.innerHTML = `<b class="errText">${sanitize(e.message || "Erreur correction score.")}</b>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "Importer et recalculer le score";
+  }
 }
   
 function computeScore(){
