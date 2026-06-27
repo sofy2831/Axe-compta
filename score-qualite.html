@@ -308,10 +308,19 @@ $("aiBtn").addEventListener("click", async ()=>{
             <span class="warnText">Impact : +${sanitize(a.impact ?? 0)} point(s)</span><br><br>
             <b>Action :</b><br>
             ${sanitize(a.action || "")}<br><br>
-              ${a.expectedResult ? `
-              <b>Résultat attendu :</b><br>
-              ${sanitize(a.expectedResult)}
-            ` : ""}
+             ${a.expectedResult ? `
+  <b>Résultat attendu :</b><br>
+  ${sanitize(a.expectedResult)}<br><br>
+` : ""}
+
+<div class="actions" style="margin-top:10px">
+  <button class="btn secondary small" type="button" data-correct-now="${sanitize(a.module || a.key || "")}">
+    Corriger maintenant →
+  </button>
+  <button class="btn secondary small" type="button" data-mark-corrected>
+    Marquer corrigé
+  </button>
+</div>
           </div>
         `).join("")}
       ` : ""}
@@ -327,6 +336,21 @@ $("aiBtn").addEventListener("click", async ()=>{
       ` : ""}
     `;
 
+    document.querySelectorAll("[data-correct-now]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const module = btn.dataset.correctNow || "";
+    window.location.href = `cloture-resultat.html?id=${closureId}${ownerQueryParam()}&module=${encodeURIComponent(module)}`;
+  });
+});
+
+document.querySelectorAll("[data-mark-corrected]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    btn.textContent = "Corrigé";
+    btn.classList.remove("secondary");
+    btn.classList.add("warn");
+    btn.disabled = true;
+  });
+});
     $("statusLine").innerHTML='<span class="okText">Analyse IA générée.</span>';
 
   }catch(e){
