@@ -21,7 +21,7 @@ function setCors(res, headers = "Content-Type, Authorization") {
 
 exports.createCheckoutSession = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     setCors(res);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
@@ -40,7 +40,7 @@ exports.createCheckoutSession = onRequest(
         return res.status(400).json({ error: "Plan invalide." });
       }
 
-      if (plan === "solo" &amp;&amp; !closureId) {
+      if (plan === "solo" && !closureId) {
         return res.status(400).json({ error: "closureId manquant." });
       }
 
@@ -59,11 +59,11 @@ exports.createCheckoutSession = onRequest(
         customer_email: email,
         customer_creation: plan === "solo" ? "always" : undefined,
         line_items: [{ price: priceMap[plan], quantity: 1 }],
-        success_url: <code class="user-message-inline-code">${ALLOWED_ORIGIN}/merci.html</code>,
+        success_url: `${ALLOWED_ORIGIN}/merci.html`,
         cancel_url:
           plan === "solo"
-            ? <code class="user-message-inline-code">${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}</code>
-            : <code class="user-message-inline-code">${ALLOWED_ORIGIN}/tableau-de-bord.html</code>,
+            ? `${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}`
+            : `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
         metadata: {
           uid,
           closureId: closureId || "",
@@ -81,7 +81,7 @@ exports.createCheckoutSession = onRequest(
 
 exports.stripeWebhook = onRequest(
   { secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers["stripe-signature"];
 
@@ -95,14 +95,14 @@ exports.stripeWebhook = onRequest(
       );
     } catch (error) {
       console.error("Webhook signature error:", error.message);
-      return res.status(400).send(<code class="user-message-inline-code">Webhook Error: ${error.message}</code>);
+      return res.status(400).send(`Webhook Error: ${error.message}`);
     }
 
     const db = admin.firestore();
 
     function planFromSubscription(subscription) {
       const items = subscription.items?.data || [];
-      const priceIds = items.map(item =&gt; item.price?.id).filter(Boolean);
+      const priceIds = items.map(item => item.price?.id).filter(Boolean);
 
       if (priceIds.includes(PRICE_CABINET_399)) return "cabinet";
       if (priceIds.includes(PRICE_EXPERT_149)) return "expert";
@@ -366,7 +366,7 @@ function toNumber(value) {
 
   raw = raw.replace(/\s/g, "");
 
-  if (raw.includes(",") &amp;&amp; raw.includes(".")) {
+  if (raw.includes(",") && raw.includes(".")) {
     raw = raw.replace(/\./g, "").replace(",", ".");
   } else if (raw.includes(",")) {
     raw = raw.replace(",", ".");
@@ -379,12 +379,13 @@ function toNumber(value) {
 }
 
 function getAmount(row) {
-  if (!row) return 0; 
+  if (!row) return 0;
+
   const keys = Object.keys(row);
 
-  const findKey = names =&gt; keys.find(k =&gt; {
+  const findKey = names => keys.find(k => {
     const nk = normalizeText(k);
-    return names.some(name =&gt; nk === normalizeText(name) || nk.includes(normalizeText(name)));
+    return names.some(name => nk === normalizeText(name) || nk.includes(normalizeText(name)));
   });
 
   const montantKey = findKey(["montant"]);
@@ -412,28 +413,28 @@ function getAmount(row) {
 
 function accountStarts(row, prefixes) {
   const compte = getCompte(row);
-  return prefixes.some(prefix =&gt; compte.startsWith(prefix));
+  return prefixes.some(prefix => compte.startsWith(prefix));
 }
 
 function hasAccount(rows, prefixes) {
-  return rows.some(row =&gt; accountStarts(row, prefixes));
+  return rows.some(row => accountStarts(row, prefixes));
 }
 
 function findBalanceRow(balanceRows, prefixes) {
-  return balanceRows.find(row =&gt; accountStarts(row, prefixes));
+  return balanceRows.find(row => accountStarts(row, prefixes));
 }
 
 function findFirstRowByPrefixes(rows, prefixes) {
-  return rows.find(row =&gt; accountStarts(row, prefixes));
+  return rows.find(row => accountStarts(row, prefixes));
 }
 
 function findLedgerRowsByPrefixes(rows, prefixes) {
-  return rows.filter(row =&gt; accountStarts(row, prefixes));
+  return rows.filter(row => accountStarts(row, prefixes));
 }
 
 function uniqueRows(rows) {
   const seen = new Set();
-  return rows.filter(row =&gt; {
+  return rows.filter(row => {
     const key = [getCompte(row), getLibelle(row), getAmount(row)].join("|").toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
@@ -442,7 +443,7 @@ function uniqueRows(rows) {
 }
 
 function amountByPrefixes(rows, prefixes) {
-  return rows.filter(row =&gt; accountStarts(row, prefixes)).reduce((sum, row) =&gt; sum + (getAmount(row) || 0), 0);
+  return rows.filter(row => accountStarts(row, prefixes)).reduce((sum, row) => sum + (getAmount(row) || 0), 0);
 }
 
 function cleanEntryLabel(prefix, row) {
@@ -490,7 +491,7 @@ function cleanEntryLabel(prefix, row) {
     .trim();
 
   if (!label) label = raw || "ligne grand livre";
-  return <code class="user-message-inline-code">${prefix} - ${label}</code>;
+  return `${prefix} - ${label}`;
 }
 
 function makeEntryFromRow(row, config) {
@@ -529,7 +530,7 @@ function makeAnalysisEntry(config) {
 
 function dedupeEntries(entries) {
   const seen = new Set();
-  return entries.filter(e =&gt; {
+  return entries.filter(e => {
     const key = [e.journal || "OD", e.label || "", e.debit || "", e.credit || "", e.amount || ""].join("|").toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
@@ -538,10 +539,10 @@ function dedupeEntries(entries) {
 }
 
 function cleanFirestoreObject(value) {
-  if (Array.isArray(value)) return value.map(item =&gt; cleanFirestoreObject(item));
-  if (value &amp;&amp; typeof value === "object") {
+  if (Array.isArray(value)) return value.map(item => cleanFirestoreObject(item));
+  if (value && typeof value === "object") {
     const clean = {};
-    Object.keys(value).forEach(key =&gt; {
+    Object.keys(value).forEach(key => {
       if (value[key] !== undefined) clean[key] = cleanFirestoreObject(value[key]);
     });
     return clean;
@@ -553,14 +554,14 @@ function getCell(row, names) {
   const keys = Object.keys(row || {});
   for (const key of keys) {
     const normalizedKey = normalizeText(key);
-    if (names.some(name =&gt; normalizedKey.includes(normalizeText(name)))) return row[key];
+    if (names.some(name => normalizedKey.includes(normalizeText(name)))) return row[key];
   }
   return "";
 }
 
 function parseExcelDate(value) {
   if (!value) return null;
-  if (value instanceof Date &amp;&amp; !Number.isNaN(value.getTime())) return value;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
 
   if (typeof value === "number") {
     const parsed = XLSX.SSF.parse_date_code(value);
@@ -591,11 +592,11 @@ function findLoanIcne(empruntRows, closureEndDate) {
 
     if (!start || !due || !interest) continue;
 
-    if (start &lt;= endDate &amp;&amp; due &gt;= endDate) {
+    if (start <= endDate && due >= endDate) {
       const periodDays = daysBetween(start, due);
       const elapsedDaysRaw = daysBetween(start, endDate) + 1;
       const elapsedDays = Math.min(elapsedDaysRaw, periodDays);
-      if (periodDays &lt;= 0 || elapsedDays &lt;= 0) return null;
+      if (periodDays <= 0 || elapsedDays <= 0) return null;
 
       const prorata = Math.min(elapsedDays / periodDays, 1);
       const icne = +(interest * prorata).toFixed(2);
@@ -634,16 +635,16 @@ function getAssetNameFromText(row) {
 
 function findAssetRow(amortissementRows, assetName) {
   const needle = normalizeText(assetName);
-  return amortissementRows.find(row =&gt; needle &amp;&amp; getRowText(row).includes(needle));
+  return amortissementRows.find(row => needle && getRowText(row).includes(needle));
 }
 
 function getAssetValue(row, keywords) {
   if (!row) return 0;
   for (const key of Object.keys(row)) {
     const nk = normalizeText(key);
-    if (keywords.some(k =&gt; nk.includes(normalizeText(k)))) {
+    if (keywords.some(k => nk.includes(normalizeText(k)))) {
       const n = toNumber(row[key]);
-      if (!Number.isNaN(n) &amp;&amp; n !== 0) return Math.abs(n);
+      if (!Number.isNaN(n) && n !== 0) return Math.abs(n);
     }
   }
   return 0;
@@ -655,20 +656,20 @@ function detectPayrollRate(balanceRows, grandLivreRows) {
   const socialCharges = amountByPrefixes(rows, ["645"]);
   if (!salaries || !socialCharges) return null;
   const rate = socialCharges / salaries;
-  return rate &gt; 0 &amp;&amp; rate &lt;= 1 ? rate : null;
+  return rate > 0 && rate <= 1 ? rate : null;
 }
 
 function formatEuro(value) {
   if (typeof value !== "number") return value || "?";
-  return <code class="user-message-inline-code">${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</code>;
+  return `${value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 }
 
 function getUserContext(details, usefulInfo, keys = []) {
   const parts = [];
 
-  keys.forEach(key =&gt; {
-    if (details[key] &amp;&amp; details[key].trim()) {
-      parts.push(<code class="user-message-inline-code">Précision utilisateur (${key}) :\n${details[key].trim()}</code>);
+  keys.forEach(key => {
+    if (details[key] && details[key].trim()) {
+      parts.push(`Précision utilisateur (${key}) :\n${details[key].trim()}`);
     }
   });
 
@@ -678,7 +679,8 @@ function getUserContext(details, usefulInfo, keys = []) {
 }
 function answerYes(answers, key) {
   return answers?.[key] === "yes" || answers?.[key] === true;
-} 
+}
+
 function isLeasingRow(row) {
   const compte = getCompte(row);
   const text = getRowText(row);
@@ -698,9 +700,9 @@ function isLeasingRow(row) {
 function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers = {}, details = {}) {
   const allRows = [...balanceRows, ...grandLivreRows];
   const hasPayrollAccounts = hasAccount(allRows, ["421", "428", "431", "437", "438", "641", "645"]);
-  if (!hasPayrollAccounts &amp;&amp; answers.paie !== "yes") return;
+  if (!hasPayrollAccounts && answers.paie !== "yes") return;
 
-  const payrollRows = uniqueRows(allRows.filter(row =&gt; {
+  const payrollRows = uniqueRows(allRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
     return (
@@ -715,7 +717,7 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
   const amount438 = amountByPrefixes(allRows, ["438"]);
   const salaries = amountByPrefixes(allRows, ["641"]);
   const socialCharges = amountByPrefixes(allRows, ["645"]);
-  const payrollRate = salaries &amp;&amp; socialCharges ? socialCharges / salaries : null;
+  const payrollRate = salaries && socialCharges ? socialCharges / salaries : null;
 
   if (amount428) {
     entries.push({
@@ -743,7 +745,7 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
       source: "balance/grandLivre",
       status: "À valider",
     });
-  } else if (amount428 &amp;&amp; payrollRate &amp;&amp; payrollRate &gt; 0 &amp;&amp; payrollRate &lt;= 1) {
+  } else if (amount428 && payrollRate && payrollRate > 0 && payrollRate <= 1) {
     const socialAmount = Math.round(amount428 * payrollRate * 100) / 100;
     entries.push({
       journal: "OD",
@@ -751,7 +753,7 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
       debit: "645000",
       credit: "438600",
       amount: socialAmount,
-      justification: <code class="user-message-inline-code">Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.</code>,
+      justification: `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.`,
       confidence: 0.75,
       source: "balance/grandLivre",
       status: "À valider",
@@ -762,8 +764,8 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
     label: "Analyse paie / charges sociales",
     amount: (amount428 || 0) + (amount438 || 0) + (socialCharges || 0) + (salaries || 0) || "À contrôler",
     justification:
-<code class="user-message-inline-code">Paie et charges sociales détectées.
-</code>
+`Paie et charges sociales détectées.
+
 Salaires / compte 641 : ${formatEuro(salaries)}
 Charges sociales / compte 645 : ${formatEuro(socialCharges)}
 Personnel - charges à payer / compte 428 : ${formatEuro(amount428)}
@@ -773,10 +775,10 @@ Contrôles à effectuer :
 - rapprocher les montants du journal de paie ;
 - contrôler les congés payés à payer ;
 - vérifier les charges sociales rattachées ;
-- vérifier les comptes 421, 428, 431, 437 et 438 avant validation définitive.<code class="user-message-inline-code">,
-</code>    confidence: 0.8,
+- vérifier les comptes 421, 428, 431, 437 et 438 avant validation définitive.`,
+    confidence: 0.8,
     source: "balance/grandLivre",
-    details: payrollRows.map(row =&gt; ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+    details: payrollRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
   }));
 
   controls.push({ type: "payroll_detected", label: "Paie et charges sociales détectées", level: "info" });
@@ -787,13 +789,13 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["131", "139", "777"])) return;
 
-  const subventionRows = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["131"])));
-  const repriseRows = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["139"])));
-  const quotePartRows = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["777"])));
+  const subventionRows = uniqueRows(allRows.filter(row => accountStarts(row, ["131"])));
+  const repriseRows = uniqueRows(allRows.filter(row => accountStarts(row, ["139"])));
+  const quotePartRows = uniqueRows(allRows.filter(row => accountStarts(row, ["777"])));
 
-  const subventionAmount = subventionRows.reduce((s, r) =&gt; s + getAmount(r), 0);
-  const repriseAmount = repriseRows.reduce((s, r) =&gt; s + getAmount(r), 0);
-  const quotePartAmount = quotePartRows.reduce((s, r) =&gt; s + getAmount(r), 0);
+  const subventionAmount = subventionRows.reduce((s, r) => s + getAmount(r), 0);
+  const repriseAmount = repriseRows.reduce((s, r) => s + getAmount(r), 0);
+  const quotePartAmount = quotePartRows.reduce((s, r) => s + getAmount(r), 0);
   const diff = Math.abs((repriseAmount || 0) - (quotePartAmount || 0));
 
   let statusText = "Subvention d'investissement détectée.";
@@ -801,11 +803,11 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
   let retainedAmount = quotePartAmount || repriseAmount || "À calculer";
   let confidence = 0.75;
 
-  if (repriseAmount &amp;&amp; quotePartAmount &amp;&amp; diff &lt;= 1) {
+  if (repriseAmount && quotePartAmount && diff <= 1) {
     statusText = "Quote-part de subvention déjà comptabilisée et cohérente.";
     recommendation = "Aucune écriture automatique supplémentaire n'est proposée. Contrôler uniquement le plan de reprise et l'annexe si nécessaire.";
     confidence = 0.9;
-  } else if (repriseAmount &amp;&amp; !quotePartAmount) {
+  } else if (repriseAmount && !quotePartAmount) {
     statusText = "Compte 139 détecté sans compte 777 correspondant.";
     recommendation = "Une quote-part au résultat semble à compléter : écriture proposée 139 / 777.";
     entries.push({
@@ -814,12 +816,12 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
       debit: "139000",
       credit: "777000",
       amount: repriseAmount,
-      justification: <code class="user-message-inline-code">Compte 139 détecté sans compte 777 correspondant. Proposition de comptabilisation de la quote-part de subvention au résultat.${userContext}</code>,
+      justification: `Compte 139 détecté sans compte 777 correspondant. Proposition de comptabilisation de la quote-part de subvention au résultat.${userContext}`,
       confidence: 0.75,
       source: "analyse",
       status: "À valider",
     });
-  } else if (!repriseAmount &amp;&amp; quotePartAmount) {
+  } else if (!repriseAmount && quotePartAmount) {
     statusText = "Compte 777 détecté sans reprise 139 correspondante.";
     recommendation = "Une reprise de subvention doit être rapprochée du compte 139. Écriture proposée 139 / 777 à valider avec le plan de reprise.";
     entries.push({
@@ -828,18 +830,18 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
       debit: "139000",
       credit: "777000",
       amount: quotePartAmount,
-      justification: <code class="user-message-inline-code">Compte 777 détecté sans compte 139 correspondant. Proposition à valider avec le plan de reprise de la subvention.${userContext}</code>,
+      justification: `Compte 777 détecté sans compte 139 correspondant. Proposition à valider avec le plan de reprise de la subvention.${userContext}`,
       confidence: 0.7,
       source: "analyse",
       status: "À valider",
     });
-  } else if (subventionAmount &amp;&amp; !repriseAmount &amp;&amp; !quotePartAmount) {
+  } else if (subventionAmount && !repriseAmount && !quotePartAmount) {
     statusText = "Subvention inscrite en 131 sans quote-part détectée.";
     recommendation = "Aucune écriture chiffrée fiable ne peut être générée sans plan de reprise. Calculer la quote-part selon le rythme d'amortissement du bien financé.";
     confidence = 0.6;
-  } else if (repriseAmount &amp;&amp; quotePartAmount &amp;&amp; diff &gt; 1) {
+  } else if (repriseAmount && quotePartAmount && diff > 1) {
     statusText = "Écart détecté entre 139 et 777.";
-    recommendation = <code class="user-message-inline-code">Écart à contrôler : ${formatEuro(diff)}. Vérifier le plan de reprise et les mouvements comptabilisés.</code>;
+    recommendation = `Écart à contrôler : ${formatEuro(diff)}. Vérifier le plan de reprise et les mouvements comptabilisés.`;
     retainedAmount = Math.max(repriseAmount, quotePartAmount);
     confidence = 0.65;
   }
@@ -848,21 +850,21 @@ function detectSubventions(balanceRows, grandLivreRows, entries, controls, detai
     label: "Analyse subvention d'investissement",
     amount: retainedAmount,
     justification:
-<code class="user-message-inline-code">Subvention d'investissement détectée.
-</code>
+`Subvention d'investissement détectée.
+
 Compte 131 - Subvention d'investissement : ${formatEuro(subventionAmount)}
 Compte 139 - Subvention inscrite au résultat : ${formatEuro(repriseAmount)}
 Compte 777 - Quote-part virée au résultat : ${formatEuro(quotePartAmount)}
 
 Diagnostic : ${statusText}
 
-Recommandation : ${recommendation}${userContext}<code class="user-message-inline-code">,
-</code>    confidence,
+Recommandation : ${recommendation}${userContext}`,
+    confidence,
     source: "balance/grandLivre",
     details: [
-      ...subventionRows.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
-      ...repriseRows.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
-      ...quotePartRows.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...subventionRows.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...repriseRows.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...quotePartRows.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
     ],
   }));
 
@@ -873,7 +875,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
   const userContext = getUserContext(details, "", ["immo", "cca"]);
   const allRows = [...balanceRows, ...grandLivreRows];
 
-  const leasingRows = uniqueRows(allRows.filter(row =&gt; {
+  const leasingRows = uniqueRows(allRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
 
@@ -890,7 +892,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
     text.includes("levée option") ||
     text.includes("rachat option");
 
-     return leasingKeyword &amp;&amp; (
+     return leasingKeyword && (
     compte.startsWith("612") ||
     compte.startsWith("486") ||
     compte.startsWith("408") ||
@@ -904,7 +906,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
 
   const leasingDetails = [];
 
-  leasingRows.forEach(row =&gt; {
+  leasingRows.forEach(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
     const amount = getAmount(row) || "À contrôler";
@@ -922,7 +924,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "CCA crédit-bail",
         debit: "486000",
         credit: "612000",
-        justification: <code class="user-message-inline-code">Loyer de crédit-bail couvrant une période postérieure à la clôture : charge constatée d'avance à comptabiliser.${userContext}</code>,
+        justification: `Loyer de crédit-bail couvrant une période postérieure à la clôture : charge constatée d'avance à comptabiliser.${userContext}`,
         confidence: 0.85,
       }));
     } else if (hasFnp) {
@@ -932,7 +934,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "FNP crédit-bail",
         debit: "612000",
         credit: "408100",
-        justification: <code class="user-message-inline-code">Loyer de crédit-bail relatif à l'exercice, mais facture non parvenue : charge à rattacher à la clôture.${userContext}</code>,
+        justification: `Loyer de crédit-bail relatif à l'exercice, mais facture non parvenue : charge à rattacher à la clôture.${userContext}`,
         confidence: 0.85,
       }));
     } else if (hasOption) {
@@ -942,7 +944,7 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
         label: "Levée option crédit-bail",
         debit: "218000",
         credit: "404000",
-        justification: <code class="user-message-inline-code">Levée d'option détectée : le bien doit être immobilisé au prix de rachat, sous réserve du justificatif.${userContext}</code>,
+        justification: `Levée d'option détectée : le bien doit être immobilisé au prix de rachat, sous réserve du justificatif.${userContext}`,
         confidence: 0.8,
       }));
     }
@@ -952,12 +954,12 @@ function detectLeasing(balanceRows, grandLivreRows, entries, controls, details =
 
   entries.push(makeAnalysisEntry({
     label: "Analyse crédit-bail / leasing",
-    amount: leasingDetails.reduce((s, d) =&gt; s + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
+    amount: leasingDetails.reduce((s, d) => s + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
     justification:
-<code class="user-message-inline-code">Crédit-bail / leasing détecté.
-</code>
+`Crédit-bail / leasing détecté.
+
 Diagnostic automatisé :
-${leasingDetails.map(d =&gt; <code class="user-message-inline-code">- ${d.compte || "?"} | ${d.libelle} | ${formatEuro(d.amount)} | ${d.caseLabel}</code>).join("\n")}
+${leasingDetails.map(d => `- ${d.compte || "?"} | ${d.libelle} | ${formatEuro(d.amount)} | ${d.caseLabel}`).join("\n")}
 
 Règles appliquées :
 - loyer simple en 612 : aucune écriture de clôture si la période est correctement rattachée ;
@@ -965,8 +967,8 @@ Règles appliquées :
 - FNP : débit 612 / crédit 408 ;
 - levée d'option : débit 218 / crédit 404.
 
-Contrôler le contrat, la période couverte, l'option d'achat et les informations à mentionner en annexe.${userContext}<code class="user-message-inline-code">,
-</code>    confidence: 0.8,
+Contrôler le contrat, la période couverte, l'option d'achat et les informations à mentionner en annexe.${userContext}`,
+    confidence: 0.8,
     source: "balance/grandLivre",
     details: leasingDetails,
   }));
@@ -979,26 +981,26 @@ function detectExchangeDifferences(balanceRows, grandLivreRows, entries, control
   const allRows = [...balanceRows, ...grandLivreRows];
   if (!hasAccount(allRows, ["476", "477", "666", "766"])) return;
 
-  const rows476 = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["476"])));
-  const rows477 = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["477"])));
-  const rows666 = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["666"])));
-  const rows766 = uniqueRows(allRows.filter(row =&gt; accountStarts(row, ["766"])));
+  const rows476 = uniqueRows(allRows.filter(row => accountStarts(row, ["476"])));
+  const rows477 = uniqueRows(allRows.filter(row => accountStarts(row, ["477"])));
+  const rows666 = uniqueRows(allRows.filter(row => accountStarts(row, ["666"])));
+  const rows766 = uniqueRows(allRows.filter(row => accountStarts(row, ["766"])));
 
-  const amount476 = rows476.reduce((s, r) =&gt; s + getAmount(r), 0);
-  const amount477 = rows477.reduce((s, r) =&gt; s + getAmount(r), 0);
-  const amount666 = rows666.reduce((s, r) =&gt; s + getAmount(r), 0);
-  const amount766 = rows766.reduce((s, r) =&gt; s + getAmount(r), 0);
+  const amount476 = rows476.reduce((s, r) => s + getAmount(r), 0);
+  const amount477 = rows477.reduce((s, r) => s + getAmount(r), 0);
+  const amount666 = rows666.reduce((s, r) => s + getAmount(r), 0);
+  const amount766 = rows766.reduce((s, r) => s + getAmount(r), 0);
 
   const hasProvisionExchangeLoss = hasAccount(allRows, ["1515", "6865"]);
 
-  if (amount476 &amp;&amp; !hasProvisionExchangeLoss) {
+  if (amount476 && !hasProvisionExchangeLoss) {
     entries.push({
       journal: "OD",
       label: "Provision pour perte de change latente",
       debit: "686500",
       credit: "151500",
       amount: amount476,
-      justification: <code class="user-message-inline-code">Différence de conversion actif détectée en 476 : une provision pour perte de change latente doit être contrôlée et éventuellement comptabilisée.${userContext}</code>,
+      justification: `Différence de conversion actif détectée en 476 : une provision pour perte de change latente doit être contrôlée et éventuellement comptabilisée.${userContext}`,
       confidence: 0.75,
       source: "analyse",
       status: "À valider",
@@ -1009,8 +1011,8 @@ function detectExchangeDifferences(balanceRows, grandLivreRows, entries, control
     label: "Analyse écarts de change",
     amount: (amount476 || 0) + (amount477 || 0) + (amount666 || 0) + (amount766 || 0) || "À contrôler",
     justification:
-<code class="user-message-inline-code">Écarts de change détectés.
-</code>
+`Écarts de change détectés.
+
 Compte 476 - Différences de conversion actif : ${formatEuro(amount476)}
 Compte 477 - Différences de conversion passif : ${formatEuro(amount477)}
 Compte 666 - Pertes de change réalisées : ${formatEuro(amount666)}
@@ -1018,14 +1020,14 @@ Compte 766 - Gains de change réalisés : ${formatEuro(amount766)}
 
 Analyse :
 ${amount476 ? "- Perte latente détectée : provision 6865 / 1515 à contrôler si elle n'est pas déjà comptabilisée.\n" : ""}${amount477 ? "- Gain latent détecté : en principe pas de produit à constater, contrôle de l'extourne N+1.\n" : ""}${amount666 || amount766 ? "- Écart de change réalisé détecté : contrôler le rattachement et les justificatifs bancaires/fournisseurs/clients.\n" : ""}
-Axe Compta IA propose uniquement les écritures nécessaires lorsque l'information est suffisamment exploitable.${userContext}<code class="user-message-inline-code">,
-</code>    confidence: amount476 || amount477 ? 0.8 : 0.75,
+Axe Compta IA propose uniquement les écritures nécessaires lorsque l'information est suffisamment exploitable.${userContext}`,
+    confidence: amount476 || amount477 ? 0.8 : 0.75,
     source: "balance/grandLivre",
     details: [
-      ...rows476.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
-      ...rows477.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
-      ...rows666.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
-      ...rows766.map(r =&gt; ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...rows476.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...rows477.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...rows666.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
+      ...rows766.map(r => ({ compte: getCompte(r), libelle: getLibelle(r), amount: getAmount(r) })),
     ],
   }));
 
@@ -1043,8 +1045,8 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   const activity = normalizeText(closure.activity || "");
   const allRows = [...balanceRows, ...grandLivreRows];
 
-  const hasAcc = prefixes =&gt; hasAccount(allRows, prefixes);
-  const getBalanceAmount = prefixes =&gt; {
+  const hasAcc = prefixes => hasAccount(allRows, prefixes);
+  const getBalanceAmount = prefixes => {
     const row = findBalanceRow(balanceRows, prefixes);
     return row ? getAmount(row) : 0;
   };
@@ -1054,93 +1056,94 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   if (hasAcc(["706", "707"])) controls.push({ type: "revenue_detected", label: "Chiffre d'affaires détecté", level: "info" });
 
   // FNP
-  if (hasAcc(["408"]) &amp;&amp; (answerYes(answers, "fournisseurs") || hasAcc(["408"]))) {
-    const fnpRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["408"]) && (answerYes(answers, "fournisseurs") || hasAcc(["408"]))) {
+    const fnpRows = grandLivreRows.filter(row => {
   const compte = getCompte(row);
   const text = getRowText(row);
   if (isLeasingRow(row)) return false;
-  return compte.startsWith("6") &amp;&amp; (text.includes("fnp") || text.includes("facture non parvenue") || text.includes("facture non recue"));
+  return compte.startsWith("6") && (text.includes("fnp") || text.includes("facture non parvenue") || text.includes("facture non recue"));
 });
 
     if (fnpRows.length) {
-      fnpRows.forEach(row =&gt; entries.push(makeEntryFromRow(row, {
+      fnpRows.forEach(row => entries.push(makeEntryFromRow(row, {
         label: "FNP",
         debit: "607000",
         credit: "408100",
-        justification: <code class="user-message-inline-code">Facture fournisseur non parvenue détectée dans le grand livre.${userContext}</code>,
+        justification: `Facture fournisseur non parvenue détectée dans le grand livre.${userContext}`,
         confidence: 0.9,
       })));
     } else {
-      entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: <code class="user-message-inline-code">Compte 408 détecté : facture fournisseur non parvenue à vérifier.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: `Compte 408 détecté : facture fournisseur non parvenue à vérifier.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
 
   // CCA
-  if (hasAcc(["486"]) &amp;&amp; (answerYes(answers, "cca") || hasAcc(["486"]))) {
-    const ccaRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["486"]) && (answerYes(answers, "cca") || hasAcc(["486"]))) {
+    const ccaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
-      return compte.startsWith("486") &amp;&amp; (text.includes("cca") || text.includes("charge constatee") || text.includes("charges constatees") || text.includes("periode suivante") || text.includes("periode 2023"));
+      return compte.startsWith("486") && (text.includes("cca") || text.includes("charge constatee") || text.includes("charges constatees") || text.includes("periode suivante") || text.includes("periode 2023"));
     });
 
     if (ccaRows.length) {
-      ccaRows.forEach(row =&gt; entries.push(makeEntryFromRow(row, { label: "CCA", debit: "486000", credit: "616000", justification: <code class="user-message-inline-code">Charge constatée d'avance détectée dans le grand livre.${userContext}</code>, confidence: 0.9 })));
+      ccaRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "CCA", debit: "486000", credit: "616000", justification: `Charge constatée d'avance détectée dans le grand livre.${userContext}`, confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "CCA", debit: "486000", credit: "616000", amount: getBalanceAmount(["486"]) || "À contrôler", justification: <code class="user-message-inline-code">Compte 486 détecté : charge couvrant une période postérieure à la clôture.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "CCA", debit: "486000", credit: "616000", amount: getBalanceAmount(["486"]) || "À contrôler", justification: `Compte 486 détecté : charge couvrant une période postérieure à la clôture.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
-  } 
+  }
+
   // PCA
-  if (hasAcc(["487"]) &amp;&amp; (answerYes(answers, "cca") || hasAcc(["487"]))) {
-    const pcaRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["487"]) && (answerYes(answers, "cca") || hasAcc(["487"]))) {
+    const pcaRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("487") || text.includes("pca") || text.includes("produit constate") || text.includes("produits constates");
     });
 
     if (pcaRows.length) {
-      pcaRows.filter(row =&gt; getCompte(row).startsWith("487")).forEach(row =&gt; entries.push(makeEntryFromRow(row, { label: "PCA", debit: "706000", credit: "487000", justification: <code class="user-message-inline-code">Produit constaté d'avance détecté dans le grand livre.${userContext}</code>, confidence: 0.9 })));
+      pcaRows.filter(row => getCompte(row).startsWith("487")).forEach(row => entries.push(makeEntryFromRow(row, { label: "PCA", debit: "706000", credit: "487000", justification: `Produit constaté d'avance détecté dans le grand livre.${userContext}`, confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "PCA", debit: "706000", credit: "487000", amount: getBalanceAmount(["487"]) || "À contrôler", justification: <code class="user-message-inline-code">Compte 487 détecté : produit rattaché à l'exercice suivant.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "PCA", debit: "706000", credit: "487000", amount: getBalanceAmount(["487"]) || "À contrôler", justification: `Compte 487 détecté : produit rattaché à l'exercice suivant.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
   // FAE
-  if (hasAcc(["418"]) &amp;&amp; (answerYes(answers, "clients") || hasAcc(["418"]))) {
-    const faeRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["418"]) && (answerYes(answers, "clients") || hasAcc(["418"]))) {
+    const faeRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("4181") || text.includes("fae") || text.includes("facture a etablir") || text.includes("facture à établir");
     });
 
     if (faeRows.length) {
-      faeRows.forEach(row =&gt; entries.push(makeEntryFromRow(row, { label: "FAE", debit: "418100", credit: "706000", justification: <code class="user-message-inline-code">Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l'exercice.${userContext}</code>, confidence: 0.9 })));
+      faeRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "FAE", debit: "418100", credit: "706000", justification: `Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l'exercice.${userContext}`, confidence: 0.9 })));
     } else {
-      entries.push({ journal: "OD", label: "FAE", debit: "418100", credit: "706000", amount: getBalanceAmount(["4181"]) || "À contrôler", justification: <code class="user-message-inline-code">Compte 418100 détecté : facture à établir à vérifier.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "FAE", debit: "418100", credit: "706000", amount: getBalanceAmount(["4181"]) || "À contrôler", justification: `Compte 418100 détecté : facture à établir à vérifier.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
   // PAR
-  if (hasAcc(["4187", "4687"]) &amp;&amp; (answerYes(answers, "clients") || hasAcc(["4187", "4687"]))) {
-    const parRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["4187", "4687"]) && (answerYes(answers, "clients") || hasAcc(["4187", "4687"]))) {
+    const parRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("4187") || compte.startsWith("4687") || text.includes("produit a recevoir") || text.includes("produits a recevoir") || text.includes("produit à recevoir") || text.includes("produits à recevoir");
     });
 
     if (parRows.length) {
-      parRows.forEach(row =&gt; {
+      parRows.forEach(row => {
         const compte = getCompte(row);
-        entries.push(makeEntryFromRow(row, { label: "PAR", debit: compte.startsWith("4687") ? "468700" : "418700", credit: "706000", justification: <code class="user-message-inline-code">Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l'exercice.${userContext}</code>, confidence: 0.9 }));
+        entries.push(makeEntryFromRow(row, { label: "PAR", debit: compte.startsWith("4687") ? "468700" : "418700", credit: "706000", justification: `Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l'exercice.${userContext}`, confidence: 0.9 }));
       });
     } else {
-      entries.push({ journal: "OD", label: "PAR", debit: "418700", credit: "706000", amount: getBalanceAmount(["4187", "4687"]) || "À contrôler", justification: <code class="user-message-inline-code">Produit à recevoir détecté dans la balance. Vérifier le justificatif.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "PAR", debit: "418700", credit: "706000", amount: getBalanceAmount(["4187", "4687"]) || "À contrôler", justification: `Produit à recevoir détecté dans la balance. Vérifier le justificatif.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
     }
   }
 
   // CAP hors FNP et paie
   if (answerYes(answers, "fournisseurs") || hasAcc(["448", "4686"])) {
-   const capRows = grandLivreRows.filter(row =&gt; {
+   const capRows = grandLivreRows.filter(row => {
   const compte = getCompte(row);
   const text = getRowText(row);
 
@@ -1158,7 +1161,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   return isCapAccount || isCapText;
 }); 
 
-    capRows.forEach(row =&gt; {
+    capRows.forEach(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       if (compte.startsWith("428") || compte.startsWith("438") || text.includes("conges payes") || text.includes("congés payés") || text.includes("cotisations conges") || text.includes("cotisations congés")) return;
@@ -1171,7 +1174,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       if (text.includes("urssaf") || text.includes("social")) debit = "645000";
       if (compte.startsWith("448") || text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
 
-      entries.push(makeEntryFromRow(row, { label: "CAP", debit, credit, justification: <code class="user-message-inline-code">Charge à payer détectée dans le grand livre. Vérifier la facture ou l'avis correspondant.${userContext}</code>, confidence: 0.85 }));
+      entries.push(makeEntryFromRow(row, { label: "CAP", debit, credit, justification: `Charge à payer détectée dans le grand livre. Vérifier la facture ou l'avis correspondant.${userContext}`, confidence: 0.85 }));
     });
   }
 
@@ -1185,10 +1188,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
     ];
 
     let stockFound = false;
-    stockConfigs.forEach(config =&gt; {
-      grandLivreRows.filter(row =&gt; config.prefixes.some(prefix =&gt; getCompte(row).startsWith(prefix))).forEach(row =&gt; {
+    stockConfigs.forEach(config => {
+      grandLivreRows.filter(row => config.prefixes.some(prefix => getCompte(row).startsWith(prefix))).forEach(row => {
         stockFound = true;
-        entries.push({ journal: "OD", label: cleanEntryLabel(config.label, row), debit: config.debit, credit: config.credit, amount: getAmount(row) || "À contrôler", justification: <code class="user-message-inline-code">Variation de stock détectée dans le grand livre.${userContext}</code>, confidence: 0.9, source: "grandLivre", status: "À valider" });
+        entries.push({ journal: "OD", label: cleanEntryLabel(config.label, row), debit: config.debit, credit: config.credit, amount: getAmount(row) || "À contrôler", justification: `Variation de stock détectée dans le grand livre.${userContext}`, confidence: 0.9, source: "grandLivre", status: "À valider" });
       });
     });
 
@@ -1196,23 +1199,23 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // Amortissements
-  if (hasAcc(["281", "681"]) &amp;&amp; answers.immo === "yes") {
-    const amortRows = grandLivreRows.filter(row =&gt; {
+  if (hasAcc(["281", "681"]) && answers.immo === "yes") {
+    const amortRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("6811") || compte.startsWith("68112") || text.includes("dotation amortissement") || text.includes("dotation aux amortissements");
     });
 
     if (amortRows.length) {
-      amortRows.filter(row =&gt; getCompte(row).startsWith("681")).forEach(row =&gt; {
+      amortRows.filter(row => getCompte(row).startsWith("681")).forEach(row => {
         const credit = activity.includes("location meuble") ? "281300" : "281830";
-        entries.push(makeEntryFromRow(row, { label: "Dotation amortissement", debit: "681120", credit, justification: <code class="user-message-inline-code">Dotation amortissement détectée dans le grand livre. Vérifier le tableau d'amortissement.${userContext}</code>, confidence: 0.9 }));
+        entries.push(makeEntryFromRow(row, { label: "Dotation amortissement", debit: "681120", credit, justification: `Dotation amortissement détectée dans le grand livre. Vérifier le tableau d'amortissement.${userContext}`, confidence: 0.9 }));
       });
     } else {
       const amortRow = findBalanceRow(balanceRows, ["681"]) || findBalanceRow(balanceRows, ["281"]);
       const amount = amortRow ? getAmount(amortRow) : 0;
       const credit = activity.includes("location meuble") ? "281300" : "281830";
-      entries.push({ journal: "OD", label: "Dotation amortissement", debit: "681120", credit, amount: amount || "À contrôler", justification: <code class="user-message-inline-code">Amortissement détecté dans la balance. Vérifier le tableau d'amortissement.${userContext}</code>, confidence: amount ? 0.9 : 0.65, source: "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: "Dotation amortissement", debit: "681120", credit, amount: amount || "À contrôler", justification: `Amortissement détecté dans la balance. Vérifier le tableau d'amortissement.${userContext}`, confidence: amount ? 0.9 : 0.65, source: "balance", status: "À valider" });
     }
   }
 
@@ -1222,14 +1225,14 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
 
   // Comptes courants 455
   if (hasAcc(["455"])) {
-    const associateRows = uniqueRows(allRows.filter(row =&gt; getCompte(row).startsWith("455")));
-    const totalAssociate = associateRows.reduce((s, r) =&gt; s + getAmount(r), 0);
+    const associateRows = uniqueRows(allRows.filter(row => getCompte(row).startsWith("455")));
+    const totalAssociate = associateRows.reduce((s, r) => s + getAmount(r), 0);
     entries.push(makeAnalysisEntry({
       label: "Comptes courants d'associés",
       amount: totalAssociate || "À contrôler",
       justification:
-<code class="user-message-inline-code">Comptes courants d'associés détectés.
-</code>
+`Comptes courants d'associés détectés.
+
 Nombre de ligne(s) : ${associateRows.length}
 Montant cumulé : ${formatEuro(totalAssociate)}
 
@@ -1237,28 +1240,28 @@ Contrôles à effectuer :
 - vérifier que le solde est justifié ;
 - contrôler les apports et remboursements ;
 - vérifier les intérêts éventuellement comptabilisés ;
-- documenter tout solde débiteur.${userContext}<code class="user-message-inline-code">,
-</code>      confidence: 0.75,
+- documenter tout solde débiteur.${userContext}`,
+      confidence: 0.75,
       source: "balance/grandLivre",
-      details: associateRows.map(row =&gt; ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      details: associateRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
     controls.push({ type: "associate_current_account_detected", label: "Compte courant d'associé détecté", level: "info" });
   }
 
   // Comptes d'attente 471/472
   if (hasAcc(["471", "472"])) {
-    const waitingRows = uniqueRows(allRows.filter(row =&gt; {
+    const waitingRows = uniqueRows(allRows.filter(row => {
       const compte = getCompte(row);
       return compte.startsWith("471") || compte.startsWith("472");
     }));
-    const totalWaiting = waitingRows.reduce((total, row) =&gt; total + (getAmount(row) || 0), 0);
+    const totalWaiting = waitingRows.reduce((total, row) => total + (getAmount(row) || 0), 0);
 
     entries.push(makeAnalysisEntry({
       label: "Comptes d'attente",
       amount: totalWaiting || "À contrôler",
       justification:
-<code class="user-message-inline-code">Comptes d'attente détectés.
-</code>
+`Comptes d'attente détectés.
+
 Nombre de mouvements : ${waitingRows.length}
 Montant cumulé : ${formatEuro(totalWaiting)}
 
@@ -1267,25 +1270,25 @@ Contrôles à effectuer :
 - régulariser avant clôture si possible ;
 - vérifier l'absence d'anciens mouvements ;
 - contrôler qu'il ne s'agit pas d'erreurs d'imputation.
-Cliquer sur « Voir » pour afficher le détail des mouvements.<code class="user-message-inline-code">,
-</code>      confidence: 0.85,
+Cliquer sur « Voir » pour afficher le détail des mouvements.`,
+      confidence: 0.85,
       source: "balance/grandLivre",
-      details: waitingRows.map(row =&gt; ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      details: waitingRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
     controls.push({ type: "waiting_account_detected", label: "Compte d'attente détecté", level: "warning" });
   }
 
   // Immobilisations en cours 23
   if (hasAcc(["23"])) {
-    const constructionRows = uniqueRows(allRows.filter(row =&gt; getCompte(row).startsWith("23")));
-    const totalConstruction = constructionRows.reduce((total, row) =&gt; total + (getAmount(row) || 0), 0);
+    const constructionRows = uniqueRows(allRows.filter(row => getCompte(row).startsWith("23")));
+    const totalConstruction = constructionRows.reduce((total, row) => total + (getAmount(row) || 0), 0);
 
     entries.push(makeAnalysisEntry({
       label: "Immobilisations en cours",
       amount: totalConstruction || "À contrôler",
       justification:
-<code class="user-message-inline-code">Immobilisations en cours détectées.
-</code>
+`Immobilisations en cours détectées.
+
 Nombre de ligne(s) : ${constructionRows.length}
 Montant cumulé : ${formatEuro(totalConstruction)}
 
@@ -1293,10 +1296,10 @@ Contrôles à effectuer :
 - vérifier si les immobilisations sont toujours en cours à la clôture ;
 - transférer en compte 21 si le bien est mis en service ;
 - vérifier l'absence d'amortissement avant mise en service ;
-- rapprocher les montants des factures et situations de travaux.<code class="user-message-inline-code">,
-</code>      confidence: 0.85,
+- rapprocher les montants des factures et situations de travaux.`,
+      confidence: 0.85,
       source: "balance/grandLivre",
-      details: constructionRows.map(row =&gt; ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      details: constructionRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
     controls.push({ type: "construction_in_progress_detected", label: "Immobilisation en cours détectée", level: "info" });
   }
@@ -1306,49 +1309,49 @@ Contrôles à effectuer :
     const cessionRows = findLedgerRowsByPrefixes(grandLivreRows, ["775"]);
     const vncRows = findLedgerRowsByPrefixes(grandLivreRows, ["675"]);
 
-    cessionRows.forEach(cessionRow =&gt; {
+    cessionRows.forEach(cessionRow => {
       const assetName = getAssetNameFromText(cessionRow);
       const cessionAmount = getAmount(cessionRow);
-      const relatedVncRow = vncRows.find(row =&gt; getRowText(row).includes(normalizeText(assetName))) || vncRows[0];
+      const relatedVncRow = vncRows.find(row => getRowText(row).includes(normalizeText(assetName))) || vncRows[0];
       const vncAmount = relatedVncRow ? getAmount(relatedVncRow) : 0;
       const assetRow = findAssetRow(amortissementRows, assetName);
 
-      const bruteRow = balanceRows.find(row =&gt; accountStarts(row, ["21"]) &amp;&amp; getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["21"]);
-      const amortRow = balanceRows.find(row =&gt; accountStarts(row, ["28"]) &amp;&amp; getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["28"]);
+      const bruteRow = balanceRows.find(row => accountStarts(row, ["21"]) && getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["21"]);
+      const amortRow = balanceRows.find(row => accountStarts(row, ["28"]) && getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["28"]);
 
       const bruteAmount = getAssetValue(assetRow, ["brut", "valeur brute", "acquisition"]) || (bruteRow ? getAmount(bruteRow) : 0);
       const amortAmount = getAssetValue(assetRow, ["amortissement", "amortissements cumulés", "cumule"]) || (amortRow ? getAmount(amortRow) : 0);
-      const calculatedVnc = getAssetValue(assetRow, ["vnc", "valeur nette"]) || (bruteAmount &amp;&amp; amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
+      const calculatedVnc = getAssetValue(assetRow, ["vnc", "valeur nette"]) || (bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
       const retainedVnc = vncAmount || calculatedVnc || "À contrôler";
 
       let resultLabel = "Plus/Moins-value à contrôler";
       let disposalResultAmount = "À contrôler";
       let diff = null;
-      if (cessionAmount &amp;&amp; typeof retainedVnc === "number") {
+      if (cessionAmount && typeof retainedVnc === "number") {
         diff = cessionAmount - retainedVnc;
         disposalResultAmount = Math.abs(diff);
-        resultLabel = diff &gt;= 0 ? "PLUS-VALUE" : "MOINS-VALUE";
+        resultLabel = diff >= 0 ? "PLUS-VALUE" : "MOINS-VALUE";
       }
 
       entries.push(makeAnalysisEntry({
-        label: <code class="user-message-inline-code">Analyse cession - ${assetName}</code>,
+        label: `Analyse cession - ${assetName}`,
         amount: disposalResultAmount,
         justification:
-<code class="user-message-inline-code">Immobilisation : ${assetName}
-</code>
+`Immobilisation : ${assetName}
+
 Valeur brute : ${formatEuro(bruteAmount)}
 Amortissements cumulés : ${formatEuro(amortAmount)}
 VNC : ${formatEuro(retainedVnc)}
 Prix de cession : ${formatEuro(cessionAmount)}
 
 Calcul : Prix de cession - VNC = ${formatEuro(diff)}
-${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}<code class="user-message-inline-code">,
-</code>        confidence: diff !== null ? 0.95 : 0.55,
+${resultLabel} ESTIMÉE : ${formatEuro(disposalResultAmount)}`,
+        confidence: diff !== null ? 0.95 : 0.55,
         source: "analyse",
       }));
 
-      entries.push({ journal: "OD", label: <code class="user-message-inline-code">Sortie immobilisation - Reprise amortissements - ${assetName}</code>, debit: amortRow ? getCompte(amortRow) : "28xxxx", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: amortAmount || "À contrôler", justification: <code class="user-message-inline-code">Amortissements cumulés repris du tableau des immobilisations. La sortie d'actif nécessite l'annulation des amortissements constatés.${userContext}</code>, confidence: amortAmount ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance", status: "À valider" });
-      entries.push({ journal: "OD", label: <code class="user-message-inline-code">Sortie immobilisation - VNC - ${assetName}</code>, debit: "675000", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: retainedVnc, justification: <code class="user-message-inline-code">Valeur brute : ${formatEuro(bruteAmount)} / Amortissements cumulés : ${formatEuro(amortAmount)} / VNC retenue : ${formatEuro(retainedVnc)}. À rapprocher du tableau des immobilisations.${userContext}</code>, confidence: retainedVnc !== "À contrôler" ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance/grandLivre", status: "À valider" });
+      entries.push({ journal: "OD", label: `Sortie immobilisation - Reprise amortissements - ${assetName}`, debit: amortRow ? getCompte(amortRow) : "28xxxx", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: amortAmount || "À contrôler", justification: `Amortissements cumulés repris du tableau des immobilisations. La sortie d'actif nécessite l'annulation des amortissements constatés.${userContext}`, confidence: amortAmount ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance", status: "À valider" });
+      entries.push({ journal: "OD", label: `Sortie immobilisation - VNC - ${assetName}`, debit: "675000", credit: bruteRow ? getCompte(bruteRow) : "21xxxx", amount: retainedVnc, justification: `Valeur brute : ${formatEuro(bruteAmount)} / Amortissements cumulés : ${formatEuro(amortAmount)} / VNC retenue : ${formatEuro(retainedVnc)}. À rapprocher du tableau des immobilisations.${userContext}`, confidence: retainedVnc !== "À contrôler" ? 0.8 : 0.55, source: assetRow ? "tableau amortissements" : "balance/grandLivre", status: "À valider" });
 
       controls.push({ type: "fixed_asset_disposal_detected", label: "Sortie d'immobilisation détectée", level: "warning" });
     });
@@ -1361,7 +1364,7 @@ if (answers.paie === "yes" || hasAcc(["421", "428", "431", "437", "438", "641", 
 
   // Provisions
 if (answers.provisions === "yes") {
-  const provisionRows = uniqueRows(allRows.filter(row =&gt; {
+  const provisionRows = uniqueRows(allRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
     return (
@@ -1376,11 +1379,11 @@ if (answers.provisions === "yes") {
     );
   }));
 
-  const dotationRows = provisionRows.filter(row =&gt; getCompte(row).startsWith("6815"));
-  const provisionBalanceRows = provisionRows.filter(row =&gt; getCompte(row).startsWith("151"));
+  const dotationRows = provisionRows.filter(row => getCompte(row).startsWith("6815"));
+  const provisionBalanceRows = provisionRows.filter(row => getCompte(row).startsWith("151"));
 
   if (dotationRows.length) {
-    dotationRows.forEach(row =&gt; {
+    dotationRows.forEach(row => {
       const text = getRowText(row);
       let credit = "151000";
       if (text.includes("prudhom") || text.includes("prud'hom")) credit = "151100";
@@ -1400,41 +1403,42 @@ if (answers.provisions === "yes") {
   } else if (provisionBalanceRows.length) {
     entries.push(makeAnalysisEntry({
       label: "Analyse provisions",
-      amount: provisionBalanceRows.reduce((s, r) =&gt; s + getAmount(r), 0) || "À contrôler",
+      amount: provisionBalanceRows.reduce((s, r) => s + getAmount(r), 0) || "À contrôler",
       justification:
-<code class="user-message-inline-code">Provision inscrite au bilan sans dotation 6815 détectée dans le grand livre.
-</code>
+`Provision inscrite au bilan sans dotation 6815 détectée dans le grand livre.
+
 Conclusion : aucune OD automatique 6815 / 151 n'est proposée.
-Action : vérifier si la provision est antérieure, reprise, maintenue ou à compléter avec un justificatif de risque.<code class="user-message-inline-code">,
-</code>      confidence: 0.75,
+Action : vérifier si la provision est antérieure, reprise, maintenue ou à compléter avec un justificatif de risque.`,
+      confidence: 0.75,
       source: "balance/grandLivre",
-      details: provisionBalanceRows.map(row =&gt; ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      details: provisionBalanceRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
   } else {
     entries.push(makeAnalysisEntry({
       label: "Analyse provisions",
       amount: "À contrôler",
       justification:
-<code class="user-message-inline-code">L'utilisateur a indiqué un point de provision, mais aucun compte 151, 6815 ou 7815 exploitable n'a été détecté.
-</code>
+`L'utilisateur a indiqué un point de provision, mais aucun compte 151, 6815 ou 7815 exploitable n'a été détecté.
+
 Aucune écriture automatique n'est proposée.
-À vérifier uniquement si un litige, risque ou engagement existe réellement à la clôture.<code class="user-message-inline-code">,
-</code>      confidence: 0.55,
+À vérifier uniquement si un litige, risque ou engagement existe réellement à la clôture.`,
+      confidence: 0.55,
       source: "questionnaire",
     }));
-  }  
+  }
+
   controls.push({ type: "provision_detected", label: "Provision ou risque contrôlé", level: provisionRows.length ? "info" : "warning" });
 }
 
   // Dépréciations
   if (answers.provisions === "yes") {
-    const depreciationRows = grandLivreRows.filter(row =&gt; {
+    const depreciationRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("6816") || compte.startsWith("6817") || text.includes("depreciation") || text.includes("dépréciation") || text.includes("client douteux") || text.includes("stock obsolete") || text.includes("stock obsolète");
     });
 
-    depreciationRows.forEach(row =&gt; {
+    depreciationRows.forEach(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       let label = "Dépréciation à contrôler";
@@ -1443,18 +1447,18 @@ Aucune écriture automatique n'est proposée.
       if (compte.startsWith("68174") || text.includes("client douteux")) { label = "Dépréciation client douteux"; debit = "681740"; credit = "491000"; }
       if (compte.startsWith("68173") || text.includes("stock obsolete") || text.includes("stock obsolète")) { label = "Dépréciation stock"; debit = "681730"; credit = "397000"; }
       if (compte.startsWith("68162") || text.includes("immobilisation")) { label = "Dépréciation immobilisation"; debit = "681620"; credit = "290000"; }
-      entries.push(makeEntryFromRow(row, { label, debit, credit, justification: <code class="user-message-inline-code">Dépréciation détectée dans le grand livre.${userContext}</code>, confidence: 0.8 }));
+      entries.push(makeEntryFromRow(row, { label, debit, credit, justification: `Dépréciation détectée dans le grand livre.${userContext}`, confidence: 0.8 }));
     });
   }
 
   // TVA
   if (hasAcc(["44551"])) {
     controls.push({ type: "vat_due_detected", label: "TVA à décaisser détectée", level: "info" });
-    entries.push({ journal: "OD", label: "TVA à décaisser à contrôler", debit: "445710", credit: "445510", amount: getBalanceAmount(["44551"]) || "À contrôler", justification: <code class="user-message-inline-code">Compte 445510 détecté : TVA à décaisser.${userContext}</code>, confidence: 0.85, source: "balance", status: "À valider" });
+    entries.push({ journal: "OD", label: "TVA à décaisser à contrôler", debit: "445710", credit: "445510", amount: getBalanceAmount(["44551"]) || "À contrôler", justification: `Compte 445510 détecté : TVA à décaisser.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
   }
 
   // Emprunts / ICNE
-  if (hasAcc(["164", "661", "1688"]) &amp;&amp; answers.immo === "yes") {
+  if (hasAcc(["164", "661", "1688"]) && answers.immo === "yes") {
     const loanRow = findFirstRowByPrefixes(balanceRows, ["164"]) || findFirstRowByPrefixes(grandLivreRows, ["164"]);
     const interestRow = findFirstRowByPrefixes(balanceRows, ["661"]) || findFirstRowByPrefixes(grandLivreRows, ["661"]);
     const icneRow = findFirstRowByPrefixes(balanceRows, ["1688"]) || findFirstRowByPrefixes(grandLivreRows, ["1688"]);
@@ -1466,16 +1470,16 @@ Aucune écriture automatique n'est proposée.
     const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
     const loanEntryAmount = finalIcneAmount || "À calculer";
 
-    entries.push({ journal: "OD", label: "Intérêts courus d'emprunt", debit: "661100", credit: "168800", amount: loanEntryAmount, justification: icneAmount ? <code class="user-message-inline-code">Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance.${userContext}</code> : calculatedIcne ? <code class="user-message-inline-code">ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.${userContext}</code> : <code class="user-message-inline-code">Compte 1688 absent : ICNE à calculer avec le tableau d'emprunt.${userContext}</code>, confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55, source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse", status: "À valider" });
+    entries.push({ journal: "OD", label: "Intérêts courus d'emprunt", debit: "661100", credit: "168800", amount: loanEntryAmount, justification: icneAmount ? `Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance.${userContext}` : calculatedIcne ? `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.${userContext}` : `Compte 1688 absent : ICNE à calculer avec le tableau d'emprunt.${userContext}`, confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55, source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse", status: "À valider" });
 
     entries.push(makeAnalysisEntry({
       label: "Analyse emprunt",
       amount: loanEntryAmount,
       justification: icneAmount
-        ? <code class="user-message-inline-code">Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.</code>
+        ? `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.`
         : calculatedIcne
-          ? <code class="user-message-inline-code">Emprunt détecté.\n\nBanque : ${calculatedIcne.bank || "?"}\nRéférence : ${calculatedIcne.reference || "?"}\n\nPériode : ${calculatedIcne.start.toLocaleDateString("fr-FR")} → ${calculatedIcne.due.toLocaleDateString("fr-FR")}\nJours courus : ${calculatedIcne.elapsedDays}\nJours période : ${calculatedIcne.periodDays}\nIntérêts de l'échéance : ${formatEuro(calculatedIcne.interest)}\nICNE calculé : ${formatEuro(calculatedIcne.icne)}\n\nÉcriture proposée : débit 661100 / crédit 168800.${userContext}</code>
-          : <code class="user-message-inline-code">Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\n\nImpossible de calculer les ICNE automatiquement. Le tableau d'emprunt est absent ou inexploitable.</code>,
+          ? `Emprunt détecté.\n\nBanque : ${calculatedIcne.bank || "?"}\nRéférence : ${calculatedIcne.reference || "?"}\n\nPériode : ${calculatedIcne.start.toLocaleDateString("fr-FR")} → ${calculatedIcne.due.toLocaleDateString("fr-FR")}\nJours courus : ${calculatedIcne.elapsedDays}\nJours période : ${calculatedIcne.periodDays}\nIntérêts de l'échéance : ${formatEuro(calculatedIcne.interest)}\nICNE calculé : ${formatEuro(calculatedIcne.icne)}\n\nÉcriture proposée : débit 661100 / crédit 168800.${userContext}`
+          : `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\n\nImpossible de calculer les ICNE automatiquement. Le tableau d'emprunt est absent ou inexploitable.`,
       confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
       source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
     }));
@@ -1487,7 +1491,7 @@ Aucune écriture automatique n'est proposée.
   return { entries: dedupeEntries(entries), controls, anomalies };
 }
 
-exports.parseClosureFiles = onRequest(async (req, res) =&gt; {
+exports.parseClosureFiles = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1592,7 +1596,7 @@ anomalies = [
   }
 });
 
-exports.parseScoreCorrectionFiles = onRequest(async (req, res) =&gt; {
+exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1625,8 +1629,21 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) =&gt; {
 
     const balanceRows = await parseFile(closure.files?.balance?.storagePath);
     const grandLivreRows = await parseFile(closure.files?.grandLivre?.storagePath);
-    const amortissementRows = Array.isArray(closure.amortissements) ? closure.amortissements : [];
-    const empruntRows = Array.isArray(closure.emprunt) ? closure.emprunt : [];
+
+    const amortissementRowsFromFile = await parseFile(closure.files?.amortissements?.storagePath);
+    const empruntRowsFromFile = await parseFile(closure.files?.emprunt?.storagePath);
+
+    const amortissementRows = amortissementRowsFromFile.length
+      ? amortissementRowsFromFile
+      : Array.isArray(closure.amortissements)
+        ? closure.amortissements
+        : [];
+
+    const empruntRows = empruntRowsFromFile.length
+      ? empruntRowsFromFile
+      : Array.isArray(closure.emprunt)
+        ? closure.emprunt
+        : [];
 
     let controls = [];
     let anomalies = [];
@@ -1641,33 +1658,37 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) =&gt; {
     if (empruntRows.length) controls.push({ type: "emprunt_loaded", label: "Tableau d'emprunt chargé", count: empruntRows.length });
 
     const detected = detectAccountingEntries(
-  balanceRows,
-  grandLivreRows,
-  amortissementRows,
-  empruntRows,
-  closure
-) || {};
+      balanceRows,
+      grandLivreRows,
+      amortissementRows,
+      empruntRows,
+      closure
+    ) || {};
 
-controls = [
-  ...controls,
-  ...(detected.controls || [])
-];
+    controls = [
+      ...controls,
+      ...(detected.controls || [])
+    ];
 
-anomalies = [
-  ...anomalies,
-  ...(detected.anomalies || [])
-];
+    anomalies = [
+      ...anomalies,
+      ...(detected.anomalies || [])
+    ];
+
+    const correctionId = correctionKey || "general";
 
     await closureRef.set(cleanFirestoreObject({
       balance: balanceRows,
       grandLivre: grandLivreRows,
+      amortissements: amortissementRows,
+      emprunt: empruntRows,
       controls,
       anomalies,
       scoreCorrections: {
         ...(closure.scoreCorrections || {}),
-        [correctionKey || "general"]: {
+        [correctionId]: {
           status: "corrected",
-          label: correctionKey || "general",
+          label: correctionId,
           correctedAt: new Date().toISOString()
         }
       },
@@ -1678,10 +1699,14 @@ anomalies = [
 
     return res.json({
       ok: true,
+      correctionKey: correctionId,
       balanceRows: balanceRows.length,
       grandLivreRows: grandLivreRows.length,
+      amortissementRows: amortissementRows.length,
+      empruntRows: empruntRows.length,
       controls: controls.length,
-      anomalies: anomalies.length
+      anomalies: anomalies.length,
+      entriesDetectedButNotApplied: (detected.entries || []).length
     });
 
   } catch (error) {
@@ -1695,9 +1720,9 @@ function extractOpenAiText(data) {
 
   const parts = [];
 
-  (data.output || []).forEach(item =&gt; {
-    (item.content || []).forEach(content =&gt; {
-      if (content.type === "output_text" &amp;&amp; content.text) {
+  (data.output || []).forEach(item => {
+    (item.content || []).forEach(content => {
+      if (content.type === "output_text" && content.text) {
         parts.push(content.text);
       } else if (typeof content.text === "string") {
         parts.push(content.text);
@@ -1717,7 +1742,7 @@ function parseOpenAiJson(data) {
     const start = text.indexOf("{");
     const end = text.lastIndexOf("}");
 
-    if (start !== -1 &amp;&amp; end !== -1 &amp;&amp; end &gt; start) {
+    if (start !== -1 && end !== -1 && end > start) {
       return JSON.parse(text.slice(start, end + 1));
     }
 
@@ -1758,7 +1783,7 @@ function fallbackAffectation(resultType, resultAmount) {
 
 exports.aiAffectationResultat = onRequest(
   { secrets: ["OPENAI_API_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     setCors(res);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1778,8 +1803,8 @@ exports.aiAffectationResultat = onRequest(
       const fallback = fallbackAffectation(resultType, amount);
       if (!amount) return res.json({ ok: true, ...fallback });
 
-      const prompt = <code class="user-message-inline-code">
-</code>Tu es un assistant de clôture comptable français.
+      const prompt = `
+Tu es un assistant de clôture comptable français.
 
 Objectif :
 Proposer une affectation du résultat claire, prudente et exploitable.
@@ -1812,11 +1837,12 @@ Format JSON attendu :
   "warnings":["point 1","point 2"],
   "pvJustification":"phrase professionnelle pour le PV"
 }
-<code class="user-message-inline-code">; 
-</code>      const response = await fetch("https://api.openai.com/v1/responses", {
+`;
+
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
-          "Authorization": <code class="user-message-inline-code">Bearer ${process.env.OPENAI_API_KEY}</code>,
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -1867,7 +1893,7 @@ Format JSON attendu :
 function compactForAI(value, max = 25) {
   if (!Array.isArray(value)) return [];
 
-  return value.slice(0, max).map(item =&gt; ({
+  return value.slice(0, max).map(item => ({
     type: item.type || item.key || "",
     title: item.title || item.label || item.libelle || "",
     score: item.score ?? null,
@@ -1884,14 +1910,14 @@ function compactForAI(value, max = 25) {
 
 function fallbackScoreQuality(scoreItems = [], score = 0) {
   const losses = scoreItems
-    .filter(i =&gt; Number(i.loss || 0) &gt; 0)
-    .sort((a, b) =&gt; Number(b.loss || 0) - Number(a.loss || 0));
+    .filter(i => Number(i.loss || 0) > 0)
+    .sort((a, b) => Number(b.loss || 0) - Number(a.loss || 0));
 
   return {
-    summary: score &gt;= 96
+    summary: score >= 96
       ? "Le dossier est presque finalisé. Les derniers points concernent des contrôles de justification."
       : "Le dossier doit être renforcé avant validation définitive.",
-    priorityActions: losses.slice(0, 6).map(i =&gt; ({
+    priorityActions: losses.slice(0, 6).map(i => ({
       title: i.title || i.key || "Contrôle à améliorer",
       action: i.detail || "Contrôle à reprendre et documenter.",
       impact: Number(i.loss || 0),
@@ -1902,7 +1928,7 @@ function fallbackScoreQuality(scoreItems = [], score = 0) {
       "Les recommandations IA doivent être validées avant comptabilisation définitive.",
       "Les justificatifs comptables restent indispensables."
     ],
-    finalAdvice: score &gt;= 96
+    finalAdvice: score >= 96
       ? "Faire une revue finale des justificatifs, puis figer le dossier."
       : "Corriger les pertes de points les plus fortes, réimporter les fichiers corrigés si nécessaire, puis relancer le score."
   };
@@ -1910,7 +1936,7 @@ function fallbackScoreQuality(scoreItems = [], score = 0) {
 
 exports.aiScoreQualite = onRequest(
   { secrets: ["OPENAI_API_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     setCors(res);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
@@ -1935,22 +1961,33 @@ exports.aiScoreQualite = onRequest(
       const closure = snap.data() || {};
       const fallback = fallbackScoreQuality(scoreItems || [], score || 0);
 
-      const importantPrefixes = ["471", "472", "455", "23", "408", "418", "486", "487", "445", "1688"];
-      const relevantBalance = (closure.balance || []).filter(r =&gt;
-        importantPrefixes.some(p =&gt;
+      const importantPrefixes = [
+        "408", "418", "4181", "4187", "4686", "4687", "486", "487", "448",
+        "471", "472", "455", "23",
+        "20", "21", "218", "28", "281", "6811", "675", "775",
+        "164", "661", "1688",
+        "131", "139", "777",
+        "612", "404",
+        "445", "44551", "44566", "44571",
+        "476", "477", "666", "766",
+        "151", "1515", "6815", "6816", "6817", "7815", "491", "397",
+        "421", "428", "431", "437", "438", "641", "645"
+      ];
+      const relevantBalance = (closure.balance || []).filter(r =>
+        importantPrefixes.some(p =>
           String(r.Compte || r.compte || r.CompteNum || r.compteNum || "").replace(/\s/g, "").startsWith(p)
         )
       );
 
-      const relevantGrandLivre = (closure.grandLivre || []).filter(r =&gt;
-        importantPrefixes.some(p =&gt;
+      const relevantGrandLivre = (closure.grandLivre || []).filter(r =>
+        importantPrefixes.some(p =>
           String(r.Compte || r.compte || r.CompteNum || r.compteNum || "").replace(/\s/g, "").startsWith(p)
         )
       ).slice(0, 120);
 
       const aiPayload = {
         companyName: closure.companyName || "",
-        exercice: <code class="user-message-inline-code">${closure.startDate || "?"} au ${closure.endDate || "?"}</code>,
+        exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
         activity: closure.activity || closure.activite || "",
         vatRegime: closure.vatRegime || closure.regimeTva || "",
         score: Number(score || 0),
@@ -1965,8 +2002,8 @@ exports.aiScoreQualite = onRequest(
         dossierRevision: closure.dossierRevision || closure.revisionDossier || null
       };
 
-      const prompt = <code class="user-message-inline-code">
-</code>Tu es un expert-comptable français spécialisé en clôture comptable.
+      const prompt = `
+Tu es un expert-comptable français spécialisé en clôture comptable.
 
 Mission :
 Aider l'utilisateur à récupérer les derniers points manquants du score qualité.
@@ -2002,12 +2039,12 @@ Format JSON strict :
   "warnings":["alerte métier"],
   "finalAdvice":"conseil final opérationnel"
 }
-<code class="user-message-inline-code">;
-</code>
+`;
+
       const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
-          "Authorization": <code class="user-message-inline-code">Bearer ${process.env.OPENAI_API_KEY}</code>,
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -2049,7 +2086,7 @@ Format JSON strict :
   }
 );
 
-exports.submitFeedback = onRequest(async (req, res) =&gt; {
+exports.submitFeedback = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(204).send("");
@@ -2113,7 +2150,7 @@ exports.submitFeedback = onRequest(async (req, res) =&gt; {
 
 exports.syncStripeSubscription = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     setCors(res);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
@@ -2175,7 +2212,7 @@ exports.syncStripeSubscription = onRequest(
 
 exports.createCustomerPortalSession = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
-  async (req, res) =&gt; {
+  async (req, res) => {
     setCors(res);
 
     if (req.method === "OPTIONS") return res.status(204).send("");
@@ -2207,7 +2244,7 @@ exports.createCustomerPortalSession = onRequest(
 
       const session = await stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: returnUrl || <code class="user-message-inline-code">${ALLOWED_ORIGIN}/tableau-de-bord.html</code>,
+        return_url: returnUrl || `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
       });
 
       return res.json({ ok: true, url: session.url });
@@ -2219,3 +2256,4 @@ exports.createCustomerPortalSession = onRequest(
       });
     }
   }
+);
