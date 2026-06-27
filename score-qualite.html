@@ -128,6 +128,9 @@ let currentUser=null,currentOwnerUid="",currentClosure=null,scoreItems=[],score=
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
 
+const PARSE_SCORE_CORRECTION_URL =
+  "https://europe-west9-axe-compta.cloudfunctions.net/parseScoreCorrectionFiles";
+
 function euro(v){return nf.format(Number(v||0))+" €"}
 function sanitize(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}
 function arr(v){return Array.isArray(v)?v:[]}
@@ -309,6 +312,24 @@ async function applyScoreCorrection(){
       updatedAt: serverTimestamp()
     });
 
+const response = await fetch(PARSE_SCORE_CORRECTION_URL, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        uid: currentUser.uid,
+        closureId,
+        correctionKey
+    })
+});
+
+const result = await response.json();
+
+if (!response.ok || !result.ok) {
+    throw new Error(result.error || "Erreur recalcul score.");
+}
+    
     currentClosure.files = {
       ...(currentClosure.files || {}),
       ...filesUpdate
