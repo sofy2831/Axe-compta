@@ -126,7 +126,8 @@ const ownerParam=params.get("owner")||"";
 let currentUser=null,currentOwnerUid="",currentClosure=null,scoreItems=[],score=0,correctionKey="general";
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
-
+const storage = getStorage();
+  
 const PARSE_SCORE_CORRECTION_URL =
   "https://europe-west9-axe-compta.cloudfunctions.net/parseScoreCorrectionFiles";
 
