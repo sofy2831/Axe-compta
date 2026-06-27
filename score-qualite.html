@@ -308,11 +308,7 @@ $("aiBtn").addEventListener("click", async ()=>{
             <span class="warnText">Impact : +${sanitize(a.impact ?? 0)} point(s)</span><br><br>
             <b>Action :</b><br>
             ${sanitize(a.action || "")}<br><br>
-            ${Array.isArray(a.filesNeeded) && a.filesNeeded.length ? `
-              <b>Fichiers / justificatifs :</b><br>
-              ${a.filesNeeded.map(f=>`- ${sanitize(f)}`).join("<br>")}<br><br>
-            ` : ""}
-            ${a.expectedResult ? `
+              ${a.expectedResult ? `
               <b>Résultat attendu :</b><br>
               ${sanitize(a.expectedResult)}
             ` : ""}
