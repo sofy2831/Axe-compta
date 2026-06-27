@@ -423,7 +423,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     document.querySelectorAll("[data-correct-now]").forEach(btn=>{
   btn.addEventListener("click",()=>{
     const module = btn.dataset.correctNow || "";
-  window.location.href = correctionUrlForKey(module);
+  openScoreCorrectionModal(module);
   });
 });
 
