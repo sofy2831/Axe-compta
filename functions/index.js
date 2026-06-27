@@ -1566,7 +1566,7 @@ anomalies = [
         emprunt: empruntRows,
         controls,
         anomalies,
-        entries: detected.entries,
+        entries: detected.entries || [],
         aiAnalysis: {
           status: "parsed",
           model: null,
@@ -1586,7 +1586,7 @@ anomalies = [
       grandLivreRows: grandLivreRows.length,
       amortissementRows: amortissementRows.length,
       empruntRows: empruntRows.length,
-      entries: detected.entries.length,
+      entries: (detected.entries || []).length,
       controls: controls.length,
       anomalies: anomalies.length,
     });
@@ -1940,7 +1940,37 @@ exports.aiScoreQualite = onRequest(
       const closure = snap.data() || {};
       const fallback = fallbackScoreQuality(scoreItems || [], score || 0);
 
-      const importantPrefixes = ["471", "472", "455", "23", "408", "418", "486", "487", "445", "1688"];
+      const importantPrefixes = [
+  // FNP / CAP / FAE / PAR / CCA / PCA
+  "408", "418", "4181", "4187", "4686", "4687", "486", "487", "448",
+
+  // Comptes d'attente / associés / immos en cours
+  "471", "472", "455", "23",
+
+  // Immobilisations / amortissements / sorties
+  "20", "21", "218", "28", "281", "6811", "675", "775",
+
+  // Emprunts / ICNE
+  "164", "661", "1688",
+
+  // Subventions
+  "131", "139", "777",
+
+  // Crédit-bail / leasing
+  "612", "404",
+
+  // TVA
+  "445", "44551", "44566", "44571",
+
+  // Écarts de change
+  "476", "477", "666", "766",
+
+  // Provisions / dépréciations
+  "151", "1515", "6815", "6816", "6817", "7815", "491", "397",
+
+  // Paie
+  "421", "428", "431", "437", "438", "641", "645"
+];
       const relevantBalance = (closure.balance || []).filter(r =>
         importantPrefixes.some(p =>
           String(r.Compte || r.compte || r.CompteNum || r.compteNum || "").replace(/\s/g, "").startsWith(p)
