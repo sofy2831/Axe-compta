@@ -218,31 +218,6 @@ function aiActionKey(a){
   return firstLoss?.key || "od";
 }
 
-function correctionUrlForKey(key){
-  const q = `id=${closureId}${ownerQueryParam()}&fix=${encodeURIComponent(key)}`;
-
-  const routes = {
-    files: `cloture-resultat.html?${q}`,
-    od: `cloture-resultat.html?${q}`,
-    fnp: `cloture-resultat.html?${q}`,
-    cca_pca: `cloture-resultat.html?${q}`,
-    fae_par: `cloture-resultat.html?${q}`,
-    stocks: `cloture-resultat.html?${q}`,
-    immo: `cloture-resultat.html?${q}`,
-    waiting: `cloture-resultat.html?${q}`,
-    construction: `cloture-resultat.html?${q}`,
-    associate: `cloture-resultat.html?${q}`,
-    loans: `cloture-resultat.html?${q}`,
-    subventions: `cloture-resultat.html?${q}`,
-    vat: `cloture-resultat.html?${q}`,
-    revision: `dossier-revision.html?${q}`,
-    affectation: `affectation-resultat.html?${q}`,
-    extournes: `extournes-automatiques.html?${q}`
-  };
-
-  return routes[key] || `cloture-resultat.html?${q}`;
-}
-
 function openScoreCorrectionModal(key){
   correctionKey = key || "general";
   $("scoreCorrectionText").textContent =
