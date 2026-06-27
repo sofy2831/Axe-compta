@@ -445,7 +445,13 @@ document.querySelectorAll("[data-mark-corrected]").forEach((btn,idx)=>{
         updatedAt: serverTimestamp()
       },{ merge:true });
 
-     currentClosure.scoreCorrections = corrections;
+    currentClosure.scoreCorrections = corrections;
+scoreSaved = false;
+updateFinalButtons();
+
+$("statusLine").innerHTML =
+  '<span class="okText">Correction enregistrée. Score recalculé, à enregistrer de nouveau.</span>';
+
 render();
       
     }catch(e){
