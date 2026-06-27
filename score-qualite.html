@@ -317,36 +317,32 @@ const response = await fetch(PARSE_SCORE_CORRECTION_URL, {
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-        uid: currentUser.uid,
-        closureId,
-        correctionKey
-    })
+   body: JSON.stringify({
+    uid: currentOwnerUid,
+    closureId,
+    correctionKey
+})
 });
 
 const result = await response.json();
 
 if (!response.ok || !result.ok) {
+const freshSnap = await getDoc(closureRef());
+
+if (!freshSnap.exists()) {
+  throw new Error("Clôture introuvable après recalcul.");
+}
+
+currentClosure = freshSnap.data();
+scoreSaved = false;
+updateFinalButtons();
+
+render();
+  
     throw new Error(result.error || "Erreur recalcul score.");
 }
     
-    currentClosure.files = {
-      ...(currentClosure.files || {}),
-      ...filesUpdate
-    };
-
-    currentClosure.scoreCorrections = {
-      ...(currentClosure.scoreCorrections || {}),
-      [correctionKey]: {
-        status: "corrected",
-        label: correctionKey,
-        correctedAt: new Date().toISOString()
-      }
-    };
-
-    computeScore();
-    render();
-
+    
     msg.className = "notice";
     msg.innerHTML = `<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l’affectation ni les extournes.`;
 
