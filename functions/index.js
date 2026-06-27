@@ -1582,6 +1582,90 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   }
 });
 
+exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
+  setCors(res, "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  try {
+    const { uid, closureId, correctionKey } = req.body || {};
+    if (!uid || !closureId) {
+      return res.status(400).json({ error: "uid ou closureId manquant." });
+    }
+
+    const db = admin.firestore();
+    const bucket = admin.storage().bucket();
+    const closureRef = db.collection("users").doc(uid).collection("closures").doc(closureId);
+    const closureSnap = await closureRef.get();
+
+    if (!closureSnap.exists) {
+      return res.status(404).json({ error: "Clôture introuvable." });
+    }
+
+    const closure = closureSnap.data() || {};
+
+    async function parseFile(storagePath) {
+      if (!storagePath) return [];
+      const [buffer] = await bucket.file(storagePath).download();
+      const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      return XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 2000);
+    }
+
+    const balanceRows = await parseFile(closure.files?.balance?.storagePath);
+    const grandLivreRows = await parseFile(closure.files?.grandLivre?.storagePath);
+    const amortissementRows = Array.isArray(closure.amortissements) ? closure.amortissements : [];
+    const empruntRows = Array.isArray(closure.emprunt) ? closure.emprunt : [];
+
+    let controls = [];
+    let anomalies = [];
+
+    if (balanceRows.length) controls.push({ type: "balance_loaded", label: "Balance chargée", count: balanceRows.length });
+    else anomalies.push({ type: "missing_balance", label: "Balance absente ou non exploitable", level: "warning" });
+
+    if (grandLivreRows.length) controls.push({ type: "grand_livre_loaded", label: "Grand livre chargé", count: grandLivreRows.length });
+    else anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
+
+    if (amortissementRows.length) controls.push({ type: "amortissements_loaded", label: "Tableau d'amortissement chargé", count: amortissementRows.length });
+    if (empruntRows.length) controls.push({ type: "emprunt_loaded", label: "Tableau d'emprunt chargé", count: empruntRows.length });
+
+    const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, empruntRows, closure);
+    controls = [...controls, ...detected.controls];
+    anomalies = [...anomalies, ...detected.anomalies];
+
+    await closureRef.set(cleanFirestoreObject({
+      balance: balanceRows,
+      grandLivre: grandLivreRows,
+      controls,
+      anomalies,
+      scoreCorrections: {
+        ...(closure.scoreCorrections || {}),
+        [correctionKey || "general"]: {
+          status: "corrected",
+          label: correctionKey || "general",
+          correctedAt: new Date().toISOString()
+        }
+      },
+      scoreQualite: null,
+      scoreQuality: null,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }), { merge: true });
+
+    return res.json({
+      ok: true,
+      balanceRows: balanceRows.length,
+      grandLivreRows: grandLivreRows.length,
+      controls: controls.length,
+      anomalies: anomalies.length
+    });
+
+  } catch (error) {
+    console.error("parseScoreCorrectionFiles error:", error);
+    return res.status(500).json({ error: "Erreur correction score uniquement." });
+  }
+});
+
 function extractOpenAiText(data) {
   if (data.output_text) return data.output_text;
 
