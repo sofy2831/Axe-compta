@@ -37,6 +37,7 @@ const PARSE_CLOSURE_FILES_URL="https://europe-west9-axe-compta.cloudfunctions.ne
 const params=new URLSearchParams(location.search);
 const id=params.get("id");
 const ownerParam=params.get("owner")||"";
+const fixParam=params.get("fix")||"";
 let currentUser=null,currentOwnerUid="",currentClosure=null,currentEntries=[],currentUserData={},currentMemberships=[];
 const storage=getStorage();
 const $=i=>document.getElementById(i);
@@ -76,6 +77,74 @@ function odFinalized(c){return c?.odStatus==="finalized"||c?.odFinalized===true|
 function setLinkDisabled(el,disabled,title){if(!el)return;el.classList.toggle("disabledLink",disabled);if(disabled)el.setAttribute("title",title||"Étape verrouillée");else el.removeAttribute("title")}
 function renderWorkflow(c){if(!$('workflowSteps'))return;$('workflowSteps').innerHTML="";}
 function applyStepLocks(c){const final=odFinalized(c);setLinkDisabled($("revisionBtn"),!final,"Validez d'abord les OD définitives.");$("finalizeEntriesBtn").textContent=final?"OD définitives validées":"Valider les OD définitives";$("finalizeEntriesBtn").disabled=final;$("finalizeNotice").style.display=final?"block":"none";$("finalizeNotice").innerHTML=final?`<b class="ok">OD définitives validées.</b><br>Le dossier peut passer au dossier de révision.`:"";}
+function focusCorrectionFromScore(){
+  if(!fixParam) return;
+
+  const map = {
+    waiting: "Comptes d'attente 471/472",
+    associate: "Comptes courants associés 455",
+    immo: "Immobilisations / amortissements",
+    subventions: "Subventions / crédit-bail",
+    provisions: "Écarts de change / provisions",
+    vat: "TVA",
+    loans: "Emprunts / ICNE"
+  };
+
+  const label = map[fixParam] || fixParam;
+
+  const box = document.createElement("div");
+  box.className = "box";
+  box.id = "scoreCorrectionBox";
+  box.innerHTML = `
+    <h2>Correction demandée depuis le score qualité</h2>
+    <div class="notice warn">
+      <b>${safe(label)}</b><br>
+      Vérifiez le point, ajoutez ou corrigez les justificatifs, puis enregistrez le projet.
+      Ensuite retournez au score qualité pour recalculer.
+    </div>
+    <div class="actions">
+      <button class="btn warn" type="button" id="markCorrectionDoneBtn">Marquer corrigé</button>
+      <a class="btn primary" href="score-qualite.html?id=${id}${ownerQueryParam()}">Recalculer le score</a>
+    </div>
+  `;
+
+  const firstBox = document.querySelector("main .wrap .box");
+  firstBox?.parentNode?.insertBefore(box, firstBox);
+
+  setTimeout(() => {
+    box.scrollIntoView({ behavior:"smooth", block:"start" });
+  }, 150);
+
+  setTimeout(() => {
+    const btn = $("markCorrectionDoneBtn");
+    if(!btn) return;
+
+    btn.addEventListener("click", async () => {
+      try{
+        const corrections = currentClosure.scoreCorrections || {};
+        corrections[fixParam] = {
+          status: "corrected",
+          label,
+          correctedAt: new Date().toISOString()
+        };
+
+        await updateDoc(closureRef(), {
+          scoreCorrections: corrections,
+          updatedAt: serverTimestamp()
+        });
+
+        currentClosure.scoreCorrections = corrections;
+        btn.textContent = "Corrigé";
+        btn.disabled = true;
+
+        alert("Correction enregistrée. Retournez au score qualité pour recalculer.");
+      }catch(e){
+        console.error(e);
+        alert("Impossible d'enregistrer la correction.");
+      }
+    });
+  }, 200);
+}
 function applySoloLock(c){const locked=isSoloClosureLocked(c);["balanceFile","grandLivreFile","amortissementsFile","empruntFile"].forEach(id=>{const el=$(id);if(el)el.disabled=locked});$("reparseBtn").disabled=locked;if(locked){$("filesIntro").innerHTML=`Clôture ponctuelle <b>99 €</b> terminée : les fichiers sont verrouillés après validation des extournes. Pour refaire une analyse complète, créez une nouvelle clôture ou passez à une formule mensuelle.`;$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Clôture verrouillée.</b><br>Le réimport et le recalcul sont désactivés sur cette clôture Solo.`}}
 function hasPayrollRows(c){const rows=[...(Array.isArray(c?.balance)?c.balance:[]),...(Array.isArray(c?.grandLivre)?c.grandLivre:[])];return rows.some(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(428|438|641|645)/));}
 function ensurePayrollAnalysis(c,entries){
