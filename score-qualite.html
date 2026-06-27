@@ -152,18 +152,71 @@ function applyCorrection(item){
 }
 
 function aiActionKey(a){
+  const rawKey = String(a.key || a.module || "").trim();
+
+  if(scoreItems.some(i => i.key === rawKey)){
+    return rawKey;
+  }
+
   const text = txt(`${a.module || ""} ${a.key || ""} ${a.title || ""} ${a.action || ""}`);
 
-  if(text.includes("471") || text.includes("472") || text.includes("attente")) return "waiting";
-  if(text.includes("455") || text.includes("associe")) return "associate";
-  if(text.includes("immobilisation") || text.includes("amortissement") || text.includes("vnc")) return "immo";
-  if(text.includes("subvention") || text.includes("credit bail") || text.includes("leasing")) return "subventions";
-  if(text.includes("tva")) return "vat";
-  if(text.includes("emprunt") || text.includes("icne")) return "loans";
-  if(text.includes("change") || text.includes("provision")) return "subventions";
+  const rules = [
+    ["files", ["fichier", "balance", "grand livre", "import"]],
+    ["od", ["od", "ecriture", "écriture", "definitive", "définitive", "valider les od"]],
+    ["fnp", ["fnp", "cap", "408", "charge a payer", "charge à payer"]],
+    ["cca_pca", ["cca", "pca", "486", "487", "constate d avance", "constaté d avance"]],
+    ["fae_par", ["fae", "par", "418", "4687", "facture a etablir", "produit a recevoir"]],
+    ["stocks", ["stock", "variation de stock"]],
+    ["immo", ["immobilisation", "amortissement", "vnc", "cession", "sortie d immobilisation"]],
+    ["waiting", ["471", "472", "attente", "compte d attente"]],
+    ["construction", ["23", "immobilisation en cours"]],
+    ["associate", ["455", "compte courant", "associe", "associé"]],
+    ["loans", ["emprunt", "icne", "1688", "interets courus", "intérêts courus"]],
+    ["subventions", ["subvention", "credit bail", "crédit-bail", "leasing", "provision", "change"]],
+    ["vat", ["tva", "445"]],
+    ["revision", ["revision", "révision", "justificatif", "commentaire", "calcul"]],
+    ["affectation", ["affectation", "resultat", "résultat", "report a nouveau", "reserve"]],
+    ["extournes", ["extourne", "n+1"]]
+  ];
 
-  return "general";
+  for(const [key, words] of rules){
+    if(words.some(w => text.includes(txt(w))) && scoreItems.some(i => i.key === key)){
+      return key;
+    }
+  }
+
+  const matchingTitle = scoreItems.find(i => text.includes(txt(i.title)));
+  if(matchingTitle) return matchingTitle.key;
+
+  const firstLoss = scoreItems.find(i => i.loss > 0);
+  return firstLoss?.key || "od";
 }
+
+function correctionUrlForKey(key){
+  const q = `id=${closureId}${ownerQueryParam()}&fix=${encodeURIComponent(key)}`;
+
+  const routes = {
+    files: `cloture-resultat.html?${q}`,
+    od: `cloture-resultat.html?${q}`,
+    fnp: `cloture-resultat.html?${q}`,
+    cca_pca: `cloture-resultat.html?${q}`,
+    fae_par: `cloture-resultat.html?${q}`,
+    stocks: `cloture-resultat.html?${q}`,
+    immo: `cloture-resultat.html?${q}`,
+    waiting: `cloture-resultat.html?${q}`,
+    construction: `cloture-resultat.html?${q}`,
+    associate: `cloture-resultat.html?${q}`,
+    loans: `cloture-resultat.html?${q}`,
+    subventions: `cloture-resultat.html?${q}`,
+    vat: `cloture-resultat.html?${q}`,
+    revision: `dossier-revision.html?${q}`,
+    affectation: `affectation-resultat.html?${q}`,
+    extournes: `extournes-automatiques.html?${q}`
+  };
+
+  return routes[key] || `cloture-resultat.html?${q}`;
+}
+  
 function computeScore(){
   if(!currentClosure){
     throw new Error("Clôture non chargée.");
