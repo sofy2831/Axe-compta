@@ -1540,9 +1540,23 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     if (amortissementRows.length) controls.push({ type: "amortissements_loaded", label: "Tableau d'amortissement chargé", count: amortissementRows.length });
     if (empruntRows.length) controls.push({ type: "emprunt_loaded", label: "Tableau d'emprunt chargé", count: empruntRows.length });
 
-    const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, empruntRows, closure);
-    controls = [...controls, ...detected.controls];
-    anomalies = [...anomalies, ...detected.anomalies];
+    const detected = detectAccountingEntries(
+  balanceRows,
+  grandLivreRows,
+  amortissementRows,
+  empruntRows,
+  closure
+) || {};
+
+controls = [
+  ...controls,
+  ...(detected.controls || [])
+];
+
+anomalies = [
+  ...anomalies,
+  ...(detected.anomalies || [])
+];
 
     await closureRef.set(
       cleanFirestoreObject({
@@ -1630,9 +1644,23 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
     if (amortissementRows.length) controls.push({ type: "amortissements_loaded", label: "Tableau d'amortissement chargé", count: amortissementRows.length });
     if (empruntRows.length) controls.push({ type: "emprunt_loaded", label: "Tableau d'emprunt chargé", count: empruntRows.length });
 
-    const detected = detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows, empruntRows, closure);
-    controls = [...controls, ...detected.controls];
-    anomalies = [...anomalies, ...detected.anomalies];
+    const detected = detectAccountingEntries(
+  balanceRows,
+  grandLivreRows,
+  amortissementRows,
+  empruntRows,
+  closure
+) || {};
+
+controls = [
+  ...controls,
+  ...(detected.controls || [])
+];
+
+anomalies = [
+  ...anomalies,
+  ...(detected.anomalies || [])
+];
 
     await closureRef.set(cleanFirestoreObject({
       balance: balanceRows,
