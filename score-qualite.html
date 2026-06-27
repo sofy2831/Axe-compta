@@ -469,7 +469,13 @@ function entriesTableHtml(rows){if(!rows.length)return`<div class="notice">Aucun
 function openView(k){const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=i.title;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("modalBack").style.display="flex"}
 $("modalCloseBtn").addEventListener("click",()=>$("modalBack").style.display="none");
 $("modalBack").addEventListener("click",e=>{if(e.target===$("modalBack"))$("modalBack").style.display="none"});
+$("closeScoreCorrectionBtn").addEventListener("click", closeScoreCorrectionModal);
+$("scoreCorrectionModal").addEventListener("click", e => {
+  if(e.target === $("scoreCorrectionModal")) closeScoreCorrectionModal();
+});
+$("applyScoreCorrectionBtn").addEventListener("click", applyScoreCorrection);
 
+  
 const AI_SCORE_URL = "https://europe-west9-axe-compta.cloudfunctions.net/aiScoreQualite";
 
 $("aiBtn").addEventListener("click", async ()=>{
