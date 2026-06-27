@@ -345,7 +345,7 @@ $("aiBtn").addEventListener("click", async ()=>{
 ` : ""}
 
 <div class="actions" style="margin-top:10px">
-  <button class="btn secondary small" type="button" data-correct-now="${sanitize(a.module || a.key || "")}">
+  <button class="btn secondary small" type="button" data-correct-now="${sanitize(aiActionKey(a))}">
     Corriger maintenant →
   </button>
   <button class="btn secondary small" type="button" data-mark-corrected>
@@ -374,12 +374,35 @@ $("aiBtn").addEventListener("click", async ()=>{
   });
 });
 
-document.querySelectorAll("[data-mark-corrected]").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    btn.textContent = "Corrigé";
-    btn.classList.remove("secondary");
-    btn.classList.add("warn");
-    btn.disabled = true;
+document.querySelectorAll("[data-mark-corrected]").forEach((btn,idx)=>{
+  btn.addEventListener("click", async ()=>{
+    try{
+      const action = actions[idx] || {};
+      const key = aiActionKey(action);
+
+      const corrections = currentClosure.scoreCorrections || {};
+      corrections[key] = {
+        status: "corrected",
+        label: action.title || key,
+        correctedAt: new Date().toISOString()
+      };
+
+      await setDoc(closureRef(),{
+        scoreCorrections: corrections,
+        updatedAt: serverTimestamp()
+      },{ merge:true });
+
+      currentClosure.scoreCorrections = corrections;
+
+      computeScore();
+      render();
+
+      btn.textContent = "Corrigé";
+      btn.disabled = true;
+    }catch(e){
+      console.error(e);
+      alert("Impossible d'enregistrer la correction.");
+    }
   });
 });
     $("statusLine").innerHTML='<span class="okText">Analyse IA générée.</span>';
