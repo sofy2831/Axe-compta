@@ -327,6 +327,9 @@ const response = await fetch(PARSE_SCORE_CORRECTION_URL, {
 const result = await response.json();
 
 if (!response.ok || !result.ok) {
+  throw new Error(result.error || "Erreur recalcul score.");
+}
+
 const freshSnap = await getDoc(closureRef());
 
 if (!freshSnap.exists()) {
@@ -338,10 +341,6 @@ scoreSaved = false;
 updateFinalButtons();
 
 render();
-  
-    throw new Error(result.error || "Erreur recalcul score.");
-}
-    
     
     msg.className = "notice";
     msg.innerHTML = `<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l’affectation ni les extournes.`;
