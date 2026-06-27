@@ -1,4 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
+
 const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const Stripe = require("stripe");
