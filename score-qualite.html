@@ -392,13 +392,9 @@ document.querySelectorAll("[data-mark-corrected]").forEach((btn,idx)=>{
         updatedAt: serverTimestamp()
       },{ merge:true });
 
-      currentClosure.scoreCorrections = corrections;
-
-      computeScore();
-      render();
-
-      btn.textContent = "Corrigé";
-      btn.disabled = true;
+     currentClosure.scoreCorrections = corrections;
+render();
+      
     }catch(e){
       console.error(e);
       alert("Impossible d'enregistrer la correction.");
