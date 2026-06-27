@@ -218,8 +218,11 @@ items.push(item(
 ));
   items.push(item("affectation","Affectation du résultat",affect?10:0,10,affect?"ok":"danger",affect?"Affectation enregistrée et PV générable.":"Affectation du résultat non encore enregistrée.",affect?0:10,["Affectation du résultat"]));
   items.push(item("extournes","Extournes N+1",ext?10:0,10,ext?"ok":"danger",ext?"Extournes automatiques enregistrées.":"Extournes N+1 non encore générées/enregistrées.",ext?0:10,["Extournes automatiques"]));
-  scoreItems=items;
-  score=Math.round(items.reduce((s,i)=>s+i.score,0)/items.reduce((s,i)=>s+i.max,0)*100);
+  scoreItems = items.map(applyCorrection);
+score = Math.round(
+  scoreItems.reduce((s,i)=>s+i.score,0) /
+  scoreItems.reduce((s,i)=>s+i.max,0) * 100
+);
 }
 
 function grade(s){if(s>=100)return"Dossier finalisé";if(s>=96)return"Dossier quasi finalisé";if(s>=81)return"Excellent dossier";if(s>=61)return"Dossier correct à améliorer";if(s>=41)return"Dossier fragile";return"Dossier incomplet"}
