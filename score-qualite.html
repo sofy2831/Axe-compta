@@ -68,7 +68,7 @@ function closeScoreCorrectionModal(){
   $("scoreCorrectionModal").style.display = "none";
 }
                                                                                                                                
-function closeScoreCorrectionModal(){$("scoreCorrectionModal").style.display="none"}
+
 async function uploadScoreCorrectionFile(kind,inputId){const file=$(inputId)?.files?.[0];if(!file)return null;const cleanName=file.name.replace(/[^a-zA-Z0-9_.-]/g,"_"),storagePath=`closures/${currentOwnerUid}/${closureId}/score-correction-${kind}-${Date.now()}-${cleanName}`;await uploadBytes(ref(storage,storagePath),file);return{name:file.name,storagePath,uploadedAt:new Date().toISOString()}}
 async function applyScoreCorrection(){
   const msg = $("scoreCorrectionMsg");
