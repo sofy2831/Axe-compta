@@ -80,7 +80,6 @@ function hasReview(c){return c?.dossierRevision?.status==="completed" || (Array.
 function hasAffect(c){return Array.isArray(c?.affectationResult?.entries)&&c.affectationResult.entries.length>0;}
 function hasExt(c){return Array.isArray(c?.extournesN1?.entries)&&c.extournesN1.entries.length>0;}
 function hasScore(c){return typeof scoreValue(c)==="number";}
-function statusPill(ok,label){return `<span class="pill ${ok?"":"err"}">${ok?"OK":"Manquant"}</span> ${sanitize(label)}`;}
 function renderChecklist(){
  const items=[
   {ok:hasEntries(currentClosure),label:"OD de clôture définitives présentes"},
