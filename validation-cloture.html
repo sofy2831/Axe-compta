@@ -179,6 +179,21 @@ async function loadClosure(user){
  $("finalComment").value=currentClosure.validation?.comment||"";
  $("statusLine").innerHTML=currentClosure.validated?'<span class="okText">Clôture déjà validée.</span>':'<span class="okText">Clôture chargée.</span>';
  renderChecklist();
+  const rapportUrl = `rapport-cloture.html?id=${closureId}${ownerQuery}`;
+
+$("rapportBtn").href = rapportUrl;
+$("modalRapportBtn").href = rapportUrl;
+
+if (
+  currentClosure.validated ||
+  currentClosure.validation?.status === "validated" ||
+  currentClosure.validationDefinitive?.status === "validated"
+) {
+  $("rapportBtn").style.display = "inline-flex";
+  $("rapportBtn").className = "btn";
+} else {
+  $("rapportBtn").style.display = "none";
+}
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
 </script>
