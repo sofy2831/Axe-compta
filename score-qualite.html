@@ -78,9 +78,15 @@ function openScoreCorrectionModal(key){
     field.style.display = required.includes(kind) ? "block" : "none";
   });
 
+const correctionTitle =
+  findItem(correctionKey)?.title ||
+  CORRECTION_LABELS[correctionKey] ||
+  correctionKey;
+  
   $("scoreCorrectionText").innerHTML =
-    `Correction ciblée : <b>${sanitize(findItem(correctionKey)?.title || CORRECTION_LABELS[correctionKey] || correctionKey)}</b><br>
-    Importez uniquement les fichiers corrigés nécessaires au recalcul du score. Les OD, l'affectation et les extournes ne seront pas remis à zéro.`;
+  `<b>Correction ciblée : ${sanitize(correctionTitle)}</b><br>
+  Importez uniquement les fichiers corrigés nécessaires au recalcul du score.
+  Les OD, l'affectation et les extournes ne seront pas remis à zéro.`;
 
   $("scoreCorrectionMsg").style.display = "none";
   $("scoreCorrectionModal").style.display = "flex";
