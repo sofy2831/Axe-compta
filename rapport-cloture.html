@@ -210,17 +210,31 @@ function renderReport(){$("printArea").innerHTML=docHtml();$("reportPreview").in
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 $("printBtn").addEventListener("click",()=>{renderReport();window.print();});
 $("wordBtn").addEventListener("click",()=>download("rapport-cloture.doc",`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,"application/msword;charset=utf-8"));
-$("saveReportBtn").addEventListener("click",async()=>{
-  await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
-    rapportCloture:{
-      status:"generated",
-      generatedAt:new Date().toISOString()
-    },
-    updatedAt:serverTimestamp()
-  },{merge:true});
+$("saveReportBtn").addEventListener("click", async () => {
+  try {
+    await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId), {
+      rapportCloture: {
+        status: "saved",
+        savedAt: new Date().toISOString()
+      },
+      updatedAt: serverTimestamp()
+    }, { merge:true });
 
-  $("statusLine").innerHTML='<span class="okText">Rapport enregistré.</span>';
-  $("reportPreview").innerHTML='<b class="okText">Rapport enregistré.</b><br>Vous pouvez maintenant l’exporter en PDF ou Word.';
+    $("statusLine").innerHTML = '<span class="okText">Rapport enregistré.</span>';
+    $("reportPreview").innerHTML = '<b class="okText">Rapport enregistré.</b><br>Vous pouvez maintenant l’exporter en PDF ou Word.';
+    $("saveModal").style.display = "flex";
+  } catch(e) {
+    console.error(e);
+    alert("Erreur lors de l’enregistrement du rapport.");
+  }
+});
+
+$("closeSaveModalBtn").addEventListener("click", () => {
+  $("saveModal").style.display = "none";
+});
+
+$("saveModal").addEventListener("click", e => {
+  if(e.target === $("saveModal")) $("saveModal").style.display = "none";
 });
 
 async function loadClosure(user){
