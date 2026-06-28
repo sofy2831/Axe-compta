@@ -93,13 +93,53 @@ function renderChecklist(){
  return items;
 }
 async function validateClosure(){
- const items=renderChecklist();
- const blocking=items.filter(i=>!i.ok);
- if(blocking.length) return alert("Validation bloquée : il manque encore des étapes.");
- if(!$("confirmCheck").checked) return alert("Coche la confirmation avant validation.");
- const payload={validated:true,status:"completed",validatedAt:serverTimestamp(),validation:{status:"validated",comment:$("finalComment").value||"",validatedAt:new Date().toISOString(),validatedBy:currentUser.email||currentUser.uid},updatedAt:serverTimestamp()};
- await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),payload,{merge:true});
- $("validationMsg").innerHTML='<b class="okText">Clôture validée définitivement.</b><br>Vous pouvez générer le rapport de clôture final.';
+  const items = renderChecklist();
+  const blocking = items.filter(i => !i.ok);
+
+  if(blocking.length) return alert("Validation bloquée : il manque encore des étapes.");
+  if(!$("confirmCheck").checked) return alert("Coche la confirmation avant validation.");
+
+  const rapportUrl = `rapport-cloture.html?id=${closureId}${owner ? `&owner=${encodeURIComponent(owner)}` : ""}`;
+
+  const payload = {
+    validated: true,
+    status: "completed",
+    validatedAt: serverTimestamp(),
+    validation: {
+      status: "validated",
+      comment: $("finalComment").value || "",
+      validatedAt: new Date().toISOString(),
+      validatedBy: currentUser.email || currentUser.uid
+    },
+    validationDefinitive: {
+      status: "validated",
+      validatedAt: new Date().toISOString(),
+      validatedBy: currentUser.email || currentUser.uid
+    },
+    updatedAt: serverTimestamp()
+  };
+
+  await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId), payload, { merge:true });
+
+  currentClosure = {
+    ...(currentClosure || {}),
+    validated: true,
+    status: "completed",
+    validation: payload.validation,
+    validationDefinitive: payload.validationDefinitive
+  };
+
+  $("validationMsg").innerHTML =
+    '<b class="okText">Validation définitive enregistrée.</b><br>Le rapport de clôture est disponible.';
+
+  $("rapportBtn").href = rapportUrl;
+  $("rapportBtn").style.display = "inline-flex";
+  $("rapportBtn").className = "btn";
+
+  $("modalRapportBtn").href = rapportUrl;
+  $("validationModal").style.display = "flex";
+
+  $("statusLine").innerHTML = '<span class="okText">Clôture validée définitivement.</span>';
 }
 async function unvalidateClosure(){
  await updateDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{validated:false,"validation.status":"unlocked",updatedAt:serverTimestamp()});
