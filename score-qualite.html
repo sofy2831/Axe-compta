@@ -346,7 +346,35 @@ $("saveScoreBtn").addEventListener("click", async () => {
     alert("Erreur lors de l'enregistrement du score qualité.");
   }
 });
-$("validateBtn").addEventListener("click",async()=>{if(!currentUser||!closureId)return;const message=score>=100?"Valider définitivement ce dossier de clôture ?":`Le score est de ${score}/100. Valider définitivement malgré les réserves ?`;if(!confirm(message))return;const btn=$("validateBtn");try{btn.disabled=true;btn.textContent="Validation...";await saveScore();await setDoc(closureRef(),{validationDefinitive:{status:"validated",score,grade:grade(score),validatedAt:new Date().toISOString(),validatedBy:currentUser.uid,reservations:score>=100?[]:scoreItems.filter(i=>i.loss>0).map(i=>({key:i.key,title:i.title,loss:i.loss,detail:i.detail}))},status:"validated",finalScore:score,finalClosureLocked:true,updatedAt:serverTimestamp()},{merge:true});currentClosure.validationDefinitive={status:"validated"};currentClosure.status="validated";finalValidated=true;scoreSaved=true;updateFinalButtons();$("statusLine").innerHTML='<span class="okText">Dossier validé définitivement.</span>';btn.textContent="Dossier validé";render()}catch(e){console.error(e);btn.disabled=false;btn.textContent="Validation définitive";alert("Erreur lors de la validation définitive.")}});
+$("validateBtn").addEventListener("click", async () => {
+  if (!currentUser || !closureId) return;
+
+  const btn = $("validateBtn");
+
+  try{
+    btn.disabled = true;
+    btn.textContent = "Ouverture...";
+
+    // Enregistre le score qualité
+    await saveScore();
+
+    scoreSaved = true;
+    updateFinalButtons();
+
+    $("statusLine").innerHTML =
+      '<span class="okText">Score enregistré. Ouverture de la validation définitive...</span>';
+
+    // Redirection vers l'étape suivante
+    window.location.href =
+      `validation-cloture.html?id=${closureId}${ownerQueryParam()}`;
+
+  }catch(e){
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = "Validation définitive";
+    alert("Erreur lors de l'enregistrement du score.");
+  }
+});
 function statusLabel(i){return i.status==="ok"?"OK":i.status==="danger"?"À corriger":"À contrôler"}function docHtml(){return`<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Score qualité final du dossier</div><div class="docSub">Contrôle global de clôture comptable</div></div><div class="docScore">Score qualité final : ${score}/100 - ${sanitize(grade(score))}</div><table class="docInfo"><tr><th>Société</th><td>${sanitize($("companyLabel").textContent)}</td></tr><tr><th>Exercice</th><td>${sanitize($("yearLabel").textContent)}</td></tr><tr><th>Objectif</th><td>${score>=100?"100/100 atteint":`${100-score} point(s) restant(s)`}</td></tr></table><h2>Détail des contrôles</h2><table class="docTable"><thead><tr><th class="c-control">Contrôle</th><th class="c-score">Score</th><th class="c-statut">Statut</th><th class="c-obs">Observation</th></tr></thead><tbody>${scoreItems.map(i=>`<tr><td class="c-control">${sanitize(i.title)}</td><td class="c-score">${i.score}/${i.max}</td><td class="c-statut">${statusLabel(i)}</td><td class="c-obs">${sanitize(i.detail)}</td></tr>`).join("")}</tbody></table><h2>Conclusion</h2><p>${score>=100?"Le dossier est prêt pour validation définitive, rapport de clôture et archivage.":"Le dossier comporte encore des réserves. Les corrections doivent être traitées dans les étapes précédentes avant validation définitive, sauf choix assumé du client."}</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}function renderDoc(){$("printArea").innerHTML=docHtml()}function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}function fileBase(){return`score-qualite-final-${($("companyLabel").textContent||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`}$("printBtn").addEventListener("click",()=>{renderDoc();window.print()});$("csvBtn").addEventListener("click",()=>download(fileBase()+".csv",["Contrôle;Score;Max;Statut;Observation",...scoreItems.map(i=>`${i.title};${i.score};${i.max};${i.status};${i.detail}`)].join("\n"),"text/csv;charset=utf-8"));$("excelBtn").addEventListener("click",()=>download(fileBase()+".xls",`<table><tr><th>Contrôle</th><th>Score</th><th>Max</th><th>Statut</th><th>Observation</th></tr>${scoreItems.map(i=>`<tr><td>${sanitize(i.title)}</td><td>${i.score}</td><td>${i.max}</td><td>${i.status}</td><td>${sanitize(i.detail)}</td></tr>`).join("")}</table>`,"application/vnd.ms-excel;charset=utf-8"));
 async function saveScore(){if(!currentUser||!closureId)return;const payload={status:"generated",score,items:scoreItems,grade:grade(score),generatedAt:new Date().toISOString(),updatedAt:new Date().toISOString()};await setDoc(closureRef(),{scoreQualite:payload,scoreQuality:payload,finalScore:score,updatedAt:serverTimestamp()},{merge:true})}
 async function loadClosure(user){if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return}currentOwnerUid=ownerParam||user.uid;$("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;$("reportBtn").href=`rapport-cloture.html?id=${closureId}${ownerQueryParam()}`;const snap=await getDoc(closureRef());if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return}currentClosure=snap.data();scoreSaved=!!currentClosure?.scoreQualite||!!currentClosure?.scoreQuality;finalValidated=currentClosure?.validationDefinitive?.status==="validated"||currentClosure?.status==="validated"||currentClosure?.status==="archived";updateFinalButtons();$("companyLabel").textContent=currentClosure.companyName||"Société sans nom";$("yearLabel").textContent=fiscalYear(currentClosure)||"—";$("statusLine").innerHTML=finalValidated?'<span class="okText">Clôture chargée. Dossier validé définitivement.</span>':scoreSaved?'<span class="okText">Clôture chargée. Score qualité déjà enregistré.</span>':'<span class="okText">Clôture chargée. Score final calculé, non enregistré.</span>';render()}
