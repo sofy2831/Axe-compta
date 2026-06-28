@@ -70,7 +70,18 @@ function renderReport(){$("printArea").innerHTML=docHtml();$("reportPreview").in
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 $("printBtn").addEventListener("click",()=>{renderReport();window.print();});
 $("wordBtn").addEventListener("click",()=>download("rapport-cloture.doc",`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,"application/msword;charset=utf-8"));
-$("archiveBtn").addEventListener("click",async()=>{await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{archived:true,archivedAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});$("statusLine").innerHTML='<span class="okText">Clôture archivée.</span>';});
+$("saveReportBtn").addEventListener("click",async()=>{
+  await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
+    rapportCloture:{
+      status:"generated",
+      generatedAt:new Date().toISOString()
+    },
+    updatedAt:serverTimestamp()
+  },{merge:true});
+
+  $("statusLine").innerHTML='<span class="okText">Rapport enregistré.</span>';
+  $("reportPreview").innerHTML='<b class="okText">Rapport enregistré.</b><br>Vous pouvez maintenant l’exporter en PDF ou Word.';
+});
 
 async function loadClosure(user){
  if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
