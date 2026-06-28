@@ -35,17 +35,46 @@ const FILE_INPUTS={balance:"scoreBalanceFile",grandLivre:"scoreGrandLivreFile",a
 function euro(v){return nf.format(Number(v||0))+" €"}function sanitize(s){return String(s??"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]))}function arr(v){return Array.isArray(v)?v:[]}function txt(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}function amount(r){return Math.abs(Number(String(r?.amount||r?.Montant||r?.montant||0).replace(",",".")))||0}function fiscalYear(c){if(c?.startDate&&c?.endDate)return`${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}function ownerQueryParam(){return currentOwnerUid&&currentUser&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}function closureRef(){return doc(db,"users",currentOwnerUid,"closures",closureId)}
 function hasEntry(labels){return arr(currentClosure?.entries).some(e=>labels.some(l=>txt(e?.label).includes(l)))}function hasControl(types){return arr(currentClosure?.controls).some(c=>types.includes(c?.type))}function hasAnomaly(types){return arr(currentClosure?.anomalies).some(a=>types.includes(a?.type))}function rowsWithPrefixes(prefixes){const rows=[...arr(currentClosure?.balance),...arr(currentClosure?.grandLivre)];return rows.filter(r=>prefixes.some(p=>String(r?.Compte||r?.compte||r?.CompteNum||r?.compteNum||"").replace(/\s/g,"").startsWith(p)))}function item(key,title,score,max,status,detail,loss,files){return{key,title,score,max,status,detail,loss,files}}function isCorrected(key){return currentClosure?.scoreCorrections?.[key]?.status==="corrected"}function applyCorrection(i){return isCorrected(i.key)?{...i,score:i.max,status:"ok",detail:i.detail+" Correction utilisateur marquée comme traitée.",loss:0}:i}function grade(s){if(s>=100)return"Dossier finalisé";if(s>=96)return"Dossier quasi finalisé";if(s>=81)return"Excellent dossier";if(s>=61)return"Dossier correct à améliorer";if(s>=41)return"Dossier fragile";return"Dossier incomplet"}
 function aiActionKey(a){const rawKey=String(a.key||a.module||"").trim();if(scoreItems.some(i=>i.key===rawKey))return rawKey;const text=txt(`${a.module||""} ${a.key||""} ${a.title||""} ${a.action||""}`),rules=[["files",["fichier","balance","grand livre","import"]],["od",["od","ecriture","écriture","definitive","définitive","valider les od"]],["fnp",["fnp","cap","408","charge a payer","charge à payer"]],["cca_pca",["cca","pca","486","487","constate d avance","constaté d avance"]],["fae_par",["fae","par","418","4687","facture a etablir","produit a recevoir"]],["stocks",["stock","variation de stock"]],["immo",["immobilisation","amortissement","vnc","cession","sortie d immobilisation"]],["waiting",["471","472","attente","compte d attente"]],["construction",["23","immobilisation en cours"]],["associate",["455","compte courant","associe","associé"]],["loans",["emprunt","icne","1688","interets courus","intérêts courus"]],["subventions",["subvention","credit bail","crédit-bail","leasing","provision","change"]],["vat",["tva","445"]],["revision",["revision","révision","justificatif","commentaire","calcul"]],["affectation",["affectation","resultat","résultat","report a nouveau","reserve"]],["extournes",["extourne","n+1"]]];for(const[key,words]of rules){if(words.some(w=>text.includes(txt(w)))&&scoreItems.some(i=>i.key===key))return key}const matchingTitle=scoreItems.find(i=>text.includes(txt(i.title)));if(matchingTitle)return matchingTitle.key;const firstLoss=scoreItems.find(i=>i.loss>0);return firstLoss?.key||"od"}
-function requiredFilesForCorrection(key){return CORRECTION_FILES_BY_KEY[key]||["balance","grandLivre"]}function resetCorrectionInputs(){Object.values(FILE_INPUTS).forEach(id=>{if($(id))$(id).value=""})function openScoreCorrectionModal(key){
+function requiredFilesForCorrection(key){return CORRECTION_FILES_BY_KEY[key]||["balance","grandLivre"]}function resetCorrectionInputs(){Object.values(FILE_INPUTS).forEach(id=>{if($(id))$(id).value=""})
+const FILE_INPUTS = {
+  balance: "scoreBalanceFile",
+  grandLivre: "scoreGrandLivreFile",
+  amortissements: "scoreAmortissementsFile",
+  emprunt: "scoreEmpruntFile"
+};
+
+const CORRECTION_FILES_BY_KEY = {
+  immo: ["balance", "grandLivre", "amortissements"],
+  loans: ["balance", "grandLivre", "emprunt"],
+  waiting: ["balance", "grandLivre"],
+  associate: ["balance", "grandLivre"],
+  subventions: ["balance", "grandLivre", "amortissements"],
+  vat: ["balance", "grandLivre"],
+  fnp: ["balance", "grandLivre"],
+  cca_pca: ["balance", "grandLivre"],
+  fae_par: ["balance", "grandLivre"],
+  stocks: ["balance", "grandLivre"]
+};
+
+function requiredFilesForCorrection(key){
+  return CORRECTION_FILES_BY_KEY[key] || ["balance", "grandLivre"];
+}
+
+function resetCorrectionInputs(){
+  Object.values(FILE_INPUTS).forEach(id => {
+    if($(id)) $(id).value = "";
+  });
+}
+ function openScoreCorrectionModal(key){
   correctionKey = key || "general";
+  resetCorrectionInputs();
 
-  const needsAmortissements = ["immo"].includes(correctionKey);
-  const needsEmprunt = ["loans"].includes(correctionKey);
+  const required = requiredFilesForCorrection(correctionKey);
 
-  $("scoreAmortissementsLabel").style.display = needsAmortissements ? "block" : "none";
-  $("scoreAmortissementsFile").style.display = needsAmortissements ? "block" : "none";
-
-  $("scoreEmpruntLabel").style.display = needsEmprunt ? "block" : "none";
-  $("scoreEmpruntFile").style.display = needsEmprunt ? "block" : "none";
+  document.querySelectorAll("[data-file-field]").forEach(field => {
+    const kind = field.dataset.fileField;
+    field.style.display = required.includes(kind) ? "block" : "none";
+  });
 
   $("scoreCorrectionText").innerHTML =
     `Correction ciblée : <b>${sanitize(findItem(correctionKey)?.title || correctionKey)}</b><br>
@@ -53,7 +82,12 @@ function requiredFilesForCorrection(key){return CORRECTION_FILES_BY_KEY[key]||["
 
   $("scoreCorrectionMsg").style.display = "none";
   $("scoreCorrectionModal").style.display = "flex";
-}function closeScoreCorrectionModal(){$("scoreCorrectionModal").style.display="none"}
+}
+
+function closeScoreCorrectionModal(){
+  $("scoreCorrectionModal").style.display = "none";
+}                                                                                                                                       
+function closeScoreCorrectionModal(){$("scoreCorrectionModal").style.display="none"}
 async function uploadScoreCorrectionFile(kind,inputId){const file=$(inputId)?.files?.[0];if(!file)return null;const cleanName=file.name.replace(/[^a-zA-Z0-9_.-]/g,"_"),storagePath=`closures/${currentOwnerUid}/${closureId}/score-correction-${kind}-${Date.now()}-${cleanName}`;await uploadBytes(ref(storage,storagePath),file);return{name:file.name,storagePath,uploadedAt:new Date().toISOString()}}
 async function applyScoreCorrection(){const msg=$("scoreCorrectionMsg"),btn=$("applyScoreCorrectionBtn");try{btn.disabled=true;btn.textContent="Recalcul en cours...";msg.style.display="block";msg.className="notice";msg.innerHTML="Import des fichiers corrigés...";const filesUpdate={};for(const kind of requiredFilesForCorrection(correctionKey)){const uploaded=await uploadScoreCorrectionFile(kind,FILE_INPUTS[kind]);if(uploaded)filesUpdate[kind]=uploaded}if(!Object.keys(filesUpdate).length)throw new Error("Aucun fichier corrigé sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...filesUpdate},scoreCorrections:{...(currentClosure.scoreCorrections||{}),[correctionKey]:{status:"corrected",label:correctionKey,correctedAt:new Date().toISOString()}},scoreQualite:null,scoreQuality:null,updatedAt:serverTimestamp()});const response=await fetch(PARSE_SCORE_CORRECTION_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId,correctionKey})}),result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"Erreur recalcul score.");const freshSnap=await getDoc(closureRef());if(!freshSnap.exists())throw new Error("Clôture introuvable après recalcul.");currentClosure=freshSnap.data();scoreSaved=false;updateFinalButtons();render();msg.className="notice";msg.innerHTML=`<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l'affectation ni les extournes.`;$("statusLine").innerHTML=`<span class="okText">Score recalculé après correction. Pensez à enregistrer le score qualité.</span>`}catch(e){console.error(e);msg.className="notice";msg.innerHTML=`<b class="errText">${sanitize(e.message||"Erreur correction score.")}</b>`}finally{btn.disabled=false;btn.textContent="Importer et recalculer le score"}}
 function computeScore(){
