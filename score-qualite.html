@@ -89,7 +89,88 @@ function closeScoreCorrectionModal(){
 }                                                                                                                                       
 function closeScoreCorrectionModal(){$("scoreCorrectionModal").style.display="none"}
 async function uploadScoreCorrectionFile(kind,inputId){const file=$(inputId)?.files?.[0];if(!file)return null;const cleanName=file.name.replace(/[^a-zA-Z0-9_.-]/g,"_"),storagePath=`closures/${currentOwnerUid}/${closureId}/score-correction-${kind}-${Date.now()}-${cleanName}`;await uploadBytes(ref(storage,storagePath),file);return{name:file.name,storagePath,uploadedAt:new Date().toISOString()}}
-async function applyScoreCorrection(){const msg=$("scoreCorrectionMsg"),btn=$("applyScoreCorrectionBtn");try{btn.disabled=true;btn.textContent="Recalcul en cours...";msg.style.display="block";msg.className="notice";msg.innerHTML="Import des fichiers corrigés...";const filesUpdate={};for(const kind of requiredFilesForCorrection(correctionKey)){const uploaded=await uploadScoreCorrectionFile(kind,FILE_INPUTS[kind]);if(uploaded)filesUpdate[kind]=uploaded}if(!Object.keys(filesUpdate).length)throw new Error("Aucun fichier corrigé sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...filesUpdate},scoreCorrections:{...(currentClosure.scoreCorrections||{}),[correctionKey]:{status:"corrected",label:correctionKey,correctedAt:new Date().toISOString()}},scoreQualite:null,scoreQuality:null,updatedAt:serverTimestamp()});const response=await fetch(PARSE_SCORE_CORRECTION_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId,correctionKey})}),result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.error||"Erreur recalcul score.");const freshSnap=await getDoc(closureRef());if(!freshSnap.exists())throw new Error("Clôture introuvable après recalcul.");currentClosure=freshSnap.data();scoreSaved=false;updateFinalButtons();render();msg.className="notice";msg.innerHTML=`<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l'affectation ni les extournes.`;$("statusLine").innerHTML=`<span class="okText">Score recalculé après correction. Pensez à enregistrer le score qualité.</span>`}catch(e){console.error(e);msg.className="notice";msg.innerHTML=`<b class="errText">${sanitize(e.message||"Erreur correction score.")}</b>`}finally{btn.disabled=false;btn.textContent="Importer et recalculer le score"}}
+async function applyScoreCorrection(){
+  const msg = $("scoreCorrectionMsg");
+  const btn = $("applyScoreCorrectionBtn");
+
+  try{
+    btn.disabled = true;
+    btn.textContent = "Recalcul en cours...";
+    msg.style.display = "block";
+    msg.className = "notice";
+    msg.innerHTML = "Import des fichiers corrigés...";
+
+    const filesUpdate = {};
+
+    for(const kind of requiredFilesForCorrection(correctionKey)){
+      const uploaded = await uploadScoreCorrectionFile(kind, FILE_INPUTS[kind]);
+      if(uploaded) filesUpdate[kind] = uploaded;
+    }
+
+    if(!Object.keys(filesUpdate).length){
+      throw new Error("Aucun fichier corrigé sélectionné.");
+    }
+
+    await updateDoc(closureRef(), {
+      files: {
+        ...(currentClosure.files || {}),
+        ...filesUpdate
+      },
+      scoreCorrections: {
+        ...(currentClosure.scoreCorrections || {}),
+        [correctionKey]: {
+          status: "corrected",
+          label: correctionKey,
+          correctedAt: new Date().toISOString()
+        }
+      },
+      scoreQualite: null,
+      scoreQuality: null,
+      updatedAt: serverTimestamp()
+    });
+
+    const response = await fetch(PARSE_SCORE_CORRECTION_URL, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        uid: currentOwnerUid,
+        closureId,
+        correctionKey
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || "Erreur recalcul score.");
+    }
+
+    const freshSnap = await getDoc(closureRef());
+
+    if(!freshSnap.exists()){
+      throw new Error("Clôture introuvable après recalcul.");
+    }
+
+    currentClosure = freshSnap.data();
+    scoreSaved = false;
+    updateFinalButtons();
+    render();
+
+    msg.className = "notice";
+    msg.innerHTML = `<b class="okText">Correction enregistrée.</b><br>Le score a été recalculé sans remettre à zéro les OD, l'affectation ni les extournes.`;
+
+    $("statusLine").innerHTML =
+      `<span class="okText">Score recalculé après correction. Pensez à enregistrer le score qualité.</span>`;
+
+  }catch(e){
+    console.error(e);
+    msg.className = "notice";
+    msg.innerHTML = `<b class="errText">${sanitize(e.message || "Erreur correction score.")}</b>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "Importer et recalculer le score";
+  }
+}
 function computeScore(){
   if(!currentClosure)throw new Error("Clôture non chargée.");
   const items=[],affect=Array.isArray(currentClosure?.affectationResult?.entries),ext=!!currentClosure?.extournesN1&&Array.isArray(currentClosure?.extournesN1?.entries),entries=arr(currentClosure?.entries),validatedEntries=entries.filter(e=>String(e.status||"").toLowerCase().includes("valid")).length,allEntriesValidated=entries.length?validatedEntries===entries.length:false;
