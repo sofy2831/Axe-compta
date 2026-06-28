@@ -147,6 +147,19 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="printArea printable" id="printArea"></section>
 </div>
 
+<div class="modalBack" id="saveModal">
+  <div class="modal">
+    <h2>Rapport enregistré</h2>
+    <div class="notice">
+      <b class="okText">✔ Rapport enregistré.</b><br>
+      Vous pouvez maintenant l’exporter en PDF ou Word.
+    </div>
+    <div class="actions">
+      <button class="btn secondary" type="button" id="closeSaveModalBtn">Fermer</button>
+    </div>
+  </div>
+</div>
+  
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
