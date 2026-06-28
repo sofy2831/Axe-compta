@@ -50,7 +50,18 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
     <div id="validationMsg" class="notice">La validation définitive bloque le workflow métier : le rapport de clôture devient la pièce finale.</div>
   </section>
 </div>
-
+<div class="modalBack" id="validationModal">
+  <div class="modal">
+    <h2>Validation définitive OK</h2>
+    <p class="muted">
+      La clôture est validée définitivement. Vous pouvez maintenant générer le rapport de clôture.
+    </p>
+    <div class="actions">
+      <a class="btn" id="modalRapportBtn" href="rapport-cloture.html">Ouvrir le rapport</a>
+      <button class="btn secondary" type="button" id="closeValidationModalBtn">Fermer</button>
+    </div>
+  </div>
+</div>
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
