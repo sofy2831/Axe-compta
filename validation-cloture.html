@@ -42,7 +42,11 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
     <label>Commentaire final</label>
     <textarea id="finalComment" placeholder="Ex : Dossier validé après contrôle des écritures et justificatifs."></textarea>
     <label class="card" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px"><input id="confirmCheck" type="checkbox" style="width:auto;margin-top:4px"> <span>Je confirme que la clôture est revue, que les écritures définitives sont validées et que le dossier peut être figé.</span></label>
-    <div class="actions"><button class="btn warn" id="validateBtn" type="button">Valider définitivement</button><button class="btn danger" id="unvalidateBtn" type="button">Déverrouiller la validation</button></div>
+  <div class="actions">
+  <button class="btn warn" id="validateBtn" type="button">Valider définitivement</button>
+  <a class="btn secondary" id="rapportBtn" href="rapport-cloture.html" style="display:none">Rapport de clôture</a>
+  <button class="btn danger" id="unvalidateBtn" type="button">Déverrouiller la validation</button>
+</div>
     <div id="validationMsg" class="notice">La validation définitive bloque le workflow métier : le rapport de clôture devient la pièce finale.</div>
   </section>
 </div>
