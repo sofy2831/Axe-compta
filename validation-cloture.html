@@ -92,6 +92,16 @@ function renderChecklist(){
  $("checklistBox").innerHTML=`<table><thead><tr><th>Contrôle</th><th>Statut</th></tr></thead><tbody>${items.map(i=>`<tr><td>${sanitize(i.label)}</td><td>${i.ok?'<span class="pill">OK</span>':'<span class="pill err">Manquant</span>'}</td></tr>`).join("")}</tbody></table>`;
  return items;
 }
+  const rapportUrl = `rapport-cloture.html?id=${closureId}${ownerQuery}`;
+$("rapportBtn").href = rapportUrl;
+$("modalRapportBtn").href = rapportUrl;
+
+if(currentClosure.validated || currentClosure.validation?.status === "validated" || currentClosure.validationDefinitive?.status === "validated"){
+  $("rapportBtn").style.display = "inline-flex";
+  $("rapportBtn").className = "btn";
+}else{
+  $("rapportBtn").style.display = "none";
+}
 async function validateClosure(){
   const items = renderChecklist();
   const blocking = items.filter(i => !i.ok);
@@ -142,17 +152,34 @@ async function validateClosure(){
   $("statusLine").innerHTML = '<span class="okText">Clôture validée définitivement.</span>';
 }
 async function unvalidateClosure(){
- await updateDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{validated:false,"validation.status":"unlocked",updatedAt:serverTimestamp()});
- $("validationMsg").innerHTML='<b class="warnText">Validation déverrouillée.</b><br>Le dossier peut être repris.';
+  await updateDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
+    validated:false,
+    status:"completed_unlocked",
+    "validation.status":"unlocked",
+    "validationDefinitive.status":"unlocked",
+    updatedAt:serverTimestamp()
+  });
+
+  $("validationMsg").innerHTML =
+    '<b class="warnText">Validation déverrouillée.</b><br>Le dossier peut être repris.';
+
+  $("rapportBtn").style.display = "none";
 }
 $("validateBtn").addEventListener("click",()=>validateClosure().catch(e=>{console.error(e);alert("Erreur validation.");}));
 $("unvalidateBtn").addEventListener("click",()=>unvalidateClosure().catch(e=>{console.error(e);alert("Erreur déverrouillage.");}));
+$("closeValidationModalBtn").addEventListener("click",()=>{
+  $("validationModal").style.display = "none";
+});
+
+$("validationModal").addEventListener("click",e=>{
+  if(e.target === $("validationModal")) $("validationModal").style.display = "none";
+});
+  
 async function loadClosure(user){
  if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
  currentOwnerUid=owner||user.uid;
  const ownerQuery=owner?`&owner=${encodeURIComponent(owner)}`:"";
- $("scoreBtn").href=`score-qualite.html?id=${closureId}${ownerQuery}`;
- $("rapportBtn").href=`rapport-cloture.html?id=${closureId}${ownerQuery}`;
+
  const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
  if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return;}
  currentClosure=snap.data();
