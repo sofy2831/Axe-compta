@@ -1458,7 +1458,7 @@ Aucune écriture automatique n'est proposée.
   }
 
   // Emprunts / ICNE
-  if (hasAcc(["164", "661", "1688"]) && answers.immo === "yes") {
+  if (hasAcc(["164", "661", "1688"]) && (answers.immo === "yes" || answers.emprunt === "yes" || answers.loans === "yes" || empruntRows.length)) {
     const loanRow = findFirstRowByPrefixes(balanceRows, ["164"]) || findFirstRowByPrefixes(grandLivreRows, ["164"]);
     const interestRow = findFirstRowByPrefixes(balanceRows, ["661"]) || findFirstRowByPrefixes(grandLivreRows, ["661"]);
     const icneRow = findFirstRowByPrefixes(balanceRows, ["1688"]) || findFirstRowByPrefixes(grandLivreRows, ["1688"]);
