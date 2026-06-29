@@ -141,6 +141,8 @@ async function validateClosure(){
   $("validationModal").style.display = "flex";
 
   $("statusLine").innerHTML = '<span class="okText">Clôture validée définitivement.</span>';
+  $("validateBtn").disabled = true;
+$("validateBtn").textContent = "Validation enregistrée";
 }
 async function unvalidateClosure(){
   await updateDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
@@ -195,6 +197,14 @@ if (
 } else {
   $("rapportBtn").style.display = "none";
 }
+ if (
+  currentClosure.validated ||
+  currentClosure.validation?.status === "validated" ||
+  currentClosure.validationDefinitive?.status === "validated"
+) {
+  $("validateBtn").disabled = true;
+  $("validateBtn").textContent = "Validation enregistrée";
+} 
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
 </script>
