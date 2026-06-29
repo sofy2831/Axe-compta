@@ -237,6 +237,45 @@ async function finalizeEntries(){
     await validateOdFinales();
   };
 }
+  async function validateOdFinales(){
+  const finalized = currentEntries.map(e => ({
+    ...e,
+    status: "Validée",
+    validatedAt: new Date().toISOString()
+  }));
+
+  await updateDoc(closureRef(),{
+    entries: finalized,
+    odStatus: "finalized",
+    odFinalized: true,
+    entriesFinalized: true,
+    odFinalizedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  });
+
+  currentEntries = finalized;
+  currentClosure = {
+    ...currentClosure,
+    entries: finalized,
+    odStatus: "finalized",
+    odFinalized: true,
+    entriesFinalized: true
+  };
+
+  renderEntries();
+  applyStepLocks(currentClosure);
+  renderWorkflow(currentClosure);
+
+  $("resultSaveModalNextBtn").onclick = null;
+  $("resultSaveModalNextBtn").href = `dossier-revision.html?id=${id}${ownerQueryParam()}`;
+  $("resultSaveModalNextBtn").textContent = "Dossier de révision";
+
+  openResultModal(
+    "✔ OD définitives validées",
+    "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",
+    true
+  );
+}
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
 function userHasSubscription(u){return u.developerAccess===true||u.role==="admin"||u.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(u.plan)}
