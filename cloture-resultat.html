@@ -213,9 +213,27 @@ async function finalizeEntries(){
     return;
   }
 
-  if(!confirm("Valider définitivement toutes les OD de clôture ? Les lignes passeront automatiquement en statut Validée.")){
-    return;
-  }
+ if(!window.confirmOdValidation){
+  window.confirmOdValidation = true;
+
+  $("saveProjectModalTitle").textContent = "Valider les OD définitives";
+  $("saveProjectModalText").innerHTML =
+    "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.";
+
+  $("saveProjectModalAction").href = "#";
+  $("saveProjectModalAction").textContent = "Confirmer";
+
+  $("saveProjectModal").style.display = "flex";
+
+  $("saveProjectModalAction").onclick = async (e) => {
+    e.preventDefault();
+    $("saveProjectModal").style.display = "none";
+    window.confirmOdValidation = false;
+    await finalizeEntries();
+  };
+
+  return;
+}
 
   const finalized = currentEntries.map(e => ({
     ...e,
