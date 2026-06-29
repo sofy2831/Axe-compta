@@ -547,34 +547,11 @@ function ensureGenerated(){if(!generatedRows.length)generatedRows=buildEntries()
 function openPrintDoc(){
   try{
     ensureGenerated();
+    renderPrint();
+    window.print();
   }catch(e){
     alert(e.message);
-    return;
   }
-
-  const w = window.open("", "printWindow", "width=900,height=800");
-
-  if(!w){
-    alert("Le navigateur a bloqué la fenêtre d’impression.");
-    return;
-  }
-
-  w.document.open();
-  w.document.write(htmlPage(docHtml()).replace(
-    "</body>",
-    `<script>
-      window.onload = function(){
-        setTimeout(function(){
-          window.focus();
-          window.print();
-          window.onafterprint = function(){
-            window.close();
-          };
-        },200);
-      };
-    <\/script></body>`
-  ));
-  w.document.close();
 }
 function renderPrint(){if(!generatedRows.length)return;$("printArea").innerHTML=docHtml()}
 function download(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
