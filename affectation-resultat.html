@@ -489,8 +489,15 @@ async function saveAffectation(){
   },{merge:true});
 
   currentClosure.affectationResult=data;
-  alert("Affectation enregistrée avec succès.\n\nVous pouvez désormais générer le PV d'Assemblée Générale ou poursuivre vers les extournes automatiques N+1.");
-}
+ $("saveBtn").disabled = true;
+$("saveBtn").textContent = "Affectation enregistrée";
+
+$("validationMsg")?.remove;
+
+$("modalExtournesBtn").href =
+  `extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
+
+$("saveAffectationModal").style.display = "flex";
 
 $("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 
