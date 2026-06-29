@@ -12,14 +12,15 @@ h1{font-size:clamp(32px,4vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.
 .navActions,.actions{display:flex;gap:10px;flex-wrap:wrap}.box{background:linear-gradient(180deg,rgba(28,67,113,.88),rgba(19,52,91,.78));border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:16px;box-shadow:0 22px 65px rgba(5,20,40,.23)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .metric,.card{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);border-radius:16px;padding:14px}.metric span{display:block;color:#c8d7ea;font-size:12px}.metric b{display:block;font-size:21px;margin-top:4px}
-.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:11px 16px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn.danger{background:rgba(255,155,155,.10);color:#ffe1e1;border-color:rgba(255,155,155,.35)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:7px 11px;font-size:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:11px 16px;font-weight:900;color:#06121e;background:linear-gradient(135deg,var(--primary),var(--primary2));cursor:pointer;transition:.18s ease}.btn:hover{transform:translateY(-1px)}.btn.secondary{background:rgba(255,255,255,.07);color:var(--text)}.btn.warn{background:linear-gradient(135deg,#ffe082,#72e0c5);color:#06121e}.btn.danger{background:rgba(255,155,155,.10);color:#ffe1e1;border-color:rgba(255,155,155,.35)}.btn.primary{color:#06121e;border-color:transparent;background:linear-gradient(135deg,var(--primary),var(--primary2))}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.small{padding:7px 11px;font-size:12px}
 .notice{margin-top:16px;padding:14px;border-left:4px solid var(--primary);background:rgba(114,224,197,.10);border-radius:14px}.warnNotice{border-left-color:var(--warn);background:rgba(255,209,102,.10)}.errText{color:var(--danger)}.okText{color:var(--ok)}.warnText{color:var(--warn)}
 table{width:100%;border-collapse:collapse;margin-top:16px;border:1px solid var(--line);border-radius:16px;overflow:hidden}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:rgba(255,255,255,.06);color:#dce8f6}tr:last-child td{border-bottom:none}.num{text-align:right;white-space:nowrap}
 input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:#0d294b;color:#fff;padding:12px 13px;font:inherit}textarea{min-height:90px;resize:vertical}label{display:block;margin:12px 0 6px;font-weight:850;font-size:14px}
 .pill{display:inline-flex;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:900;background:rgba(114,224,197,.12);color:var(--ok);border:1px solid rgba(114,224,197,.28)}.pill.warn{background:rgba(255,209,102,.12);color:var(--warn);border-color:rgba(255,209,102,.3)}.pill.err{background:rgba(255,155,155,.10);color:var(--danger);border-color:rgba(255,155,155,.3)}
 .printArea{display:none!important}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px;color:#111}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}.doc th,.doc td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px;color:#111}.doc th{background:#f3f6fa;color:#111}.doc .num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}
+.modalBack{position:fixed;inset:0;background:rgba(3,10,20,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal{width:min(640px,100%);background:#102847;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.45)}
 @media(max-width:900px){.grid,.grid3,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
-@media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable){display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docFooter{margin-top:auto}@page{size:A4;margin:12mm}}
+@media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable),.modalBack{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docFooter{margin-top:auto}@page{size:A4;margin:12mm}}
 </style>
 </head>
 <body>
@@ -32,7 +33,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="box">
     <h2>Clôture</h2>
     <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Points de révision</span><b id="reviewCount">0</b></div></div>
-    <div class="notice">Chaque OD doit être documentée puis validée avant de poursuivre vers l'affectation du résultat. : justification, calcul, pièce attendue et statut.</div>
+    <div class="notice">Chaque OD doit être documentée puis validée avant de poursuivre vers l'affectation du résultat : justification, calcul, pièce attendue et statut.</div>
   </section>
 
   <section class="box">
@@ -49,18 +50,34 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="printArea printable" id="printArea"></section>
 </div>
 
+<div class="modalBack" id="saveRevisionModal">
+  <div class="modal">
+    <h2>✔ Dossier de révision enregistré</h2>
+    <p class="muted">
+      Le dossier de révision est enregistré.
+      <br><br>
+      Vous pouvez maintenant poursuivre vers l’affectation du résultat.
+    </p>
+    <div class="actions">
+      <button class="btn secondary" type="button" id="closeRevisionModalBtn">OK</button>
+      <a class="btn" id="modalAffectationBtn" href="affectation-resultat.html">Affectation</a>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"; 
 const params=new URLSearchParams(location.search), closureId=params.get("id"), owner=params.get("owner")||"";
 let currentUser=null,currentOwnerUid="",currentClosure=null,reviewItems=[];
 const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
+function ownerQuery(){return owner?`&owner=${encodeURIComponent(owner)}`:"";}
+function affectationUrl(){return `affectation-resultat.html?id=${closureId}${ownerQuery()}`;}
 function makeReviewItem(e,i){
   return {
     id:e.id||`entry_${i}`,
@@ -76,6 +93,14 @@ function makeReviewItem(e,i){
     status:e.reviewStatus || (e.status==="Validée" ? "Validé" : "À documenter")
   };
 }
+function updateAffectationAccess(){
+  const completed = reviewItems.length && reviewItems.every(x => x.status === "Validé");
+  [$("affectationBtn"), $("affectationTopBtn"), $("modalAffectationBtn")].forEach(btn=>{
+    if(!btn)return;
+    btn.style.pointerEvents = completed ? "auto" : "none";
+    btn.style.opacity = completed ? "1" : ".45";
+  });
+}
 function renderRows(){
   $("reviewCount").textContent=reviewItems.length;
   $("reviewRows").innerHTML=reviewItems.length?reviewItems.map((r,i)=>`
@@ -85,25 +110,12 @@ function renderRows(){
       <div class="grid"><div><label>Calcul / méthode</label><textarea data-calc="${i}">${sanitize(r.calculation)}</textarea></div><div><label>Justificatif attendu ou déposé</label><textarea data-doc="${i}">${sanitize(r.document)}</textarea></div></div>
       <label>Commentaire de révision</label><textarea data-comment="${i}">${sanitize(r.comment)}</textarea>
     </div>`).join(""):`<div class="notice warnNotice">Aucune écriture à documenter.</div>`;
-  document.querySelectorAll("[data-status]").forEach(el=>{
-    el.addEventListener("change",()=>{
-        reviewItems[Number(el.dataset.status)].status = el.value;
-        renderRows();
-    });
-});
-  document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.why)].why=el.value));
-  document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.calc)].calculation=el.value));
-  document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.doc)].document=el.value));
-  document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>reviewItems[Number(el.dataset.comment)].comment=el.value));
-   const completed =
-    reviewItems.length &&
-    reviewItems.every(x => x.status === "Validé");
-
-  $("affectationBtn").style.pointerEvents = completed ? "auto" : "none";
-  $("affectationBtn").style.opacity = completed ? "1" : ".45";
-
-  $("affectationTopBtn").style.pointerEvents = completed ? "auto" : "none";
-  $("affectationTopBtn").style.opacity = completed ? "1" : ".45";
+  document.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("change",()=>{reviewItems[Number(el.dataset.status)].status=el.value;updateAffectationAccess();renderPrint();}));
+  document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.why)].why=el.value;renderPrint();}));
+  document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.calc)].calculation=el.value;renderPrint();}));
+  document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.doc)].document=el.value;renderPrint();}));
+  document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.comment)].comment=el.value;renderPrint();}));
+  updateAffectationAccess();
   renderPrint();
 }
 async function saveReview(){
@@ -121,9 +133,13 @@ async function saveReview(){
     updatedAt:serverTimestamp()
   },{merge:true});
 
+  currentClosure={...(currentClosure||{}),dossierRevision:payload};
   $("statusLine").innerHTML='<span class="okText">Dossier de révision enregistré.</span>';
-
-  alert("Dossier de révision enregistré.");
+  $("saveBtn").disabled=true;
+  $("saveBtn").textContent="Dossier enregistré";
+  $("modalAffectationBtn").href=affectationUrl();
+  updateAffectationAccess();
+  $("saveRevisionModal").style.display="flex";
 }
 function docHtml(){
   return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Dossier de révision</div><div class="docSub">Justificatifs et validation des OD de clôture</div></div>
@@ -149,14 +165,17 @@ $("csvBtn").addEventListener("click",()=>{
   const csv="\ufeff"+[header,...rows].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n");
   download("dossier-revision.csv",csv,"text/csv;charset=utf-8");
 });
+$("closeRevisionModalBtn").addEventListener("click",()=>{$("saveRevisionModal").style.display="none";});
+$("saveRevisionModal").addEventListener("click",e=>{if(e.target===$("saveRevisionModal"))$("saveRevisionModal").style.display="none";});
 
 async function loadClosure(user){
   if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
   currentOwnerUid=owner||user.uid;
-  $("backBtn").href=`cloture-resultat.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
- const affectationHref = `affectation-resultat.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
-$("affectationTopBtn").href = affectationHref;
-$("affectationBtn").href = affectationHref;
+  $("backBtn").href=`cloture-resultat.html?id=${closureId}${ownerQuery()}`;
+  const href=affectationUrl();
+  $("affectationTopBtn").href=href;
+  $("affectationBtn").href=href;
+  $("modalAffectationBtn").href=href;
   const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
   if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return;}
   currentClosure=snap.data();
@@ -165,25 +184,19 @@ $("affectationBtn").href = affectationHref;
   const saved=Array.isArray(currentClosure.dossierRevision?.items)?currentClosure.dossierRevision.items:null;
   reviewItems=saved||((Array.isArray(currentClosure.entries)?currentClosure.entries:[]).filter(e=>String(e.journal||"").toUpperCase()!=="ANALYSE").map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
+  if(currentClosure.dossierRevision?.status==="completed"){
+    $("saveBtn").textContent="Dossier enregistré";
+  }
   renderRows();
 }
 onAuthStateChanged(auth,async user=>{
-  if(!user){
-    location.href="connexion.html";
-    return;
-  }
-
+  if(!user){location.href="connexion.html";return;}
   currentUser=user;
-
   try{
-
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
-
     showAdminFeedbackIfAllowed(user,userData);
-
     await loadClosure(user);
-
   }catch(e){
     console.error(e);
     $("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';
