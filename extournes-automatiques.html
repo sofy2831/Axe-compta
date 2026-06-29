@@ -102,6 +102,16 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   </div>
 </div>
 
+<div class="modalBack" id="saveModal">
+  <div class="modal">
+    <h2 id="saveModalTitle">✔ Enregistrement effectué</h2>
+    <p class="muted" id="saveModalText"></p>
+    <div class="actions" id="saveModalActions">
+      <button class="btn secondary" type="button" id="closeSaveModalBtn">OK</button>
+    </div>
+  </div>
+</div>
+  
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { showAdminFeedbackIfAllowed } from "./admin-access.js";
