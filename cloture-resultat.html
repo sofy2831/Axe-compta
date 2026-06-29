@@ -209,31 +209,31 @@ async function uploadReplacementFile(kind,inputId){if(isSoloClosureLocked(curren
 async function reparseFiles(){if(!currentUser||!id)return;if(isSoloClosureLocked(currentClosure)){$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Réimport bloqué.</b><br>Cette clôture Solo 99 € est verrouillée après validation des extournes.`;return}const msg=$("fileMsg");msg.style.display="block";msg.className="notice";msg.innerHTML="Téléversement et recalcul en cours...";$("reparseBtn").disabled=true;$("reparseBtn").textContent="Recalcul en cours...";try{const files={};const balance=await uploadReplacementFile("balance","balanceFile");const grandLivre=await uploadReplacementFile("grandLivre","grandLivreFile");const amortissements=await uploadReplacementFile("amortissements","amortissementsFile");const emprunt=await uploadReplacementFile("emprunt","empruntFile");if(balance)files.balance=balance;if(grandLivre)files.grandLivre=grandLivre;if(amortissements)files.amortissements=amortissements;if(emprunt)files.emprunt=emprunt;if(!Object.keys(files).length)throw new Error("Aucun fichier sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...files},odStatus:"draft",odFinalized:false,entriesFinalized:false,odFinalizedAt:deleteField(),affectationResult:deleteField(),extournesN1:deleteField(),scoreQualite:deleteField(),scoreQuality:deleteField(),validatedAt:deleteField(),finalValidation:deleteField(),closingReport:deleteField(),archivedAt:deleteField(),status:"reanalysis_pending",updatedAt:serverTimestamp()});const r=await fetch(PARSE_CLOSURE_FILES_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId:id})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok!==true)throw new Error(d.error||"Erreur recalcul fichiers.");msg.className="notice";msg.innerHTML=`<b class="ok">Nouvelle analyse terminée.</b><br>${d.entries||0} écriture(s), ${d.controls||0} contrôle(s), ${d.anomalies||0} anomalie(s). Les étapes suivantes ont été remises à zéro.`;setTimeout(()=>location.reload(),800)}catch(e){console.error(e);msg.className="notice err";msg.innerHTML=`<b class="err">${safe(e.message||"Erreur pendant le recalcul.")}</b>`;$("reparseBtn").disabled=false;$("reparseBtn").textContent="Recharger et recalculer"}}
 async function finalizeEntries(){
   if(!currentEntries.length){
-    alert("Aucune OD à valider.");
+    openResultModal("Aucune OD à valider","Aucune écriture OD n’est disponible pour validation.",false);
     return;
   }
 
- if(!window.confirmOdValidation){
-  window.confirmOdValidation = true;
+  if(!window.confirmOdValidation){
+    window.confirmOdValidation = true;
 
-  $("saveProjectModalTitle").textContent = "Valider les OD définitives";
-  $("saveProjectModalText").innerHTML =
-    "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.";
+    openResultModal(
+      "Valider les OD définitives",
+      "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.",
+      true
+    );
 
-  $("saveProjectModalAction").href = "#";
-  $("saveProjectModalAction").textContent = "Confirmer";
+    $("resultSaveModalNextBtn").href = "#";
+    $("resultSaveModalNextBtn").textContent = "Confirmer";
 
-  $("saveProjectModal").style.display = "flex";
+    $("resultSaveModalNextBtn").onclick = async (e) => {
+      e.preventDefault();
+      closeResultModal();
+      window.confirmOdValidation = false;
+      await finalizeEntries();
+    };
 
-  $("saveProjectModalAction").onclick = async (e) => {
-    e.preventDefault();
-    $("saveProjectModal").style.display = "none";
-    window.confirmOdValidation = false;
-    await finalizeEntries();
-  };
-
-  return;
-}
+    return;
+  }
 
   const finalized = currentEntries.map(e => ({
     ...e,
@@ -259,19 +259,18 @@ async function finalizeEntries(){
     entriesFinalized: true
   };
 
- renderEntries();
-applyStepLocks(currentClosure);
-renderWorkflow(currentClosure);
+  renderEntries();
+  applyStepLocks(currentClosure);
+  renderWorkflow(currentClosure);
 
-$("saveProjectModalTitle").textContent = "✔ OD définitives validées";
-$("saveProjectModalText").innerHTML =
-  "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.";
+  $("resultSaveModalNextBtn").onclick = null;
+  $("resultSaveModalNextBtn").textContent = "Dossier de révision";
 
-$("saveProjectModalAction").href =
-  `dossier-revision.html?id=${id}${ownerQueryParam()}`;
-$("saveProjectModalAction").textContent = "Dossier de révision";
-
-$("saveProjectModal").style.display = "flex";
+  openResultModal(
+    "✔ OD définitives validées",
+    "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",
+    true
+  );
 }
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
