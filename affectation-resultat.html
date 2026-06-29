@@ -488,22 +488,31 @@ async function saveAffectation(){
     updatedAt:serverTimestamp()
   },{merge:true});
 
-  currentClosure.affectationResult=data;
- $("saveBtn").disabled = true;
-$("saveBtn").textContent = "Affectation enregistrée";
+currentClosure.affectationResult = data;
 
-$("validationMsg")?.remove;
+$("saveBtn").disabled = true;
+$("saveBtn").textContent = "Affectation enregistrée";
 
 $("modalExtournesBtn").href =
   `extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
 
 $("saveAffectationModal").style.display = "flex";
+}
+$("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{
+  console.error(e);
+  alert("Erreur lors de l’enregistrement.");
+}));
 
-$("saveBtn").addEventListener("click",()=>saveAffectation().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 $("closeAffectationModalBtn").addEventListener("click",()=>{
   $("saveAffectationModal").style.display = "none";
 });
 
+$("saveAffectationModal").addEventListener("click",e=>{
+  if(e.target === $("saveAffectationModal")){
+    $("saveAffectationModal").style.display = "none";
+  }
+});
+  
 $("saveAffectationModal").addEventListener("click",e=>{
   if(e.target === $("saveAffectationModal")){
     $("saveAffectationModal").style.display = "none";
