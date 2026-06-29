@@ -195,6 +195,9 @@ if (
   $("rapportBtn").className = "btn";
 } else {
   $("rapportBtn").style.display = "none";
+
+  $("validateBtn").disabled = false;
+$("validateBtn").textContent = "Valider définitivement";
 }
  if (
   currentClosure.validated ||
