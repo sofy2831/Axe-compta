@@ -67,8 +67,21 @@ function hasRevision(c){return c.dossierRevision?.status==="completed"||c.dossie
 function hasAffectation(c){return c.affectationResult?.status==="generated"||(Array.isArray(c.affectationResult?.entries)&&c.affectationResult.entries.length>0)}
 function hasExtournes(c){return c.extournesN1?.status==="generated"||(Array.isArray(c.extournesN1?.entries)&&c.extournesN1.entries.length>0)}
 function hasScore(c){return c.scoreQualite?.status==="generated"||c.scoreQuality?.status==="generated"||typeof c.scoreQualite?.score==="number"||typeof c.scoreQuality?.score==="number"}
-function hasValidation(c){return c.validationCloture?.status==="validated"||c.validationCloture?.status==="generated"||c.closureValidation?.status==="validated"}
-function hasReport(c){return c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="generated"}
+function hasValidation(c){
+  return c.validated === true
+    || c.validation?.status === "validated"
+    || c.validationDefinitive?.status === "validated"
+    || c.validationCloture?.status === "validated"
+    || c.closureValidation?.status === "validated";
+}
+
+function hasReport(c){
+  return c.rapportCloture?.status === "saved"
+    || c.rapportCloture?.status === "generated"
+    || c.rapportCloture?.status === "archived"
+    || c.closureReport?.status === "saved"
+    || c.closureReport?.status === "generated";
+}
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
 function scoreLabel(c){const s=scoreValue(c);return s===null?"—":`${s}%`}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
