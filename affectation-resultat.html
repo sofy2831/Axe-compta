@@ -544,7 +544,38 @@ function pvDocHtml(){
 const printCss = `@page{size:A4;margin:12mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff;font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px;vertical-align:top}th{background:#f3f6fa;color:#111;text-transform:uppercase}.amount,.num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}h3{font-size:12pt;margin:14px 0 6px;color:#173f6f;text-transform:uppercase}`;
 function htmlPage(content){return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Affectation du résultat</title><style>${printCss}</style></head><body>${content}</body></html>`}
 function ensureGenerated(){if(!generatedRows.length)generatedRows=buildEntries()}
-function openPrintDoc(){try{ensureGenerated()}catch(e){alert(e.message);return}const w=window.open("","_blank");if(!w){alert("Le navigateur a bloqué la fenêtre d’impression. Autorisez les pop-ups pour ce site.");return}w.document.open();w.document.write(htmlPage(docHtml()).replace("</body>","<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},250);};<\/script></body>"));w.document.close()}
+function openPrintDoc(){
+  try{
+    ensureGenerated();
+  }catch(e){
+    alert(e.message);
+    return;
+  }
+
+  const w = window.open("", "printWindow", "width=900,height=800");
+
+  if(!w){
+    alert("Le navigateur a bloqué la fenêtre d’impression.");
+    return;
+  }
+
+  w.document.open();
+  w.document.write(htmlPage(docHtml()).replace(
+    "</body>",
+    `<script>
+      window.onload = function(){
+        setTimeout(function(){
+          window.focus();
+          window.print();
+          window.onafterprint = function(){
+            window.close();
+          };
+        },200);
+      };
+    <\/script></body>`
+  ));
+  w.document.close();
+}
 function renderPrint(){if(!generatedRows.length)return;$("printArea").innerHTML=docHtml()}
 function download(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function csvContent(){const rows=getExportRows();const header=["Journal","Libelle","Debit","Credit","Montant","Affectation"];return [header.join(";"),...rows.map(r=>header.map(h=>`"${String(r[h]??"").replace(/"/g,'""')}"`).join(";"))].join("\n")}
