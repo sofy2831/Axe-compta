@@ -513,11 +513,6 @@ $("saveAffectationModal").addEventListener("click",e=>{
   }
 });
   
-$("saveAffectationModal").addEventListener("click",e=>{
-  if(e.target === $("saveAffectationModal")){
-    $("saveAffectationModal").style.display = "none";
-  }
-});
 function allocationRowsHtml(){
   const rows=generatedRows.filter(r=>!String(r.label||"").toLowerCase().includes("affectation du résultat"));
   return rows.map(r=>`<tr><td>${sanitize(r.affectation||r.label)}</td><td>${sanitize(r.credit||r.debit||"")}</td><td class="amount">${money(r.amount)}</td></tr>`).join("");
