@@ -241,11 +241,19 @@ async function finalizeEntries(){
     entriesFinalized: true
   };
 
-  renderEntries();
-  applyStepLocks(currentClosure);
-  renderWorkflow(currentClosure);
+ renderEntries();
+applyStepLocks(currentClosure);
+renderWorkflow(currentClosure);
 
-  openResultModal("✔ OD définitives validées","Les OD de clôture sont validées définitivement.<br><br>Vous pouvez maintenant passer au dossier de révision.",true);
+$("saveProjectModalTitle").textContent = "✔ OD définitives validées";
+$("saveProjectModalText").innerHTML =
+  "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.";
+
+$("saveProjectModalAction").href =
+  `dossier-revision.html?id=${id}${ownerQueryParam()}`;
+$("saveProjectModalAction").textContent = "Dossier de révision";
+
+$("saveProjectModal").style.display = "flex";
 }
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
