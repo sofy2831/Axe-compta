@@ -119,6 +119,21 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   <section class="printArea printable" id="printArea"></section>
 </div>
 
+<div class="modalBack" id="saveAffectationModal">
+  <div class="modal">
+    <h2>✔ Affectation enregistrée</h2>
+    <p class="muted">
+      L’affectation du résultat est enregistrée.
+      <br><br>
+      Vous pouvez maintenant télécharger le PV d’AG ou passer aux extournes N+1.
+    </p>
+    <div class="actions">
+      <button class="btn secondary" type="button" id="closeAffectationModalBtn">OK</button>
+      <a class="btn" id="modalExtournesBtn" href="extournes-automatiques.html">Extournes N+1</a>
+    </div>
+  </div>
+</div>
+  
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
