@@ -222,64 +222,20 @@ async function finalizeEntries(){
     return;
   }
 
-  if(!window.confirmOdValidation){
-    window.confirmOdValidation = true;
-
-    openResultModal(
-      "Valider les OD définitives",
-      "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.",
-      true
-    );
-
-    $("resultSaveModalNextBtn").href = "#";
-    $("resultSaveModalNextBtn").textContent = "Confirmer";
-
-    $("resultSaveModalNextBtn").onclick = async (e) => {
-      e.preventDefault();
-      closeResultModal();
-      window.confirmOdValidation = false;
-      await finalizeEntries();
-    };
-
-    return;
-  }
-
-  const finalized = currentEntries.map(e => ({
-    ...e,
-    status: "Validée",
-    validatedAt: new Date().toISOString()
-  }));
-
-  await updateDoc(closureRef(),{
-    entries: finalized,
-    odStatus: "finalized",
-    odFinalized: true,
-    entriesFinalized: true,
-    odFinalizedAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-
-  currentEntries = finalized;
-  currentClosure = {
-    ...currentClosure,
-    entries: finalized,
-    odStatus: "finalized",
-    odFinalized: true,
-    entriesFinalized: true
-  };
-
-  renderEntries();
-  applyStepLocks(currentClosure);
-  renderWorkflow(currentClosure);
-
-  $("resultSaveModalNextBtn").onclick = null;
-  $("resultSaveModalNextBtn").textContent = "Dossier de révision";
-
   openResultModal(
-    "✔ OD définitives validées",
-    "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",
+    "Valider les OD définitives",
+    "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.",
     true
   );
+
+  $("resultSaveModalNextBtn").href = "#";
+  $("resultSaveModalNextBtn").textContent = "Confirmer";
+
+  $("resultSaveModalNextBtn").onclick = async (e) => {
+    e.preventDefault();
+    closeResultModal();
+    await validateOdFinales();
+  };
 }
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
