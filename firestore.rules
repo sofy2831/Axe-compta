@@ -44,28 +44,22 @@ service cloud.firestore {
         && currentUserData().cabinetOwnerUid != null;
     }
 
-    function isCabinetOwnerOfUser(userId) {
-      return isSignedIn()
-        && userDocExists(userId)
-        && get(/databases/$(database)/documents/users/$(userId)).data.cabinetOwnerUid == request.auth.uid;
-    }
-
     function hasSharedWithEmails(data) {
-      return "sharedWithEmails" in data
+      return data.keys().hasAny(["sharedWithEmails"])
         && data.sharedWithEmails is list
         && data.sharedWithEmails.hasAny([userEmail()]);
     }
 
     function hasSharedEmails(data) {
-      return "sharedEmails" in data
+      return data.keys().hasAny(["sharedEmails"])
         && data.sharedEmails is list
         && data.sharedEmails.hasAny([userEmail()]);
     }
 
     function hasSharedWithMap(data) {
-      return "sharedWith" in data
+      return data.keys().hasAny(["sharedWith"])
         && data.sharedWith is map
-        && userEmail() in data.sharedWith
+        && data.sharedWith.keys().hasAny([userEmail()])
         && data.sharedWith[userEmail()].active == true;
     }
 
@@ -78,50 +72,50 @@ service cloud.firestore {
         );
     }
 
-function canReadOrUpdateClosure(userId, data) {
-  return isSignedIn()
-    && (
-      isOwner(userId)
-      || isAdmin()
-      || (
-        data.keys().hasAny(["cabinetOwnerUid"])
-        && data.cabinetOwnerUid == request.auth.uid
-      )
-      || isSharedClosureData(data)
-      || (
-        isCabinetMember()
-        && data.keys().hasAny(["cabinetOwnerUid"])
-        && data.cabinetOwnerUid == myCabinetOwnerUid()
-      )
-    );
-}
+    function canReadOrUpdateClosure(userId, data) {
+      return isSignedIn()
+        && (
+          isOwner(userId)
+          || isAdmin()
+          || (
+            data.keys().hasAny(["cabinetOwnerUid"])
+            && data.cabinetOwnerUid == request.auth.uid
+          )
+          || isSharedClosureData(data)
+          || (
+            isCabinetMember()
+            && data.keys().hasAny(["cabinetOwnerUid"])
+            && data.cabinetOwnerUid == myCabinetOwnerUid()
+          )
+        );
+    }
 
-match /{path=**}/cabinetCollaborators/{collabId} {
-  allow read: if isSignedIn()
-    && (
-      isAdmin()
-      || resource.data.email == userEmail()
-      || resource.data.cabinetOwnerUid == request.auth.uid
-    );
-}
+    match /{path=**}/cabinetCollaborators/{collabId} {
+      allow read: if isSignedIn()
+        && (
+          isAdmin()
+          || resource.data.email == userEmail()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+        );
+    }
 
-match /{path=**}/closures/{closureId} {
-  allow read, update: if isSignedIn()
-    && (
-      isAdmin()
-      || resource.data.ownerUid == request.auth.uid
-      || (
-  resource.data.keys().hasAny(["cabinetOwnerUid"])
-  && resource.data.cabinetOwnerUid == request.auth.uid
-)
-      || isSharedClosureData(resource.data)
-      || (
-        isCabinetMember()
-&& resource.data.keys().hasAny(["cabinetOwnerUid"])
-&& resource.data.cabinetOwnerUid == myCabinetOwnerUid()
-      )
-    );
-}
+    match /{path=**}/closures/{closureId} {
+      allow read, update: if isSignedIn()
+        && (
+          isAdmin()
+          || resource.data.ownerUid == request.auth.uid
+          || (
+            resource.data.keys().hasAny(["cabinetOwnerUid"])
+            && resource.data.cabinetOwnerUid == request.auth.uid
+          )
+          || isSharedClosureData(resource.data)
+          || (
+            isCabinetMember()
+            && resource.data.keys().hasAny(["cabinetOwnerUid"])
+            && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+          )
+        );
+    }
 
     match /users/{userId} {
 
@@ -177,10 +171,14 @@ match /{path=**}/closures/{closureId} {
         && (
           resource.data.ownerUid == request.auth.uid
           || isAdmin()
-          || resource.data.cabinetOwnerUid == request.auth.uid
+          || (
+            resource.data.keys().hasAny(["cabinetOwnerUid"])
+            && resource.data.cabinetOwnerUid == request.auth.uid
+          )
           || isSharedClosureData(resource.data)
           || (
             isCabinetMember()
+            && resource.data.keys().hasAny(["cabinetOwnerUid"])
             && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
           )
         );
