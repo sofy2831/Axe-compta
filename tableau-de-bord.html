@@ -93,7 +93,45 @@ async function loadCabinetMemberships(user){const email=normEmail(user.email);tr
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled")});}
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
 async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}}));}
-async function collectSharedClosures(user){const email=normEmail(user.email);const all=[];for(const m of currentMemberships){try{const ownerUid=m.cabinetOwnerUid;const snap=await getDocs(query(collection(db,"users",ownerUid,"closures"),where("sharedWithEmails","array-contains",email),limit(50)));snap.docs.forEach(d=>all.push({id:d.id,ownerUid,shared:true,cabinetName:m.cabinetName||"Cabinet",data:d.data()||{}}));}catch(e){console.warn("Dossiers partagés non chargés",e);}}return all;}
+async function collectSharedClosures(user){
+  const email = normEmail(user.email);
+  const all = [];
+
+  try{
+    const snap = await getDocs(
+      query(
+        collectionGroup(db, "closures"),
+        where("sharedWithEmails", "array-contains", email),
+        limit(100)
+      )
+    );
+
+    snap.docs.forEach(d=>{
+      const ownerDoc = d.ref.parent.parent;
+      if(!ownerDoc) return;
+
+      const ownerUid = ownerDoc.id;
+
+      // évite de doubler ses propres clôtures
+      if(ownerUid === user.uid) return;
+
+      const data = d.data() || {};
+
+      all.push({
+        id: d.id,
+        ownerUid,
+        shared: true,
+        cabinetName: data.cabinetName || data.ownerCompanyName || "Dossier partagé",
+        data
+      });
+    });
+
+  }catch(e){
+    console.warn("Dossiers partagés non chargés", e);
+  }
+
+  return all;
+}
 async function loadDashboard(user){
   userEmailEl.textContent=user.email;
   currentMemberships=await loadCabinetMemberships(user);
