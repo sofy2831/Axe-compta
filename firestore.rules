@@ -153,9 +153,16 @@ match /{path=**}/cabinetSharedClosures/{sharedId} {
           && request.resource.data.active == true;
       }
 
-      match /cabinetSharedClosures/{sharedId} {
-        allow read, write: if isOwner(userId) || isAdmin();
-      }
+    match /cabinetSharedClosures/{sharedId} {
+  allow read: if isOwner(userId)
+    || isAdmin()
+    || (
+      isSignedIn()
+      && isSharedClosureData(resource.data)
+    );
+
+  allow write: if isOwner(userId) || isAdmin();
+}
 
       match /closures/{closureId} {
 
