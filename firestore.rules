@@ -78,23 +78,23 @@ service cloud.firestore {
         );
     }
 
-  function canReadOrUpdateClosure(userId, data) {
+function canReadOrUpdateClosure(userId, data) {
   return isSignedIn()
     && (
       isOwner(userId)
       || isAdmin()
       || (
-        "cabinetOwnerUid" in data
+        data.keys().hasAny(["cabinetOwnerUid"])
         && data.cabinetOwnerUid == request.auth.uid
       )
       || isSharedClosureData(data)
       || (
         isCabinetMember()
-        && "cabinetOwnerUid" in data
+        && data.keys().hasAny(["cabinetOwnerUid"])
         && data.cabinetOwnerUid == myCabinetOwnerUid()
       )
     );
-} 
+}
 
 match /{path=**}/cabinetCollaborators/{collabId} {
   allow read: if isSignedIn()
@@ -110,11 +110,15 @@ match /{path=**}/closures/{closureId} {
     && (
       isAdmin()
       || resource.data.ownerUid == request.auth.uid
-      || resource.data.cabinetOwnerUid == request.auth.uid
+      || (
+  resource.data.keys().hasAny(["cabinetOwnerUid"])
+  && resource.data.cabinetOwnerUid == request.auth.uid
+)
       || isSharedClosureData(resource.data)
       || (
         isCabinetMember()
-        && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+&& resource.data.keys().hasAny(["cabinetOwnerUid"])
+&& resource.data.cabinetOwnerUid == myCabinetOwnerUid()
       )
     );
 }
