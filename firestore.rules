@@ -25,7 +25,7 @@ service cloud.firestore {
 
     function userDocExists(uid) {
       return exists(/databases/$(database)/documents/users/$(uid));
-    }
+    }ici 
 
     function currentUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
@@ -78,19 +78,23 @@ service cloud.firestore {
         );
     }
 
-    function canReadOrUpdateClosure(userId, data) {
-      return isSignedIn()
-        && (
-          isOwner(userId)
-          || isAdmin()
-          || data.cabinetOwnerUid == request.auth.uid
-          || isSharedClosureData(data)
-          || (
-            isCabinetMember()
-            && data.cabinetOwnerUid == myCabinetOwnerUid()
-          )
-        );
-    }
+  function canReadOrUpdateClosure(userId, data) {
+  return isSignedIn()
+    && (
+      isOwner(userId)
+      || isAdmin()
+      || (
+        "cabinetOwnerUid" in data
+        && data.cabinetOwnerUid == request.auth.uid
+      )
+      || isSharedClosureData(data)
+      || (
+        isCabinetMember()
+        && "cabinetOwnerUid" in data
+        && data.cabinetOwnerUid == myCabinetOwnerUid()
+      )
+    );
+} 
 
 match /{path=**}/cabinetCollaborators/{collabId} {
   allow read: if isSignedIn()
