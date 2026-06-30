@@ -25,7 +25,7 @@ service cloud.firestore {
 
     function userDocExists(uid) {
       return exists(/databases/$(database)/documents/users/$(uid));
-    }ici 
+    }
 
     function currentUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
