@@ -78,6 +78,10 @@ service cloud.firestore {
           isOwner(userId)
           || isAdmin()
           || (
+            data.keys().hasAny(["ownerUid"])
+            && data.ownerUid == request.auth.uid
+          )
+          || (
             data.keys().hasAny(["cabinetOwnerUid"])
             && data.cabinetOwnerUid == request.auth.uid
           )
@@ -99,77 +103,57 @@ service cloud.firestore {
         );
     }
 
-    match /{path=**}/closures/{closureId} {
-      allow read, update: if isSignedIn()
+    match /{path=**}/cabinetSharedClosures/{sharedId} {
+      allow read: if isSignedIn()
         && (
           isAdmin()
-          || resource.data.ownerUid == request.auth.uid
-          || (
-            resource.data.keys().hasAny(["cabinetOwnerUid"])
-            && resource.data.cabinetOwnerUid == request.auth.uid
-          )
+          || resource.data.cabinetOwnerUid == request.auth.uid
           || isSharedClosureData(resource.data)
-          || (
-            isCabinetMember()
-            && resource.data.keys().hasAny(["cabinetOwnerUid"])
-            && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
-          )
+        );
+
+      allow write: if isSignedIn()
+        && (
+          isAdmin()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+          || request.resource.data.cabinetOwnerUid == request.auth.uid
         );
     }
 
-match /{path=**}/cabinetSharedClosures/{sharedId} {
-  allow read: if isSignedIn()
-    && (
-      isAdmin()
-      || resource.data.cabinetOwnerUid == request.auth.uid
-      || isSharedClosureData(resource.data)
-    );
-}
+    match /{path=**}/closures/{closureId} {
+      allow read, update: if canReadOrUpdateClosure("", resource.data);
+    }
 
     match /users/{userId} {
 
-      allow read, write: if isOwner(userId);
-      allow read: if isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
 
       match /cabinetCollaborators/{collabId} {
-
         allow read: if isSignedIn()
           && (
             isOwner(userId)
             || isAdmin()
             || resource.data.email == userEmail()
+            || resource.data.cabinetOwnerUid == request.auth.uid
           );
 
         allow create, delete: if isOwner(userId) || isAdmin();
-
         allow update: if isOwner(userId) || isAdmin();
-
-        allow update: if isSignedIn()
-          && resource.data.email == userEmail()
-          && request.resource.data.email == resource.data.email
-          && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid
-          && request.resource.data.collaboratorUid == request.auth.uid
-          && request.resource.data.status == "active"
-          && request.resource.data.active == true;
       }
 
-    match /cabinetSharedClosures/{sharedId} {
-  allow read: if isOwner(userId)
-    || isAdmin()
-    || (
-      isSignedIn()
-      && isSharedClosureData(resource.data)
-    );
+      match /cabinetSharedClosures/{sharedId} {
+        allow read: if isSignedIn()
+          && (
+            isOwner(userId)
+            || isAdmin()
+            || isSharedClosureData(resource.data)
+          );
 
-  allow write: if isOwner(userId) || isAdmin();
-}
+        allow write: if isOwner(userId) || isAdmin();
+      }
 
       match /closures/{closureId} {
-
         allow create: if isOwner(userId) || isAdmin();
-
         allow read, update: if canReadOrUpdateClosure(userId, resource.data);
-
         allow delete: if isOwner(userId) || isAdmin();
       }
 
@@ -179,29 +163,13 @@ match /{path=**}/cabinetSharedClosures/{sharedId} {
     }
 
     match /closures/{closureId} {
-
       allow create: if isSignedIn()
         && request.resource.data.ownerUid == request.auth.uid;
 
-      allow read, update, delete: if isSignedIn()
-        && (
-          resource.data.ownerUid == request.auth.uid
-          || isAdmin()
-          || (
-            resource.data.keys().hasAny(["cabinetOwnerUid"])
-            && resource.data.cabinetOwnerUid == request.auth.uid
-          )
-          || isSharedClosureData(resource.data)
-          || (
-            isCabinetMember()
-            && resource.data.keys().hasAny(["cabinetOwnerUid"])
-            && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
-          )
-        );
+      allow read, update, delete: if canReadOrUpdateClosure("", resource.data);
     }
 
     match /feedback/{feedbackId} {
-
       allow create: if isSignedIn()
         && request.resource.data.uid == request.auth.uid;
 
