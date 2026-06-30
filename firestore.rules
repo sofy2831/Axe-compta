@@ -92,6 +92,29 @@ service cloud.firestore {
         );
     }
 
+match /{path=**}/cabinetCollaborators/{collabId} {
+  allow read: if isSignedIn()
+    && (
+      isAdmin()
+      || resource.data.email == userEmail()
+      || resource.data.cabinetOwnerUid == request.auth.uid
+    );
+}
+
+match /{path=**}/closures/{closureId} {
+  allow read, update: if isSignedIn()
+    && (
+      isAdmin()
+      || resource.data.ownerUid == request.auth.uid
+      || resource.data.cabinetOwnerUid == request.auth.uid
+      || isSharedClosureData(resource.data)
+      || (
+        isCabinetMember()
+        && resource.data.cabinetOwnerUid == myCabinetOwnerUid()
+      )
+    );
+}
+
     match /users/{userId} {
 
       allow read, write: if isOwner(userId);
