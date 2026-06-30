@@ -97,39 +97,31 @@ async function collectSharedClosures(user){
   const email = normEmail(user.email);
   const all = [];
 
-  const ownerUids = new Set();
+  try{
+    const snap = await getDocs(
+      query(
+        collectionGroup(db, "cabinetSharedClosures"),
+        where("sharedWithEmails", "array-contains", email),
+        limit(100)
+      )
+    );
 
-  if(currentUserData.cabinetOwnerUid){
-    ownerUids.add(currentUserData.cabinetOwnerUid);
-  }
+    snap.docs.forEach(d=>{
+      const data = d.data() || {};
 
-  currentMemberships.forEach(m=>{
-    if(m.cabinetOwnerUid) ownerUids.add(m.cabinetOwnerUid);
-  });
+      if(!data.cabinetOwnerUid || !data.closureId) return;
 
-  for(const ownerUid of ownerUids){
-    try{
-      const snap = await getDocs(
-        query(
-          collection(db,"users",ownerUid,"closures"),
-          where("sharedWithEmails","array-contains",email),
-          limit(100)
-        )
-      );
-
-      snap.docs.forEach(d=>{
-        all.push({
-          id:d.id,
-          ownerUid,
-          shared:true,
-          cabinetName:"Dossier partagé",
-          data:d.data() || {}
-        });
+      all.push({
+        id: data.closureId,
+        ownerUid: data.cabinetOwnerUid,
+        shared: true,
+        cabinetName: data.cabinetName || data.ownerCompanyName || "Dossier partagé",
+        data
       });
+    });
 
-    }catch(e){
-      console.warn("Dossiers partagés non chargés pour owner", ownerUid, e);
-    }
+  }catch(e){
+    console.warn("Dossiers partagés non chargés", e);
   }
 
   return all;
