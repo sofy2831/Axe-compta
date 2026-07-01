@@ -36,13 +36,13 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 
   <section class="box">
     <h2>Inviter un collaborateur</h2>
-    <p class="muted">Le collaborateur est invité ici. Les dossiers autorisés se partagent ensuite depuis le bouton <b>Partager</b> dans le tableau de bord, sur chaque clôture.</p>
+    <p class="muted">Le collaborateur est invité ici. Les dossiers autorisés se partagent ensuite depuis le bouton <b>Partager</b> dans le tableau de bord.</p>
     <div class="grid2">
       <div><label>Nom du collaborateur</label><input id="inviteName" type="text" placeholder="Prénom Nom"></div>
       <div><label>Email du collaborateur</label><input id="inviteEmail" type="email" placeholder="collaborateur@cabinet.fr"></div>
     </div>
     <div class="grid2"><div><label>Rôle</label><input type="text" value="Collaborateur" disabled></div><div></div></div>
-    <div class="notice"><b>Gestion simple :</b> pas de rôles complexes. Un collaborateur peut consulter et intervenir uniquement sur les clôtures que vous lui partagez.</div>
+    <div class="notice"><b>Gestion simple :</b> un collaborateur peut consulter et intervenir uniquement sur les clôtures partagées.</div>
     <label>Message facultatif</label>
     <textarea id="inviteNote" placeholder="Ex : Bonjour, voici votre accès Axe Compta Cabinet."></textarea>
     <div class="actions"><button class="btn primary" type="button" id="inviteBtn">Créer l’invitation</button><button class="btn warn" type="button" id="extraBtn">Ajouter une licence 129 €/mois</button></div>
@@ -58,13 +58,13 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
   <section class="box">
     <h2>Dossiers envoyés aux collaborateurs</h2>
     <p class="muted">Clôtures du cabinet partagées depuis le tableau de bord.</p>
-    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur autorisé</th><th>Droit</th><th></th></tr></thead><tbody id="rightsRows"><tr><td colspan="5" class="muted">Aucun dossier partagé pour le moment.</td></tr></tbody></table>
+    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur autorisé</th><th>Droit</th><th></th></tr></thead><tbody id="rightsRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table>
   </section>
 
   <section class="box">
     <h2>Dossiers reçus des collaborateurs</h2>
     <p class="muted">Clôtures créées par les collaborateurs et partagées avec le cabinet.</p>
-    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur</th><th>Statut</th><th></th></tr></thead><tbody id="receivedRows"><tr><td colspan="5" class="muted">Aucun dossier reçu pour le moment.</td></tr></tbody></table>
+    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur</th><th>Statut</th><th></th></tr></thead><tbody id="receivedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table>
   </section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
@@ -81,7 +81,6 @@ let currentUser=null,currentUserData={},collaborators=[],sentClosures=[],receive
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
-function uniqueEmails(arr){return [...new Set(arr.map(normEmail).filter(Boolean))];}
 function showMsg(text,isError=false){$("inviteMsg").style.display="block";$("inviteMsg").innerHTML=isError?`<span class="errText">${safe(text)}</span>`:text;}
 function canAccessCabinet(data){return data.developerAccess===true||data.role==="admin"||data.cabinetOwner===true||data.planRequested==="cabinet"||data.cabinetSetup?.status==="active"||data.cabinetSetup?.status==="pending_payment"||(data.plan==="cabinet"&&data.subscriptionActive===true&&data.active!==false&&["paid","active","trialing","cancel_at_period_end"].includes(String(data.paymentStatus||"")));}
 function statusLabel(status){if(status==="active")return`<span class="pill">Actif</span>`;if(status==="suspended")return`<span class="pill warn">Suspendu</span>`;if(status==="removed")return`<span class="pill err">Retiré</span>`;return`<span class="pill warn">Invitation envoyée</span>`;}
@@ -102,7 +101,15 @@ function actionLinks(id,ownerUid){
   ].map(([label,page])=>`<a class="btn small" href="${linkFor(page,id,ownerUid)}">${label}</a>`).join(" ");
 }
 function sentCountForEmail(email){const needle=normEmail(email);let n=0;sentClosures.forEach(c=>{if((c.sharedWithEmails||[]).map(normEmail).includes(needle))n++;});return n;}
-function receivedCountForEmail(email){const needle=normEmail(email);let n=0;receivedClosures.forEach(c=>{if(normEmail(c.sharedByEmail||c.ownerEmail||"")===needle)n++;});return n;}
+function receivedCountForEmail(email){
+  const needle=normEmail(email);
+  let n=0;
+  receivedClosures.forEach(c=>{
+    const byEmail=normEmail(c.sharedByEmail||c.ownerEmail||"");
+    if(byEmail===needle)n++;
+  });
+  return n;
+}
 function updateMetrics(){const included=includedCount(),extra=extraCount(),used=activeCount();$("includedLicenses").textContent=included;$("extraLicenses").textContent=extra;$("activeCollaborators").textContent=used;$("availableLicenses").textContent=Math.max(0,included+extra-used);}
 
 function renderCollaborators(){
@@ -173,6 +180,7 @@ function renderReceivedRights(){
 
 async function loadReceivedClosures(user){
   const byKey=new Map();
+
   async function addSnap(snap){
     snap.docs.forEach(d=>{
       const ownerDoc=d.ref.parent.parent;
@@ -184,12 +192,20 @@ async function loadReceivedClosures(user){
     });
   }
 
-  const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
-  await addSnap(uidSnap);
+  try{
+    const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
+    await addSnap(uidSnap);
+  }catch(e){
+    console.warn("Dossiers reçus par UID non chargés :",e);
+  }
 
-  if(user.email){
-    const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
-    await addSnap(emailSnap);
+  try{
+    if(user.email){
+      const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
+      await addSnap(emailSnap);
+    }
+  }catch(e){
+    console.warn("Dossiers reçus par email non chargés :",e);
   }
 
   return [...byKey.values()].sort((a,b)=>(b.updatedAt?.seconds||0)-(a.updatedAt?.seconds||0));
@@ -200,18 +216,30 @@ async function loadCabinetPage(user){
   if(!userSnap.exists()){location.href="tableau-de-bord.html";return;}
 
   currentUserData=userSnap.data()||{};
-  showAdminFeedbackIfAllowed(user,currentUserData);
+  try{showAdminFeedbackIfAllowed(user,currentUserData);}catch(e){console.warn("Admin feedback non bloquant :",e);}
 
   if(!canAccessCabinet(currentUserData)){location.href="tableau-de-bord.html";return;}
 
   const name=currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||currentUserData.cabinetName||"Cabinet";
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs, dossiers envoyés et dossiers reçus.`;
 
-  const collabSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc")));
-  collaborators=collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  try{
+    const collabSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc")));
+    collaborators=collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  }catch(e){
+    console.error("Collaborateurs non chargés :",e);
+    collaborators=[];
+    $("collabRows").innerHTML=`<tr><td colspan="7" class="errText">Collaborateurs non chargés : ${safe(e.message||"permission refusée")}</td></tr>`;
+  }
 
-  const sentSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc")));
-  sentClosures=sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  try{
+    const sentSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc")));
+    sentClosures=sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  }catch(e){
+    console.error("Dossiers envoyés non chargés :",e);
+    sentClosures=[];
+    $("rightsRows").innerHTML=`<tr><td colspan="5" class="errText">Dossiers envoyés non chargés : ${safe(e.message||"permission refusée")}</td></tr>`;
+  }
 
   receivedClosures=await loadReceivedClosures(user);
 
@@ -279,7 +307,7 @@ async function addExtraLicense(){
 $("inviteBtn").addEventListener("click",()=>createInvitation().catch(e=>{console.error(e);showMsg(e.message||"Erreur lors de l’invitation.",true)}));
 $("extraBtn").addEventListener("click",addExtraLicense);
 $("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
-onAuthStateChanged(auth,user=>{if(!user){location.href="connexion.html";return;}currentUser=user;loadCabinetPage(user).catch(e=>{console.error(e);$("cabinetLine").textContent="Erreur de chargement de l’espace cabinet.";});});
+onAuthStateChanged(auth,user=>{if(!user){location.href="connexion.html";return;}currentUser=user;loadCabinetPage(user).catch(e=>{console.error(e);$("cabinetLine").textContent="Erreur de chargement de l’espace cabinet : "+(e.message||"");});});
 </script>
 </body>
 </html>
