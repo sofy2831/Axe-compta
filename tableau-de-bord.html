@@ -30,7 +30,14 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="moduleCard"><b>✅ Validation clôture</b><span>Figer le dossier après score final avant génération du rapport.</span><a class="btn" id="validationModuleLink" href="#">Ouvrir</a></div>
 <div class="moduleCard"><b>📄 Rapport de clôture</b><span>Export final PDF / Word et archivage du dossier de clôture.</span><a class="btn" id="reportModuleLink" href="#">Ouvrir</a></div>
 </div></section>
-<section class="box"><h2>Menu Axe Compta</h2><p class="muted">Axe Compta évolue grâce aux retours de ses utilisateurs. Chaque suggestion est étudiée.</p><div class="menuGrid"><div class="menuCard" data-menu-action="suggest"><b>💡 Suggérer une fonctionnalité</b><span>Contrôle manquant, export à ajouter, amélioration métier ou idée de module.</span></div><div class="menuCard" data-menu-action="bug"><b>🐞 Signaler un problème</b><span>Bug, erreur d’analyse, écriture discutable ou problème d’affichage.</span></div><div class="menuCard" data-menu-action="subscription"><b>👤 Mon abonnement</b><span>Formule actuelle, factures, moyen de paiement et désabonnement.</span></div><div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div></div></section>
+<section class="box"><h2>Menu Axe Compta</h2><p class="muted">Axe Compta évolue grâce aux retours de ses utilisateurs. Chaque suggestion est étudiée.</p><div class="menuGrid">
+<div class="menuCard" data-menu-action="suggest"><b>💡 Suggérer une fonctionnalité</b><span>Contrôle manquant, export à ajouter, amélioration métier ou idée de module.</span></div>
+<div class="menuCard" data-menu-action="mySuggestions"><b>📬 Mes suggestions</b><span>Retrouvez vos demandes et leur statut : à l’étude, en développement, disponible ou non retenue.</span></div>
+<div class="menuCard" data-menu-action="bug"><b>🐞 Signaler un problème</b><span>Bug, erreur d’analyse, écriture discutable ou problème d’affichage.</span></div>
+<div class="menuCard" data-menu-action="news"><b>🆕 Nouveautés</b><span>Historique réel des améliorations et prochaines mises à jour.</span></div>
+<div class="menuCard" data-menu-action="subscription"><b>👤 Mon abonnement</b><span>Formule actuelle, factures, moyen de paiement et désabonnement.</span></div>
+<div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div>
+</div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th>Score</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Ordre conseillé : Résultat → Dossier de révision → Affectation → Extournes → Score qualité → Validation → Rapport → Archivage.</div></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
@@ -49,22 +56,14 @@ const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncSt
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 
 const rows=document.getElementById("closuresRows");
-const moduleLinks={
-  result:document.getElementById("resultModuleLink"),
-  revision:document.getElementById("revisionModuleLink"),
-  affectation:document.getElementById("affectationModuleLink"),
-  extournes:document.getElementById("extournesModuleLink"),
-  score:document.getElementById("scoreModuleLink"),
-  validation:document.getElementById("validationModuleLink"),
-  report:document.getElementById("reportModuleLink")
-};
+const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
-
 let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[];
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
 function uniqueEmails(arr){return [...new Set(arr.map(normEmail).filter(Boolean))];}
+function uniqueValues(arr){return [...new Set(arr.filter(Boolean))];}
 function planDisplay(plan){if(plan==="solo")return"Solo 99 €";if(plan==="expert"||plan==="monthly")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
 function isCabinetOwner(data){return data.developerAccess===true||data.role==="admin"||data.cabinetOwner===true||data.plan==="cabinet"||data.planRequested==="cabinet"||data.cabinetSetup?.status==="active"||data.cabinetSetup?.status==="pending_payment";}
 function isCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0;}
@@ -85,20 +84,8 @@ function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportClotur
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
 function stepClass(c,paid,step){if(!paid)return"locked";if(step==="result")return hasFinalEntries(c)?"done":"current";if(step==="revision")return hasRevision(c)?"done":hasFinalEntries(c)?"current":"todo";if(step==="affectation")return hasAffectation(c)?"done":hasRevision(c)?"current":"todo";if(step==="extournes")return hasExtournes(c)?"done":hasAffectation(c)?"current":"todo";if(step==="score")return hasScore(c)?"done":hasExtournes(c)?"current":"todo";if(step==="validation")return hasValidation(c)?"done":hasScore(c)?"current":"todo";if(step==="report")return hasReport(c)?"done":hasValidation(c)?"current":"todo";return"todo";}
-
-/*
-  Point capital :
-  - Si ownerUid existe et diffère du user connecté => on ajoute &owner=cabinetUid.
-  - Les pages détail devront lire users/{owner}/closures/{id}, pas users/{currentUser}/closures/{id}.
-*/
-function linkFor(page,id,ownerUid){
-  const ownerParam=ownerUid&&currentUser&&ownerUid!==currentUser.uid?`&owner=${encodeURIComponent(ownerUid)}`:"";
-  return `${page}?id=${encodeURIComponent(id)}${ownerParam}`;
-}
-function stepLink(label,page,id,ownerUid,c,paid,step){
-  if(!paid)return`<span class="btn small stepBtn locked" title="Disponible après paiement">${label}</span>`;
-  return`<a class="btn small stepBtn ${stepClass(c,paid,step)}" href="${linkFor(page,id,ownerUid)}">${label}</a>`;
-}
+function linkFor(page,id,ownerUid){const ownerParam=ownerUid&&currentUser&&ownerUid!==currentUser.uid?`&owner=${encodeURIComponent(ownerUid)}`:"";return `${page}?id=${encodeURIComponent(id)}${ownerParam}`;}
+function stepLink(label,page,id,ownerUid,c,paid,step){if(!paid)return`<span class="btn small stepBtn locked" title="Disponible après paiement">${label}</span>`;return`<a class="btn small stepBtn ${stepClass(c,paid,step)}" href="${linkFor(page,id,ownerUid)}">${label}</a>`;}
 
 async function syncStripeBeforeDashboard(user){try{await fetch(SYNC_STRIPE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid})});}catch(e){console.warn("Sync Stripe non bloquante :",e);}}
 
@@ -114,9 +101,7 @@ async function loadCabinetMemberships(user){
       if(["removed","suspended"].includes(String(x.status||"")))return;
       results.push({id:d.id,path:d.ref.path,cabinetOwnerUid:parent.id,...x});
     });
-  }catch(e){
-    console.warn("Memberships collectionGroup refusé ou vide :",e);
-  }
+  }catch(e){console.warn("Memberships collectionGroup refusé ou vide :",e);}
   return results;
 }
 
@@ -124,57 +109,34 @@ function renderEmpty(msg="Aucune clôture disponible."){
   rows.innerHTML=`<tr><td colspan="6" class="muted">${safe(msg)}</td></tr><tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;
   Object.values(moduleLinks).forEach(el=>{el.href="#";el.classList.add("disabled")});
 }
+async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
+async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),limit(100)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}})).sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));}
 
-async function toggleArchive(ownerUid,closureId,archived){
-  await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});
-  await loadDashboard(currentUser);
-}
-
-async function collectOwnClosures(user){
-  const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),limit(100)));
-  return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}}))
-    .sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));
-}
-
-/*
-  Source principale des dossiers cabinet côté collaborateur :
-  collectionGroup("closures") + sharedWithEmails array-contains email normalisé.
-  On ne lit PAS cabinetSharedClosures comme source principale.
-*/
 async function collectSharedClosures(user){
   const email=normEmail(user.email);
-  const all=[];
-  if(!email)return all;
+  const byKey=new Map();
 
-  const snap=await getDocs(query(
-    collectionGroup(db,"closures"),
-    where("sharedWithEmails","array-contains",email),
-    limit(100)
-  ));
-
-  snap.docs.forEach(d=>{
-    const ownerDoc=d.ref.parent.parent;
-    if(!ownerDoc)return;
-    const ownerUid=ownerDoc.id;
-    if(ownerUid===user.uid)return;
-
-    const c=d.data()||{};
-    const byEmail=c.sharedWith?.[email];
-    const allowed=Array.isArray(c.sharedWithEmails)&&c.sharedWithEmails.map(normEmail).includes(email);
-    const activeByMap=byEmail?.active!==false;
-
-    if(!allowed || !activeByMap)return;
-
-    all.push({
-      id:d.id,
-      ownerUid,
-      shared:true,
-      cabinetName:c.cabinetName||c.ownerCompanyName||"Cabinet",
-      data:c
+  async function addSnap(snap){
+    snap.docs.forEach(d=>{
+      const ownerDoc=d.ref.parent.parent;
+      if(!ownerDoc)return;
+      const ownerUid=ownerDoc.id;
+      if(ownerUid===user.uid)return;
+      const c=d.data()||{};
+      const key=`${ownerUid}/${d.id}`;
+      byKey.set(key,{id:d.id,ownerUid,shared:true,cabinetName:c.cabinetName||c.ownerCompanyName||"Cabinet",data:c});
     });
-  });
+  }
 
-  return all.sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));
+  if(email){
+    const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",email),limit(100)));
+    await addSnap(emailSnap);
+  }
+
+  const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
+  await addSnap(uidSnap);
+
+  return [...byKey.values()].sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));
 }
 
 async function loadDashboard(user){
@@ -186,7 +148,7 @@ async function loadDashboard(user){
 
   try{showAdminFeedbackIfAllowed(user,currentUserData);}catch(e){console.warn("admin access non bloquant",e);}
 
-  if(currentUserData.cabinetMember===true && currentUserData.cabinetOwnerUid && !currentMemberships.some(m=>m.cabinetOwnerUid===currentUserData.cabinetOwnerUid)){
+  if(currentUserData.cabinetMember===true&&currentUserData.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===currentUserData.cabinetOwnerUid)){
     currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:currentUserData.cabinetOwnerUid,cabinetName:currentUserData.cabinetName||"Cabinet"});
   }
 
@@ -195,62 +157,33 @@ async function loadDashboard(user){
   refreshCabinetAccess();
   planLabelEl.textContent=currentPlanLabel;
   accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);
-
   const subscriptionOk=hasPaidAccess();
 
-  let own=[];
-  let shared=[];
-  let ownError=null;
-  let sharedError=null;
-
-  try{
-    own=await collectOwnClosures(user);
-  }catch(e){
-    ownError=e;
-    console.error("Clôtures propres non chargées :",e);
-  }
-
-  try{
-    shared=await collectSharedClosures(user);
-  }catch(e){
-    sharedError=e;
-    console.error("Clôtures partagées non chargées :",e);
-  }
+  let own=[],shared=[],ownError=null,sharedError=null;
+  try{own=await collectOwnClosures(user);}catch(e){ownError=e;console.error("Clôtures propres non chargées :",e);}
+  try{shared=await collectSharedClosures(user);}catch(e){sharedError=e;console.error("Clôtures partagées non chargées :",e);}
 
   const seen=new Set();
-  const all=[...own,...shared].filter(x=>{
-    const key=`${x.ownerUid}/${x.id}`;
-    if(seen.has(key))return false;
-    seen.add(key);
-    return true;
-  });
+  const all=[...own,...shared].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
 
   try{
-
     if(!all.length){
       activeClosuresEl.textContent="0";
       exportsCountEl.textContent="0";
-      if(ownError && sharedError) renderEmpty("Impossible de charger les clôtures propres et partagées. Vérifiez les Firestore rules.");
-      else if(sharedError) renderEmpty("Aucune clôture propre affichable. Les clôtures partagées sont encore bloquées par les Firestore rules collectionGroup.");
+      if(ownError&&sharedError)renderEmpty("Impossible de charger les clôtures propres et partagées. Vérifiez les Firestore rules.");
+      else if(sharedError)renderEmpty("Aucune clôture propre affichable. Les clôtures partagées sont encore bloquées par les Firestore rules collectionGroup.");
       else renderEmpty();
       return;
     }
 
     const hasPaidSolo=all.some(x=>!x.shared&&x.data.archived!==true&&isSoloActive(x.data));
-    if(currentPlanLabel==="À activer"&&hasPaidSolo){
-      currentPlanLabel="Solo 99 €";
-      planLabelEl.textContent=currentPlanLabel;
-      accountStatusEl.textContent="Actif";
-    }
+    if(currentPlanLabel==="À activer"&&hasPaidSolo){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}
 
     rows.innerHTML="";
     let exports=0,activeCount=0,firstAccessible=null;
 
     all.forEach(item=>{
-      const c=item.data;
-      const archived=c.archived===true;
-      const paid=item.shared||isSoloActive(c)||subscriptionOk;
-
+      const c=item.data,archived=c.archived===true,paid=item.shared||isSoloActive(c)||subscriptionOk;
       if(!archived)activeCount++;
       if(paid&&!archived)exports++;
       if(paid&&!archived&&!firstAccessible)firstAccessible=item;
@@ -260,10 +193,8 @@ async function loadDashboard(user){
 
       const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";
-
       const shareToCabinetButton=isCabinetMember()&&!isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
-
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
         :`<span class="pill dev">Cabinet</span>`;
@@ -276,19 +207,10 @@ async function loadDashboard(user){
         stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score"),
         stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
         stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report"),
-        shareButton,
-        shareToCabinetButton,
-        archiveBtn
+        shareButton,shareToCabinetButton,archiveBtn
       ].filter(Boolean).join(" ");
 
-      rows.innerHTML+=`<tr>
-        <td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:""}</td>
-        <td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td>
-        <td>${status}</td>
-        <td>${payment}</td>
-        <td>${scorePill(c)}</td>
-        <td><div class="actions inlineActions">${actionLinks}</div></td>
-      </tr>`;
+      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:""}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
     });
 
     if(firstAccessible){
@@ -307,20 +229,14 @@ async function loadDashboard(user){
     activeClosuresEl.textContent=String(activeCount);
     exportsCountEl.textContent=String(exports);
 
-    document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{
-      btn.disabled=true;
-      try{await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}
-      catch(e){alert(e.message||"Archivage impossible.");btn.disabled=false;}
-    }));
-
+    document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;try{await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}catch(e){alert(e.message||"Archivage impossible.");btn.disabled=false;}}));
     document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));
     document.querySelectorAll("[data-share-cabinet]").forEach(btn=>btn.addEventListener("click",()=>renderShareWithCabinet(btn.dataset.shareCabinet,btn.dataset.company||"Société sans nom")));
 
   }catch(e){
     console.error("Chargement dashboard impossible :",e);
-    activeClosuresEl.textContent="0";
-    exportsCountEl.textContent="0";
-    renderEmpty("Impossible de charger les clôtures. Si le compte collaborateur voit cette ligne, le blocage vient presque sûrement des Firestore rules collectionGroup.");
+    activeClosuresEl.textContent="0";exportsCountEl.textContent="0";
+    renderEmpty("Impossible de charger les clôtures.");
   }
 }
 
@@ -332,37 +248,28 @@ async function getCabinetCollaborators(){
   return snap.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(c=>!["removed","suspended"].includes(String(c.status||"")));
 }
 
+async function getUserUidByEmail(email){
+  const qSnap=await getDocs(query(collection(db,"users"),where("email","==",normEmail(email)),limit(1)));
+  return qSnap.empty?"":qSnap.docs[0].id;
+}
+
 async function getCabinetOwnerProfile(){
-  const ownerUid=currentUserData.cabinetOwnerUid || currentMemberships[0]?.cabinetOwnerUid || "";
+  const ownerUid=currentUserData.cabinetOwnerUid||currentMemberships[0]?.cabinetOwnerUid||"";
   if(!ownerUid)throw new Error("Cabinet introuvable sur le compte collaborateur.");
   const ownerSnap=await getDoc(doc(db,"users",ownerUid));
   const ownerData=ownerSnap.exists()?(ownerSnap.data()||{}):{};
-  const ownerEmail=normEmail(ownerData.email || ownerData.ownerEmail || currentMemberships[0]?.ownerEmail || "");
-  return {
-    ownerUid,
-    ownerEmail,
-    cabinetName: ownerData.cabinetName || ownerData.companyName || ownerData.cabinetSetup?.cabinetName || currentUserData.cabinetName || currentMemberships[0]?.cabinetName || "Cabinet"
-  };
+  const ownerEmail=normEmail(ownerData.email||ownerData.ownerEmail||ownerData.cabinetSetup?.ownerEmail||currentMemberships[0]?.ownerEmail||"");
+  return {ownerUid,ownerEmail,cabinetName:ownerData.cabinetName||ownerData.companyName||ownerData.cabinetSetup?.cabinetName||currentUserData.cabinetName||currentMemberships[0]?.cabinetName||"Cabinet"};
 }
 
 async function renderShareWithCabinet(closureId,companyName){
   openModal("Partager avec le cabinet",`Dossier : ${companyName}`,`<div class="notice">Chargement du cabinet...</div>`);
   try{
     const profile=await getCabinetOwnerProfile();
-    if(!profile.ownerEmail){
-      document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Email du cabinet introuvable.</b><br>Ajoutez le champ email dans le document users/${safe(profile.ownerUid)} du cabinet.</div>`;
-      return;
-    }
     document.getElementById("modalContent").innerHTML=`
-      <div class="notice">
-        Cette action autorise le cabinet <b>${safe(profile.cabinetName)}</b> à lire et modifier cette clôture.
-      </div>
-      <div class="collabChoice">
-        <span><b>${safe(profile.cabinetName)}</b><span>${safe(profile.ownerEmail)} — accès cabinet</span></span>
-      </div>
-      <div class="actions">
-        <button class="btn primary" type="button" id="saveShareCabinetBtn">Partager avec le cabinet</button>
-      </div>
+      <div class="notice">Cette action autorise le cabinet <b>${safe(profile.cabinetName)}</b> à lire et modifier cette clôture.</div>
+      <div class="collabChoice"><span><b>${safe(profile.cabinetName)}</b><span>${safe(profile.ownerEmail||profile.ownerUid)} — accès cabinet</span></span></div>
+      <div class="actions"><button class="btn primary" type="button" id="saveShareCabinetBtn">Partager avec le cabinet</button></div>
       <div id="shareCabinetMsg" class="notice" style="display:none"></div>`;
     document.getElementById("saveShareCabinetBtn").addEventListener("click",()=>saveShareWithCabinet(closureId,companyName,profile));
   }catch(e){
@@ -379,54 +286,44 @@ async function saveShareWithCabinet(closureId,companyName,profile){
     const closureSnap=await getDoc(closureRef);
     if(!closureSnap.exists())throw new Error("Clôture introuvable.");
     const c=closureSnap.data()||{};
-    const existing=Array.isArray(c.sharedWithEmails)?c.sharedWithEmails:[];
+    const existingEmails=Array.isArray(c.sharedWithEmails)?c.sharedWithEmails:[];
+    const existingUids=Array.isArray(c.sharedWithUids)?c.sharedWithUids:[];
     const sharedWith={...(c.sharedWith||{})};
     const email=normEmail(profile.ownerEmail);
-    const payload={email,active:true,role:"cabinet",cabinetOwnerUid:profile.ownerUid,updatedAt:new Date().toISOString()};
-    sharedWith[email]=payload;
+    const payload={email,active:true,role:"cabinet",cabinetOwnerUid:profile.ownerUid,uid:profile.ownerUid,updatedAt:new Date().toISOString()};
+    if(email)sharedWith[email]=payload;
     sharedWith[profile.ownerUid]=payload;
 
-    const unique=uniqueEmails([...existing,email]);
+    const uniqueEmailList=uniqueEmails([...existingEmails,email]);
+    const uniqueUidList=uniqueValues([...existingUids,profile.ownerUid]);
 
     await updateDoc(closureRef,{
       sharedWith,
-      sharedWithEmails:unique,
+      sharedWithEmails:uniqueEmailList,
+      sharedWithUids:uniqueUidList,
       cabinetShared:true,
       cabinetOwnerUid:profile.ownerUid,
       cabinetName:profile.cabinetName,
       ownerCompanyName:profile.cabinetName,
       sharedByUid:currentUser.uid,
-      sharedByEmail:currentUser.email || "",
+      sharedByEmail:currentUser.email||"",
       updatedAt:serverTimestamp()
     });
 
     await setDoc(doc(db,"users",currentUser.uid,"cabinetSharedClosures",closureId),{
-      closureId,
-      companyName:c.companyName||companyName||"Société sans nom",
-      startDate:c.startDate||"",
-      endDate:c.endDate||"",
-      status:c.status||"shared",
-      scoreQualite:c.scoreQualite||null,
-      scoreQuality:c.scoreQuality||null,
-      scoreFinal:c.scoreFinal||null,
-      cabinetOwnerUid:profile.ownerUid,
-      cabinetName:profile.cabinetName,
-      ownerCompanyName:profile.cabinetName,
-      sharedWith,
-      sharedWithEmails:unique,
-      sharedByUid:currentUser.uid,
-      sharedByEmail:currentUser.email || "",
-      updatedAt:serverTimestamp()
+      closureId,companyName:c.companyName||companyName||"Société sans nom",startDate:c.startDate||"",endDate:c.endDate||"",status:c.status||"shared",
+      scoreQualite:c.scoreQualite||null,scoreQuality:c.scoreQuality||null,scoreFinal:c.scoreFinal||null,
+      cabinetOwnerUid:profile.ownerUid,cabinetName:profile.cabinetName,ownerCompanyName:profile.cabinetName,
+      sharedWith,sharedWithEmails:uniqueEmailList,sharedWithUids:uniqueUidList,
+      sharedByUid:currentUser.uid,sharedByEmail:currentUser.email||"",updatedAt:serverTimestamp()
     },{merge:true});
 
-    msg.style.display="block";
-    msg.innerHTML=`<b class="okText">Clôture partagée avec le cabinet.</b>`;
+    msg.style.display="block";msg.innerHTML=`<b class="okText">Clôture partagée avec le cabinet.</b>`;
     btn.textContent="Partagé";
     await loadDashboard(currentUser);
   }catch(e){
     console.error(e);
-    msg.style.display="block";
-    msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors du partage avec le cabinet.")}</b>`;
+    msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors du partage avec le cabinet.")}</b>`;
     btn.disabled=false;btn.textContent="Partager avec le cabinet";
   }
 }
@@ -439,6 +336,7 @@ async function renderShareClosure(closureId,companyName){
     const closureData=closureSnap.exists()?closureSnap.data():{};
     const sharedWith=closureData.sharedWith||{};
     const existingEmails=Array.isArray(closureData.sharedWithEmails)?closureData.sharedWithEmails.map(normEmail):[];
+    const existingUids=Array.isArray(closureData.sharedWithUids)?closureData.sharedWithUids:[];
     const collaborators=await getCabinetCollaborators();
 
     if(!collaborators.length){
@@ -446,14 +344,18 @@ async function renderShareClosure(closureId,companyName){
       return;
     }
 
-    document.getElementById("modalContent").innerHTML=`<div class="notice">Cochez les collaborateurs autorisés à consulter et intervenir sur cette clôture.</div>
-    <div id="shareList">${collaborators.map(c=>{
+    const enriched=await Promise.all(collaborators.map(async c=>{
       const email=normEmail(c.email);
-      const checked=existingEmails.includes(email)||sharedWith[email]?.active===true||sharedWith[c.id]?.active===true;
-      return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(email)}" ${checked?"checked":""}><span><b>${safe(c.name||email)}</b><span>${safe(email)} — accès au dossier coché</span></span></label>`;
+      const uid=c.uid||c.userUid||await getUserUidByEmail(email);
+      return {...c,email,uid};
+    }));
+
+    document.getElementById("modalContent").innerHTML=`<div class="notice">Cochez les collaborateurs autorisés à consulter et intervenir sur cette clôture.</div>
+    <div id="shareList">${enriched.map(c=>{
+      const checked=existingEmails.includes(c.email)||existingUids.includes(c.uid)||sharedWith[c.email]?.active===true||sharedWith[c.id]?.active===true||sharedWith[c.uid]?.active===true;
+      return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(c.email)}" data-collab-uid="${safe(c.uid||"")}" ${checked?"checked":""}><span><b>${safe(c.name||c.email)}</b><span>${safe(c.email)}${c.uid?` — UID OK`:` — UID non trouvé, accès email seulement`}</span></span></label>`;
     }).join("")}</div>
     <div class="actions"><button class="btn primary" type="button" id="saveShareBtn">Enregistrer le partage</button><a class="btn" href="cabinet-espace.html">Espace Cabinet</a></div><div id="shareMsg" class="notice" style="display:none"></div>`;
-
     document.getElementById("saveShareBtn").addEventListener("click",()=>saveClosureSharing(closureId,companyName));
   }catch(e){
     console.error(e);
@@ -466,136 +368,68 @@ async function saveClosureSharing(closureId,companyName){
   btn.disabled=true;btn.textContent="Enregistrement...";
   try{
     const checks=[...document.querySelectorAll("[data-collab-id]")];
-    const sharedWith={},sharedWithEmails=[];
+    const sharedWith={},sharedWithEmails=[],sharedWithUids=[];
     checks.forEach(ch=>{
       if(ch.checked){
-        const id=ch.dataset.collabId,email=normEmail(ch.dataset.collabEmail);
-        const payload={email,active:true,role:"collaborator",updatedAt:new Date().toISOString()};
+        const id=ch.dataset.collabId,email=normEmail(ch.dataset.collabEmail),uid=ch.dataset.collabUid||"";
+        const payload={email,uid,active:true,role:"collaborator",updatedAt:new Date().toISOString()};
         sharedWith[id]=payload;
         sharedWith[email]=payload;
+        if(uid)sharedWith[uid]=payload;
         sharedWithEmails.push(email);
+        if(uid)sharedWithUids.push(uid);
       }
     });
-    const unique=uniqueEmails(sharedWithEmails);
+
     const closureRef=doc(db,"users",currentUser.uid,"closures",closureId);
     const closureSnap=await getDoc(closureRef);
     if(!closureSnap.exists())throw new Error("Clôture introuvable.");
     const c=closureSnap.data()||{};
     const cabinetName=currentUserData.cabinetName||currentUserData.companyName||currentUserData.cabinetSetup?.cabinetName||"Cabinet";
     const ownerCompanyName=currentUserData.companyName||currentUserData.cabinetName||currentUserData.cabinetSetup?.cabinetName||"Cabinet";
+    const uniqueEmailList=uniqueEmails(sharedWithEmails);
+    const uniqueUidList=uniqueValues(sharedWithUids);
 
     await updateDoc(closureRef,{
       sharedWith,
-      sharedWithEmails:unique,
-      cabinetShared:unique.length>0,
+      sharedWithEmails:uniqueEmailList,
+      sharedWithUids:uniqueUidList,
+      cabinetShared:uniqueEmailList.length>0||uniqueUidList.length>0,
       cabinetOwnerUid:currentUser.uid,
-      cabinetName,
-      ownerCompanyName,
-      updatedAt:serverTimestamp()
+      cabinetName,ownerCompanyName,updatedAt:serverTimestamp()
     });
 
-    /*
-      Copie secondaire tolérée pour l'Espace Cabinet.
-      Mais le tableau collaborateur ne s'appuie PAS dessus.
-    */
     await setDoc(doc(db,"users",currentUser.uid,"cabinetSharedClosures",closureId),{
-      closureId,
-      companyName:c.companyName||companyName||"Société sans nom",
-      startDate:c.startDate||"",
-      endDate:c.endDate||"",
-      status:c.status||"shared",
-      scoreQualite:c.scoreQualite||null,
-      scoreQuality:c.scoreQuality||null,
-      scoreFinal:c.scoreFinal||null,
-      cabinetOwnerUid:currentUser.uid,
-      cabinetName,
-      ownerCompanyName,
-      sharedWith,
-      sharedWithEmails:unique,
-      updatedAt:serverTimestamp()
+      closureId,companyName:c.companyName||companyName||"Société sans nom",startDate:c.startDate||"",endDate:c.endDate||"",status:c.status||"shared",
+      scoreQualite:c.scoreQualite||null,scoreQuality:c.scoreQuality||null,scoreFinal:c.scoreFinal||null,
+      cabinetOwnerUid:currentUser.uid,cabinetName,ownerCompanyName,
+      sharedWith,sharedWithEmails:uniqueEmailList,sharedWithUids:uniqueUidList,updatedAt:serverTimestamp()
     },{merge:true});
 
-    msg.style.display="block";
-    msg.innerHTML=`<b class="okText">Partage enregistré.</b><br>${unique.length} collaborateur(s) autorisé(s).`;
+    msg.style.display="block";msg.innerHTML=`<b class="okText">Partage enregistré.</b><br>${uniqueEmailList.length} collaborateur(s) autorisé(s).`;
     btn.textContent="Enregistré";
     await loadDashboard(currentUser);
   }catch(e){
     console.error(e);
-    msg.style.display="block";
-    msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de l’enregistrement du partage.")}</b>`;
+    msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de l’enregistrement du partage.")}</b>`;
     btn.disabled=false;btn.textContent="Enregistrer le partage";
   }
 }
 
-async function startSubscription(plan){
-  if(!currentUser)return;
-  try{
-    const r=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,plan,email:currentUser.email})});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe.");
-    location.href=d.url;
-  }catch(e){alert(e.message||"Erreur Stripe.");}
-}
+async function startSubscription(plan){if(!currentUser)return;try{const r=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,plan,email:currentUser.email})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe.");location.href=d.url;}catch(e){alert(e.message||"Erreur Stripe.");}}
+function renderSuggestForm(type="suggestion"){openModal(type==="bug"?"Signaler un problème":"Suggérer une fonctionnalité",type==="bug"?"Bug, erreur d'analyse ou problème d'affichage.":"Votre demande sera enregistrée et suivie.",`<div class="field"><label>Titre</label><input id="feedbackTitle"></div><div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>${type==="bug"?"Bug":"Contrôle comptable"}</option><option>Erreur d'analyse</option><option>Export</option><option>Ergonomie</option><option>Autre</option></select></div><div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback(type));}
+async function sendFeedback(type){const title=document.getElementById("feedbackTitle")?.value.trim()||"",category=document.getElementById("feedbackCategory")?.value||"",message=document.getElementById("feedbackMessage")?.value.trim()||"",msg=document.getElementById("feedbackMsg"),btn=document.getElementById("sendFeedbackBtn");if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}btn.disabled=true;try{const response=await fetch(SUBMIT_FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,userEmail:currentUser.email,type,category,title,message,closureId:"",page:location.href,screenshotName:""})});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error(data.error||"Erreur lors de l'enregistrement.");msg.style.display="block";msg.innerHTML=`<b class="okText">Retour enregistré.</b>`;btn.textContent="Envoyé";}catch(e){msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message)}</b>`;btn.disabled=false;}}
+function renderMySuggestions(){openModal("Mes suggestions","Demandes enregistrées sur votre compte.",`<div class="notice">Le suivi détaillé reste branché sur Firestore. Utilisez cette entrée pour vérifier vos demandes.</div>`);}
+function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur renforcé.</b><br>Ajout de sharedWithUids, lecture collectionGroup et partage collaborateur → cabinet.</div>`);}
+async function openCustomerPortal(){try{const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");location.href=d.url;}catch(e){alert(e.message||"Portail Stripe non disponible.");}}
+function renderSubscription(){const isMember=isCabinetMember()&&!isCabinetOwner(currentUserData);openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Statut</span><b>${safe(isMember?"Actif via Cabinet":accountStatusEl.textContent)}</b></div></div>${isMember?`<div class="notice"><b>Accès collaborateur Cabinet.</b><br>Votre accès est pris en charge par le cabinet.</div>`:`<div class="notice">Gestion via Stripe pour les formules mensuelles.</div>`}<div class="actions"><button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button><button class="btn primary" type="button" data-sub-plan="expert">Choisir Expert</button><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a><a class="btn" href="nouvelle-cloture.html?plan=solo">Clôture Solo</a><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Support</a></div>`);document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);}
 
-function renderSuggestForm(type="suggestion"){
-  openModal(type==="bug"?"Signaler un problème":"Suggérer une fonctionnalité",type==="bug"?"Bug, erreur d'analyse ou problème d'affichage.":"Votre demande sera enregistrée et suivie.",`
-  <div class="field"><label>Titre</label><input id="feedbackTitle"></div>
-  <div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>${type==="bug"?"Bug":"Contrôle comptable"}</option><option>Erreur d'analyse</option><option>Export</option><option>Ergonomie</option><option>Autre</option></select></div>
-  <div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div>
-  <div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);
-  document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback(type));
-}
-
-async function sendFeedback(type){
-  const title=document.getElementById("feedbackTitle")?.value.trim()||"",category=document.getElementById("feedbackCategory")?.value||"",message=document.getElementById("feedbackMessage")?.value.trim()||"",msg=document.getElementById("feedbackMsg"),btn=document.getElementById("sendFeedbackBtn");
-  if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}
-  btn.disabled=true;
-  try{
-    const response=await fetch(SUBMIT_FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,userEmail:currentUser.email,type,category,title,message,closureId:"",page:location.href,screenshotName:""})});
-    const data=await response.json().catch(()=>({}));
-    if(!response.ok||!data.ok)throw new Error(data.error||"Erreur lors de l'enregistrement.");
-    msg.style.display="block";msg.innerHTML=`<b class="okText">Retour enregistré.</b>`;btn.textContent="Envoyé";
-  }catch(e){msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message)}</b>`;btn.disabled=false;}
-}
-
-async function openCustomerPortal(){
-  try{
-    const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");
-    location.href=d.url;
-  }catch(e){alert(e.message||"Portail Stripe non disponible.");}
-}
-
-function renderSubscription(){
-  const isMember=isCabinetMember()&&!isCabinetOwner(currentUserData);
-  openModal("Mon abonnement","Gestion de l'offre actuelle.",`
-  <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Statut</span><b>${safe(isMember?"Actif via Cabinet":accountStatusEl.textContent)}</b></div></div>
-  ${isMember?`<div class="notice"><b>Accès collaborateur Cabinet.</b><br>Votre accès est pris en charge par le cabinet.</div>`:`<div class="notice">Gestion via Stripe pour les formules mensuelles.</div>`}
-  <div class="actions"><button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button><button class="btn primary" type="button" data-sub-plan="expert">Choisir Expert</button><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a><a class="btn" href="nouvelle-cloture.html?plan=solo">Clôture Solo</a><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Support</a></div>`);
-  document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));
-  document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);
-}
-
-document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{
-  const a=card.dataset.menuAction;
-  if(a==="suggest")renderSuggestForm("suggestion");
-  if(a==="bug")renderSuggestForm("bug");
-  if(a==="subscription")renderSubscription();
-  if(a==="cabinet")location.assign("cabinet-espace.html");
-}));
-
+document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm("suggestion");if(a==="mySuggestions")renderMySuggestions();if(a==="bug")renderSuggestForm("bug");if(a==="news")renderNews();if(a==="subscription")renderSubscription();if(a==="cabinet")location.assign("cabinet-espace.html");}));
 cabinetHeaderBtn?.addEventListener("click",e=>{e.preventDefault();location.assign("cabinet-espace.html");});
 Object.values(moduleLinks).forEach(el=>el?.addEventListener("click",e=>{if(el.classList.contains("disabled")){e.preventDefault();alert("Module disponible après paiement d'une clôture.");}}));
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
-
-onAuthStateChanged(auth,async user=>{
-  if(!user){location.href="connexion.html";return;}
-  currentUser=user;
-  await syncStripeBeforeDashboard(user);
-  await loadDashboard(user);
-});
+onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;await syncStripeBeforeDashboard(user);await loadDashboard(user);});
 logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
 </script>
 </body>
