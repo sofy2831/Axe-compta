@@ -265,8 +265,9 @@ async function createInvitation(){
   const email=normEmail($("inviteEmail").value);
   const name=$("inviteName").value.trim();
   if(!email){showMsg("Email obligatoire.",true);return;}
-  if(activeCount()>=includedCount()+extraCount()){
-  showMsg("Quota atteint. Ajoutez une licence supplémentaire avant d’inviter un nouveau collaborateur.",true);
+ if(activeCount() >= includedCount() + extraCount()){
+  showMsg("Quota atteint : redirection vers Stripe pour ajouter une licence collaborateur à 129 €/mois.", true);
+  await addExtraLicense();
   return;
 }
   const inviteId=email.replace(/[^\w.-]+/g,"_");
