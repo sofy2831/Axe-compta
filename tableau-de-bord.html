@@ -62,7 +62,7 @@ const sharedHead=document.getElementById("sharedHead");
 const sharedHelp=document.getElementById("sharedHelp");
 const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
-let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[];
+let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[],currentCabinetCollaborators=[];
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
@@ -87,8 +87,16 @@ function hasValidation(c){return c.validated===true||c.validation?.status==="val
 function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="saved"||c.closureReport?.status==="generated";}
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
+function collaboratorNameFromEmail(email){
+  const needle=normEmail(email);
+  if(!needle || !Array.isArray(currentCabinetCollaborators))return "";
+  const found=currentCabinetCollaborators.find(x=>normEmail(x.email)===needle);
+  return found?.name || found?.displayName || "";
+}
 function sharedAuthorLabel(item,c){
-  return c.sharedByName || c.collaboratorName || c.sharedByEmail || c.ownerEmail || item.sharedByEmail || item.ownerEmail || "Collaborateur";
+  const email=c.sharedByEmail || c.ownerEmail || item.sharedByEmail || item.ownerEmail || "";
+  const nameFromList=collaboratorNameFromEmail(email);
+  return c.sharedByName || c.collaboratorName || nameFromList || email || "Collaborateur";
 }
 function sharedCabinetBadge(c){
   const isShared = c.cabinetShared===true || (Array.isArray(c.sharedWithEmails)&&c.sharedWithEmails.length>0) || (Array.isArray(c.sharedWithUids)&&c.sharedWithUids.length>0);
@@ -116,6 +124,17 @@ async function loadCabinetMemberships(user){
     });
   }catch(e){console.warn("Memberships collectionGroup refusé ou vide :",e);}
   return results;
+}
+
+async function loadOwnCabinetCollaborators(user){
+  try{
+    const snap=await getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),limit(100)));
+    return snap.docs.map(d=>({id:d.id,...(d.data()||{})}))
+      .filter(x=>!["removed","suspended"].includes(String(x.status||"")));
+  }catch(e){
+    console.warn("Collaborateurs cabinet non chargés pour libellé :",e);
+    return [];
+  }
 }
 
 
@@ -329,6 +348,7 @@ async function loadDashboard(user){
   currentUserData=userSnap.exists()?(userSnap.data()||{}):{};
 
   try{showAdminFeedbackIfAllowed(user,currentUserData);}catch(e){console.warn("admin access non bloquant",e);}
+  currentCabinetCollaborators=isCabinetOwner(currentUserData)?await loadOwnCabinetCollaborators(user):[];
 
   if(currentUserData.cabinetMember===true&&currentUserData.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===currentUserData.cabinetOwnerUid)){
     currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:currentUserData.cabinetOwnerUid,cabinetName:currentUserData.cabinetName||"Cabinet"});
