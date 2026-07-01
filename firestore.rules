@@ -50,12 +50,6 @@ service cloud.firestore {
         && data.sharedWithEmails.hasAny([userEmail()]);
     }
 
-    function hasSharedEmails(data) {
-      return data.keys().hasAny(["sharedEmails"])
-        && data.sharedEmails is list
-        && data.sharedEmails.hasAny([userEmail()]);
-    }
-
     function hasSharedWithMap(data) {
       return data.keys().hasAny(["sharedWith"])
         && data.sharedWith is map
@@ -63,20 +57,20 @@ service cloud.firestore {
         && data.sharedWith[userEmail()].active == true;
     }
 
-    function isSharedClosureData(data) {
+    function isSharedData(data) {
       return isSignedIn()
         && (
           hasSharedWithEmails(data)
-          || hasSharedEmails(data)
           || hasSharedWithMap(data)
         );
     }
 
-    function canReadOrUpdateClosure(userId, data) {
+    function canAccessClosure(userId, data) {
       return isSignedIn()
         && (
           isOwner(userId)
           || isAdmin()
+          || isSharedData(data)
           || (
             data.keys().hasAny(["ownerUid"])
             && data.ownerUid == request.auth.uid
@@ -85,12 +79,20 @@ service cloud.firestore {
             data.keys().hasAny(["cabinetOwnerUid"])
             && data.cabinetOwnerUid == request.auth.uid
           )
-          || isSharedClosureData(data)
           || (
             isCabinetMember()
             && data.keys().hasAny(["cabinetOwnerUid"])
             && data.cabinetOwnerUid == myCabinetOwnerUid()
           )
+        );
+    }
+
+    match /{path=**}/cabinetSharedClosures/{sharedId} {
+      allow read: if isSignedIn()
+        && (
+          isAdmin()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+          || isSharedData(resource.data)
         );
     }
 
@@ -103,22 +105,15 @@ service cloud.firestore {
         );
     }
 
-       match /{path=**}/closures/{closureId} {
-      allow read, update: if canReadOrUpdateClosure("", resource.data);
-    }
-
-match /{path=**}/cabinetSharedClosures/{sharedId} {
-  allow read: if isSignedIn()
-    && (
-      isAdmin()
-      || resource.data.cabinetOwnerUid == request.auth.uid
-      || isSharedClosureData(resource.data)
-    );
-}
-
     match /users/{userId} {
 
       allow read, write: if isOwner(userId) || isAdmin();
+
+      match /closures/{closureId} {
+        allow create: if isOwner(userId) || isAdmin();
+        allow read, update: if canAccessClosure(userId, resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
 
       match /cabinetCollaborators/{collabId} {
         allow read: if isSignedIn()
@@ -129,34 +124,20 @@ match /{path=**}/cabinetSharedClosures/{sharedId} {
             || resource.data.cabinetOwnerUid == request.auth.uid
           );
 
-        allow create, delete: if isOwner(userId) || isAdmin();
-        allow update: if isOwner(userId) || isAdmin();
+        allow create, update, delete: if isOwner(userId) || isAdmin();
       }
 
-    match /cabinetSharedClosures/{sharedId} {
-  allow read: if isOwner(userId)
-    || isAdmin()
-    || isSharedClosureData(resource.data);
+      match /cabinetSharedClosures/{sharedId} {
+        allow read: if isOwner(userId)
+          || isAdmin()
+          || isSharedData(resource.data);
 
-  allow write: if isOwner(userId) || isAdmin();
-}
-
-      match /closures/{closureId} {
-        allow create: if isOwner(userId) || isAdmin();
-        allow read, update: if canReadOrUpdateClosure(userId, resource.data);
-        allow delete: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId) || isAdmin();
       }
 
       match /{document=**} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
-    }
-
-    match /closures/{closureId} {
-      allow create: if isSignedIn()
-        && request.resource.data.ownerUid == request.auth.uid;
-
-      allow read, update, delete: if canReadOrUpdateClosure("", resource.data);
     }
 
     match /feedback/{feedbackId} {
