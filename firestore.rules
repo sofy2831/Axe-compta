@@ -103,23 +103,7 @@ service cloud.firestore {
         );
     }
 
-    match /{path=**}/cabinetSharedClosures/{sharedId} {
-      allow read: if isSignedIn()
-        && (
-          isAdmin()
-          || resource.data.cabinetOwnerUid == request.auth.uid
-          || isSharedClosureData(resource.data)
-        );
-
-      allow write: if isSignedIn()
-        && (
-          isAdmin()
-          || resource.data.cabinetOwnerUid == request.auth.uid
-          || request.resource.data.cabinetOwnerUid == request.auth.uid
-        );
-    }
-
-    match /{path=**}/closures/{closureId} {
+       match /{path=**}/closures/{closureId} {
       allow read, update: if canReadOrUpdateClosure("", resource.data);
     }
 
