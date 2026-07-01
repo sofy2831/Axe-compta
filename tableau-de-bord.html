@@ -77,7 +77,27 @@ async function syncStripeBeforeDashboard(user){try{await fetch(SYNC_STRIPE_URL,{
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid);}catch(e){console.warn("Chargement memberships impossible",e);return[];}}
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled")});}
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
-async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}}));}
+async function collectOwnClosures(user){
+  const snap = await getDocs(
+    query(
+      collection(db, "users", user.uid, "closures"),
+      limit(100)
+    )
+  );
+
+  return snap.docs
+    .map(d => ({
+      id: d.id,
+      ownerUid: user.uid,
+      shared: false,
+      data: d.data() || {}
+    }))
+    .sort((a,b) => {
+      const da = a.data.createdAt?.seconds || 0;
+      const dbb = b.data.createdAt?.seconds || 0;
+      return dbb - da;
+    });
+}
 async function collectSharedClosures(user){
   const email = normEmail(user.email);
   const all = [];
