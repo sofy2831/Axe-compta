@@ -140,16 +140,13 @@ service cloud.firestore {
         allow update: if isOwner(userId) || isAdmin();
       }
 
-      match /cabinetSharedClosures/{sharedId} {
-        allow read: if isSignedIn()
-          && (
-            isOwner(userId)
-            || isAdmin()
-            || isSharedClosureData(resource.data)
-          );
+    match /cabinetSharedClosures/{sharedId} {
+  allow read: if isOwner(userId)
+    || isAdmin()
+    || isSharedClosureData(resource.data);
 
-        allow write: if isOwner(userId) || isAdmin();
-      }
+  allow write: if isOwner(userId) || isAdmin();
+}
 
       match /closures/{closureId} {
         allow create: if isOwner(userId) || isAdmin();
