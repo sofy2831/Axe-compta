@@ -145,13 +145,14 @@ service cloud.firestore {
       }
 
       match /cabinetSharedClosures/{sharedId} {
-        allow read: if isSignedIn()
-          && (
-            isOwner(userId)
-            || isAdmin()
-            || resource.data.cabinetOwnerUid == request.auth.uid
-            || isSharedClosure(resource.data)
-          );
+      allow read: if isSignedIn()
+  && (
+    isOwner(userId)
+    || isAdmin()
+    || isMyCabinetOwner(userId)
+    || resource.data.cabinetOwnerUid == request.auth.uid
+    || isSharedClosure(resource.data)
+  ); 
 
         allow create, update: if isSignedIn()
           && (
