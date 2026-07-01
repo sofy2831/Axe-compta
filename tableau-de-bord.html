@@ -85,6 +85,12 @@ function hasValidation(c){return c.validated===true||c.validation?.status==="val
 function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="saved"||c.closureReport?.status==="generated";}
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
+function sharedCabinetBadge(c){
+  const isShared = c.cabinetShared===true || (Array.isArray(c.sharedWithEmails)&&c.sharedWithEmails.length>0) || (Array.isArray(c.sharedWithUids)&&c.sharedWithUids.length>0);
+  if(!isShared)return "";
+  const label = c.sharedByUid ? "✓ Partagé cabinet" : "✓ Partagé";
+  return `<br><span class="pill dev">${label}</span>`;
+}
 function stepClass(c,paid,step){if(!paid)return"locked";if(step==="result")return hasFinalEntries(c)?"done":"current";if(step==="revision")return hasRevision(c)?"done":hasFinalEntries(c)?"current":"todo";if(step==="affectation")return hasAffectation(c)?"done":hasRevision(c)?"current":"todo";if(step==="extournes")return hasExtournes(c)?"done":hasAffectation(c)?"current":"todo";if(step==="score")return hasScore(c)?"done":hasExtournes(c)?"current":"todo";if(step==="validation")return hasValidation(c)?"done":hasScore(c)?"current":"todo";if(step==="report")return hasReport(c)?"done":hasValidation(c)?"current":"todo";return"todo";}
 function linkFor(page,id,ownerUid){const ownerParam=ownerUid&&currentUser&&ownerUid!==currentUser.uid?`&owner=${encodeURIComponent(ownerUid)}`:"";return `${page}?id=${encodeURIComponent(id)}${ownerParam}`;}
 function stepLink(label,page,id,ownerUid,c,paid,step){if(!paid)return`<span class="btn small stepBtn locked" title="Disponible après paiement">${label}</span>`;return`<a class="btn small stepBtn ${stepClass(c,paid,step)}" href="${linkFor(page,id,ownerUid)}">${label}</a>`;}
@@ -339,7 +345,7 @@ async function loadDashboard(user){
         shareButton,shareToCabinetButton,archiveBtn
       ].filter(Boolean).join(" ");
 
-      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:""}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
+      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:sharedCabinetBadge(c)}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
     });
 
     if(firstAccessible){
