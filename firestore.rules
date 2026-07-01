@@ -31,6 +31,20 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    function isMyCabinetOwner(userId) {
+      return isSignedIn()
+        && userDocExists(request.auth.uid)
+        && currentUserData().cabinetMember == true
+        && currentUserData().cabinetOwnerUid == userId;
+    }
+
+    function hasSharedWithUid(data) {
+      return isSignedIn()
+        && data.keys().hasAny(["sharedWithUids"])
+        && data.sharedWithUids is list
+        && data.sharedWithUids.hasAny([request.auth.uid]);
+    }
+
     function isSharedWithEmail(data) {
       return isSignedIn()
         && data.keys().hasAny(["sharedWithEmails"])
@@ -47,7 +61,9 @@ service cloud.firestore {
     }
 
     function isSharedClosure(data) {
-      return isSharedWithEmail(data) || isSharedWithMap(data);
+      return hasSharedWithUid(data)
+        || isSharedWithEmail(data)
+        || isSharedWithMap(data);
     }
 
     function canReadClosure(userId, data) {
@@ -56,6 +72,7 @@ service cloud.firestore {
           isOwner(userId)
           || isAdmin()
           || isSharedClosure(data)
+          || isMyCabinetOwner(userId)
         );
     }
 
@@ -65,16 +82,25 @@ service cloud.firestore {
           isOwner(userId)
           || isAdmin()
           || isSharedClosure(data)
+          || isMyCabinetOwner(userId)
         );
     }
 
     /*
-      IMPORTANT :
-      règle dédiée aux requêtes collectionGroup("closures").
-      Sans ça, le collaborateur peut être bloqué par Missing permissions.
+      CollectionGroup closures :
+      nécessaire pour :
+      collectionGroup("closures")
+      where("sharedWithEmails", "array-contains", email)
+      ou sharedWithUids côté futur tableau.
     */
     match /{path=**}/closures/{closureId} {
       allow read: if isSignedIn()
+        && (
+          isAdmin()
+          || isSharedClosure(resource.data)
+        );
+
+      allow update: if isSignedIn()
         && (
           isAdmin()
           || isSharedClosure(resource.data)
@@ -101,7 +127,11 @@ service cloud.firestore {
 
     match /users/{userId} {
 
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read: if isOwner(userId)
+        || isAdmin()
+        || isMyCabinetOwner(userId);
+
+      allow write: if isOwner(userId) || isAdmin();
 
       match /closures/{closureId} {
         allow create: if isOwner(userId) || isAdmin();
