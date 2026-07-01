@@ -82,60 +82,28 @@ async function collectSharedClosures(user){
   const email = normEmail(user.email);
   const all = [];
 
-  try{
-    const sharedSnap = await getDocs(
-      query(
-        collectionGroup(db, "cabinetSharedClosures"),
-        where("sharedWithEmails", "array-contains", email),
-        limit(100)
-      )
-    );
+  const snap = await getDocs(
+    query(
+      collectionGroup(db, "cabinetSharedClosures"),
+      where("sharedWithEmails", "array-contains", email),
+      limit(100)
+    )
+  );
 
-    for(const sharedDoc of sharedSnap.docs){
-      const shared = sharedDoc.data() || {};
-      const ownerUid = shared.cabinetOwnerUid;
-      const closureId = shared.closureId || sharedDoc.id;
+  snap.docs.forEach(d => {
+    const data = d.data() || {};
+    const ownerUid = data.cabinetOwnerUid;
 
-      if(!ownerUid || !closureId) continue;
-      if(ownerUid === user.uid) continue;
+    if(!ownerUid || ownerUid === user.uid) return;
 
-      try{
-        const closureSnap = await getDoc(
-          doc(db, "users", ownerUid, "closures", closureId)
-        );
-
-        if(closureSnap.exists()){
-          all.push({
-            id: closureId,
-            ownerUid,
-            shared: true,
-            cabinetName: shared.cabinetName || shared.ownerCompanyName || "Cabinet",
-            data: closureSnap.data() || {}
-          });
-        }else{
-          all.push({
-            id: closureId,
-            ownerUid,
-            shared: true,
-            cabinetName: shared.cabinetName || shared.ownerCompanyName || "Cabinet",
-            data: {
-              companyName: shared.companyName || "Dossier partagé",
-              startDate: shared.startDate || "—",
-              endDate: shared.endDate || "—",
-              status: "shared",
-              sharedWithEmails: shared.sharedWithEmails || [],
-              cabinetOwnerUid: ownerUid
-            }
-          });
-        }
-      }catch(e){
-        console.warn("Vraie clôture partagée inaccessible", closureId, e);
-      }
-    }
-
-  }catch(e){
-    console.warn("Lecture miroir partages ignorée", e);
-  }
+    all.push({
+      id: data.closureId || d.id,
+      ownerUid,
+      shared: true,
+      cabinetName: data.cabinetName || data.ownerCompanyName || "Cabinet",
+      data
+    });
+  });
 
   return all;
 }
