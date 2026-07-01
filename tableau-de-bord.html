@@ -102,28 +102,32 @@ async function collectSharedClosures(user){
   const email = normEmail(user.email);
   const all = [];
 
-  const snap = await getDocs(
-    query(
-      collectionGroup(db, "cabinetSharedClosures"),
-      where("sharedWithEmails", "array-contains", email),
-      limit(100)
-    )
-  );
+  try{
+    const snap = await getDocs(
+      query(
+        collectionGroup(db, "cabinetSharedClosures"),
+        where("sharedWithEmails", "array-contains", email),
+        limit(100)
+      )
+    );
 
-  snap.docs.forEach(d => {
-    const data = d.data() || {};
-    const ownerUid = data.cabinetOwnerUid;
+    snap.docs.forEach(d => {
+      const data = d.data() || {};
+      const ownerUid = data.cabinetOwnerUid;
 
-    if(!ownerUid || ownerUid === user.uid) return;
+      if(!ownerUid || ownerUid === user.uid) return;
 
-    all.push({
-      id: data.closureId || d.id,
-      ownerUid,
-      shared: true,
-      cabinetName: data.cabinetName || data.ownerCompanyName || "Cabinet",
-      data
+      all.push({
+        id: data.closureId || d.id,
+        ownerUid,
+        shared: true,
+        cabinetName: data.cabinetName || data.ownerCompanyName || "Cabinet",
+        data
+      });
     });
-  });
+  }catch(e){
+    console.warn("Dossiers partagés non chargés", e);
+  }
 
   return all;
 }
