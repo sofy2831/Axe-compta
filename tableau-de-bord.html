@@ -78,7 +78,67 @@ async function loadCabinetMemberships(user){const email=normEmail(user.email);tr
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled")});}
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
 async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}}));}
-async function collectSharedClosures(user){const email=normEmail(user.email);const all=[];try{const snap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",email),limit(100)));snap.docs.forEach(d=>{const data=d.data()||{};const ownerDoc=d.ref.parent.parent;const ownerUid=data.cabinetOwnerUid||ownerDoc?.id||"";if(!data.closureId||!ownerUid||ownerUid===user.uid)return;all.push({id:data.closureId,ownerUid,shared:true,cabinetName:data.cabinetName||data.ownerCompanyName||"Dossier partagé",data:{...data,companyName:data.companyName||"Dossier partagé",startDate:data.startDate||"",endDate:data.endDate||"",status:data.status||"shared",paid:true,cabinetShared:true,cabinetOwnerUid:ownerUid,sharedWithEmails:Array.isArray(data.sharedWithEmails)?data.sharedWithEmails:[]}});});}catch(e){console.log("Lecture miroir partages ignorée :", e.message);}return all;}
+async function collectSharedClosures(user){
+  const email = normEmail(user.email);
+  const all = [];
+
+  try{
+    const sharedSnap = await getDocs(
+      query(
+        collectionGroup(db, "cabinetSharedClosures"),
+        where("sharedWithEmails", "array-contains", email),
+        limit(100)
+      )
+    );
+
+    for(const sharedDoc of sharedSnap.docs){
+      const shared = sharedDoc.data() || {};
+      const ownerUid = shared.cabinetOwnerUid;
+      const closureId = shared.closureId || sharedDoc.id;
+
+      if(!ownerUid || !closureId) continue;
+      if(ownerUid === user.uid) continue;
+
+      try{
+        const closureSnap = await getDoc(
+          doc(db, "users", ownerUid, "closures", closureId)
+        );
+
+        if(closureSnap.exists()){
+          all.push({
+            id: closureId,
+            ownerUid,
+            shared: true,
+            cabinetName: shared.cabinetName || shared.ownerCompanyName || "Cabinet",
+            data: closureSnap.data() || {}
+          });
+        }else{
+          all.push({
+            id: closureId,
+            ownerUid,
+            shared: true,
+            cabinetName: shared.cabinetName || shared.ownerCompanyName || "Cabinet",
+            data: {
+              companyName: shared.companyName || "Dossier partagé",
+              startDate: shared.startDate || "—",
+              endDate: shared.endDate || "—",
+              status: "shared",
+              sharedWithEmails: shared.sharedWithEmails || [],
+              cabinetOwnerUid: ownerUid
+            }
+          });
+        }
+      }catch(e){
+        console.warn("Vraie clôture partagée inaccessible", closureId, e);
+      }
+    }
+
+  }catch(e){
+    console.warn("Lecture miroir partages ignorée", e);
+  }
+
+  return all;
+}
 async function loadDashboard(user){userEmailEl.textContent=user.email;currentMemberships=await loadCabinetMemberships(user);const userSnap=await getDoc(doc(db,"users",user.uid));let active=false;currentUserData={};if(userSnap.exists()){const data=userSnap.data();currentUserData=data;showAdminFeedbackIfAllowed(user,currentUserData);if(data.cabinetMember===true&&data.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===data.cabinetOwnerUid)){currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:data.cabinetOwnerUid,cabinetName:data.cabinetName||"Cabinet"});}active=data.active!==false||isSubscriptionActive(data)||isCabinetMember();}currentPlanLabel=dashboardPlanLabel(currentUserData);refreshCabinetAccess();planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);const subscriptionOk=hasPaidAccess();try{const all=[...(await collectOwnClosures(user)),...(await collectSharedClosures(user))];if(!all.length){activeClosuresEl.textContent="0";exportsCountEl.textContent="0";renderEmpty();return;}currentHasPaidSoloClosure=all.some(x=>!x.shared&&x.data.archived!==true&&isSoloActive(x.data));if(currentPlanLabel==="À activer"&&currentHasPaidSoloClosure){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}rows.innerHTML="";let exports=0,activeCount=0,firstAccessible=null;all.forEach(item=>{const c=item.data,archived=c.archived===true,paid=item.shared||isSoloActive(c)||subscriptionOk;if(!archived)activeCount++;if(paid&&!archived)exports++;if(paid&&!archived&&!firstAccessible)firstAccessible=item;const status=item.shared?`${statusLabel(c.status)} <span class="pill dev">Partagée</span>`:(archived?"Archivée":statusLabel(c.status));const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";const archiveBtn=!item.shared?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`):`<span class="pill dev">Cabinet</span>`;const actionLinks=`${stepLink("Résultat","cloture-resultat.html",item.id,item.ownerUid,c,paid,"result")} ${stepLink("Révision","dossier-revision.html",item.id,item.ownerUid,c,paid,"revision")} ${stepLink("Affectation","affectation-resultat.html",item.id,item.ownerUid,c,paid,"affectation")} ${stepLink("Extournes","extournes-automatiques.html",item.id,item.ownerUid,c,paid,"extournes")} ${stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score")} ${stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation")} ${stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report")} ${shareButton} ${archiveBtn}`;rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">${safe(item.cabinetName)}</span>`:""}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;});if(firstAccessible){resultModuleLink.href=linkFor("cloture-resultat.html",firstAccessible.id,firstAccessible.ownerUid);revisionModuleLink.href=linkFor("dossier-revision.html",firstAccessible.id,firstAccessible.ownerUid);affectationModuleLink.href=linkFor("affectation-resultat.html",firstAccessible.id,firstAccessible.ownerUid);extournesModuleLink.href=linkFor("extournes-automatiques.html",firstAccessible.id,firstAccessible.ownerUid);scoreModuleLink.href=linkFor("score-qualite.html",firstAccessible.id,firstAccessible.ownerUid);validationModuleLink.href=linkFor("validation-cloture.html",firstAccessible.id,firstAccessible.ownerUid);reportModuleLink.href=linkFor("rapport-cloture.html",firstAccessible.id,firstAccessible.ownerUid);[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>el.classList.remove("disabled"));}else{[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled");el.title="Disponible après paiement d'une clôture";});}activeClosuresEl.textContent=activeCount;exportsCountEl.textContent=exports;document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}));document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));}catch(e){console.error(e);renderEmpty();}}
 function openModal(title,subtitle,html){document.getElementById("modalTitle").textContent=title;document.getElementById("modalSubtitle").textContent=subtitle;document.getElementById("modalContent").innerHTML=html;document.getElementById("menuModal").classList.add("open");}
 function closeModal(){document.getElementById("menuModal").classList.remove("open");}
