@@ -64,7 +64,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
   <section class="box">
     <h2>Dossiers reçus des collaborateurs</h2>
     <p class="muted">Clôtures créées par les collaborateurs et partagées avec le cabinet.</p>
-    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur</th><th>Statut</th><th></th></tr></thead><tbody id="receivedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table>
+    <table><thead><tr><th>Dossier</th><th>Exercice</th><th>Collaborateur</th><th>Statut</th></tr></thead><tbody id="receivedRows"><tr><td colspan="4" class="muted">Chargement...</td></tr></tbody></table>
   </section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
@@ -159,14 +159,13 @@ async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="par
 }
 
 function renderReceivedRights(){
-  if(!receivedClosures.length){$("receivedRows").innerHTML=`<tr><td colspan="5" class="muted">Aucun dossier reçu pour le moment.</td></tr>`;return;}
+  if(!receivedClosures.length){$("receivedRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier reçu pour le moment.</td></tr>`;return;}
   $("receivedRows").innerHTML=receivedClosures.map(x=>`
     <tr>
       <td>${safe(x.companyName||"Société sans nom")}</td>
       <td>${safe(x.startDate||"—")} → ${safe(x.endDate||"—")}</td>
       <td>${safe(x.sharedByEmail||x.ownerEmail||x.ownerUid||"Collaborateur")}<br><span class="muted">${safe(x._source||"partage")}</span></td>
       <td><span class="pill dev">${safe(closureStatusLabel(x.status))}</span></td>
-      <td><div class="actions inlineActions">${actionLinks(x.id,x.ownerUid,x)}</div></td>
     </tr>
   `).join("");
 }
