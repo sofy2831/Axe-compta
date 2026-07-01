@@ -129,7 +129,7 @@ function renderSharedRows(items){
     return `<tr>
       <td>${safe(c.companyName||"Société sans nom")}</td>
       <td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td>
-      <td>${safe(item.cabinetName||c.cabinetName||c.ownerCompanyName||"Cabinet")}</td>
+      <td>${safe(item.cabinetName||c.cabinetName||c.ownerCompanyName||"Cabinet")}<br><span class="muted">${safe(c._source||"partage")}</span></td>
       <td><span class="pill dev">${safe(statusLabel(c.status))}</span></td>
       <td><div class="actions inlineActions">${links}</div></td>
     </tr>`;
@@ -148,25 +148,31 @@ async function collectSharedClosures(user){
   const email=normEmail(user.email);
   const byKey=new Map();
 
-  async function addSnap(snap){
-    snap.docs.forEach(d=>{
-      const ownerDoc=d.ref.parent.parent;
-      if(!ownerDoc)return;
-      const ownerUid=ownerDoc.id;
-      if(ownerUid===user.uid)return;
-      const c=d.data()||{};
-      const key=`${ownerUid}/${d.id}`;
-      byKey.set(key,{id:d.id,ownerUid,shared:true,cabinetName:c.cabinetName||c.ownerCompanyName||"Cabinet",data:c});
-    });
+  function addDoc(d,sourceLabel){
+    const ownerDoc=d.ref.parent.parent;
+    if(!ownerDoc)return;
+    const ownerUid=ownerDoc.id;
+    if(ownerUid===user.uid)return;
+    const c=d.data()||{};
+    const key=`${ownerUid}/${d.id}`;
+    byKey.set(key,{id:d.id,ownerUid,shared:true,cabinetName:c.cabinetName||c.ownerCompanyName||"Cabinet",data:{...c,_source:sourceLabel}});
   }
 
   if(email){
-    const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",email),limit(100)));
-    await addSnap(emailSnap);
+    try{
+      const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",email),limit(100)));
+      emailSnap.docs.forEach(d=>addDoc(d,"collectionGroup email"));
+    }catch(e){
+      console.warn("collectionGroup closures/email refusé :",e);
+    }
   }
 
-  const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
-  await addSnap(uidSnap);
+  try{
+    const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
+    uidSnap.docs.forEach(d=>addDoc(d,"collectionGroup uid"));
+  }catch(e){
+    console.warn("collectionGroup closures/uid refusé :",e);
+  }
 
   return [...byKey.values()].sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));
 }
@@ -176,33 +182,70 @@ async function collectSharedClosuresFallback(user){
   const email=normEmail(user.email);
   const byKey=new Map();
 
+  function addDoc(ownerUid,d,sourceLabel){
+    const x=d.data()||{};
+    const id=x.closureId||d.id;
+    byKey.set(`${ownerUid}/${id}`,{
+      id,
+      ownerUid,
+      shared:true,
+      cabinetName:x.cabinetName||x.ownerCompanyName||"Cabinet",
+      data:{...x,_source:sourceLabel}
+    });
+  }
+
   for(const m of currentMemberships){
     const ownerUid=m.cabinetOwnerUid;
     if(!ownerUid)continue;
+
+    try{
+      const snap=await getDocs(query(
+        collection(db,"users",ownerUid,"closures"),
+        where("sharedWithEmails","array-contains",email),
+        limit(100)
+      ));
+      snap.docs.forEach(d=>addDoc(ownerUid,d,"direct closures email"));
+    }catch(e){
+      console.warn("Fallback direct closures/email refusé pour",ownerUid,e);
+    }
+
+    try{
+      const snap=await getDocs(query(
+        collection(db,"users",ownerUid,"closures"),
+        where("sharedWithUids","array-contains",user.uid),
+        limit(100)
+      ));
+      snap.docs.forEach(d=>addDoc(ownerUid,d,"direct closures uid"));
+    }catch(e){
+      console.warn("Fallback direct closures/uid refusé pour",ownerUid,e);
+    }
+
     try{
       const snap=await getDocs(query(
         collection(db,"users",ownerUid,"cabinetSharedClosures"),
         where("sharedWithEmails","array-contains",email),
         limit(100)
       ));
-      snap.docs.forEach(d=>{
-        const x=d.data()||{};
-        const id=x.closureId||d.id;
-        byKey.set(`${ownerUid}/${id}`,{
-          id,
-          ownerUid,
-          shared:true,
-          cabinetName:x.cabinetName||x.ownerCompanyName||m.cabinetName||"Cabinet",
-          data:x
-        });
-      });
+      snap.docs.forEach(d=>addDoc(ownerUid,d,"cabinetSharedClosures email"));
     }catch(e){
-      console.warn("Fallback cabinetSharedClosures refusé pour",ownerUid,e);
+      console.warn("Fallback cabinetSharedClosures/email refusé pour",ownerUid,e);
+    }
+
+    try{
+      const snap=await getDocs(query(
+        collection(db,"users",ownerUid,"cabinetSharedClosures"),
+        where("sharedWithUids","array-contains",user.uid),
+        limit(100)
+      ));
+      snap.docs.forEach(d=>addDoc(ownerUid,d,"cabinetSharedClosures uid"));
+    }catch(e){
+      console.warn("Fallback cabinetSharedClosures/uid refusé pour",ownerUid,e);
     }
   }
 
-  return [...byKey.values()].sort((a,b)=>(b.data.updatedAt?.seconds||0)-(a.data.updatedAt?.seconds||0));
+  return [...byKey.values()].sort((a,b)=>(b.data.updatedAt?.seconds||b.data.createdAt?.seconds||0)-(a.data.updatedAt?.seconds||a.data.createdAt?.seconds||0));
 }
+
 
 async function loadDashboard(user){
   userEmailEl.textContent=user.email||"";
@@ -235,7 +278,12 @@ async function loadDashboard(user){
       sharedError=null;
     }
   }
-  renderSharedRows(shared);
+  if(!shared.length && sharedRows){
+    const owners=currentMemberships.map(m=>m.cabinetOwnerUid).filter(Boolean).join(", ")||"aucun cabinetOwnerUid";
+    sharedRows.innerHTML=`<tr><td colspan="5" class="muted">Aucune clôture partagée reçue. Debug : email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
+  }else{
+    renderSharedRows(shared);
+  }
 
   const seen=new Set();
   const all=[...own].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
