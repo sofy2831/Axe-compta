@@ -95,7 +95,14 @@ function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportClotur
 function stepClass(c,step){if(step==="result")return hasFinalEntries(c)?"done":"current";if(step==="revision")return hasRevision(c)?"done":hasFinalEntries(c)?"current":"todo";if(step==="affectation")return hasAffectation(c)?"done":hasRevision(c)?"current":"todo";if(step==="extournes")return hasExtournes(c)?"done":hasAffectation(c)?"current":"todo";if(step==="score")return hasScore(c)?"done":hasExtournes(c)?"current":"todo";if(step==="validation")return hasValidation(c)?"done":hasScore(c)?"current":"todo";if(step==="report")return hasReport(c)?"done":hasValidation(c)?"current":"todo";return"todo";}
 function activeCount(){return collaborators.filter(c=>c.status!=="removed").length;}
 function includedCount(){return Number(currentUserData.cabinetSetup?.includedLicenses||3);}
-function extraCount(){return Number(currentUserData.cabinetExtraLicenses||0);}
+function extraCount(){
+  const paid =
+    currentUserData.extraCollabSubscriptionActive === true ||
+    currentUserData.extraCollaboratorSubscriptionActive === true ||
+    currentUserData.cabinetExtraLicensesPaid === true;
+
+  return paid ? Number(currentUserData.cabinetExtraLicenses || 0) : 0;
+}
 function linkFor(page,id,ownerUid){return `${page}?id=${encodeURIComponent(id)}&owner=${encodeURIComponent(ownerUid)}`;}
 function actionLinks(id,ownerUid,c={}){
   const steps=[["Résultat","cloture-resultat.html","result"],["Révision","dossier-revision.html","revision"],["Affectation","affectation-resultat.html","affectation"],["Extournes","extournes-automatiques.html","extournes"],["Score","score-qualite.html","score"],["Validation","validation-cloture.html","validation"],["Rapport","rapport-cloture.html","report"]];
