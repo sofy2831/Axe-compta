@@ -198,21 +198,41 @@ async function loadDashboard(user){
 
   const subscriptionOk=hasPaidAccess();
 
+  let own=[];
+  let shared=[];
+  let ownError=null;
+  let sharedError=null;
+
   try{
-    const own=await collectOwnClosures(user);
-    const shared=await collectSharedClosures(user);
-    const seen=new Set();
-    const all=[...own,...shared].filter(x=>{
-      const key=`${x.ownerUid}/${x.id}`;
-      if(seen.has(key))return false;
-      seen.add(key);
-      return true;
-    });
+    own=await collectOwnClosures(user);
+  }catch(e){
+    ownError=e;
+    console.error("Clôtures propres non chargées :",e);
+  }
+
+  try{
+    shared=await collectSharedClosures(user);
+  }catch(e){
+    sharedError=e;
+    console.error("Clôtures partagées non chargées :",e);
+  }
+
+  const seen=new Set();
+  const all=[...own,...shared].filter(x=>{
+    const key=`${x.ownerUid}/${x.id}`;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+
+  try{
 
     if(!all.length){
       activeClosuresEl.textContent="0";
       exportsCountEl.textContent="0";
-      renderEmpty();
+      if(ownError && sharedError) renderEmpty("Impossible de charger les clôtures propres et partagées. Vérifiez les Firestore rules.");
+      else if(sharedError) renderEmpty("Aucune clôture propre affichable. Les clôtures partagées sont encore bloquées par les Firestore rules collectionGroup.");
+      else renderEmpty();
       return;
     }
 
@@ -241,6 +261,9 @@ async function loadDashboard(user){
       const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";
 
+      const shareToCabinetButton=isCabinetMember()&&!isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
+        ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
+
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
         :`<span class="pill dev">Cabinet</span>`;
@@ -254,6 +277,7 @@ async function loadDashboard(user){
         stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
         stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report"),
         shareButton,
+        shareToCabinetButton,
         archiveBtn
       ].filter(Boolean).join(" ");
 
@@ -290,6 +314,7 @@ async function loadDashboard(user){
     }));
 
     document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));
+    document.querySelectorAll("[data-share-cabinet]").forEach(btn=>btn.addEventListener("click",()=>renderShareWithCabinet(btn.dataset.shareCabinet,btn.dataset.company||"Société sans nom")));
 
   }catch(e){
     console.error("Chargement dashboard impossible :",e);
@@ -305,6 +330,105 @@ function closeModal(){document.getElementById("menuModal").classList.remove("ope
 async function getCabinetCollaborators(){
   const snap=await getDocs(query(collection(db,"users",currentUser.uid,"cabinetCollaborators"),orderBy("createdAt","desc"),limit(100)));
   return snap.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(c=>!["removed","suspended"].includes(String(c.status||"")));
+}
+
+async function getCabinetOwnerProfile(){
+  const ownerUid=currentUserData.cabinetOwnerUid || currentMemberships[0]?.cabinetOwnerUid || "";
+  if(!ownerUid)throw new Error("Cabinet introuvable sur le compte collaborateur.");
+  const ownerSnap=await getDoc(doc(db,"users",ownerUid));
+  const ownerData=ownerSnap.exists()?(ownerSnap.data()||{}):{};
+  const ownerEmail=normEmail(ownerData.email || ownerData.ownerEmail || currentMemberships[0]?.ownerEmail || "");
+  return {
+    ownerUid,
+    ownerEmail,
+    cabinetName: ownerData.cabinetName || ownerData.companyName || ownerData.cabinetSetup?.cabinetName || currentUserData.cabinetName || currentMemberships[0]?.cabinetName || "Cabinet"
+  };
+}
+
+async function renderShareWithCabinet(closureId,companyName){
+  openModal("Partager avec le cabinet",`Dossier : ${companyName}`,`<div class="notice">Chargement du cabinet...</div>`);
+  try{
+    const profile=await getCabinetOwnerProfile();
+    if(!profile.ownerEmail){
+      document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Email du cabinet introuvable.</b><br>Ajoutez le champ email dans le document users/${safe(profile.ownerUid)} du cabinet.</div>`;
+      return;
+    }
+    document.getElementById("modalContent").innerHTML=`
+      <div class="notice">
+        Cette action autorise le cabinet <b>${safe(profile.cabinetName)}</b> à lire et modifier cette clôture.
+      </div>
+      <div class="collabChoice">
+        <span><b>${safe(profile.cabinetName)}</b><span>${safe(profile.ownerEmail)} — accès cabinet</span></span>
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="saveShareCabinetBtn">Partager avec le cabinet</button>
+      </div>
+      <div id="shareCabinetMsg" class="notice" style="display:none"></div>`;
+    document.getElementById("saveShareCabinetBtn").addEventListener("click",()=>saveShareWithCabinet(closureId,companyName,profile));
+  }catch(e){
+    console.error(e);
+    document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>${safe(e.message||"Impossible de charger le cabinet.")}</b></div>`;
+  }
+}
+
+async function saveShareWithCabinet(closureId,companyName,profile){
+  const btn=document.getElementById("saveShareCabinetBtn"),msg=document.getElementById("shareCabinetMsg");
+  btn.disabled=true;btn.textContent="Enregistrement...";
+  try{
+    const closureRef=doc(db,"users",currentUser.uid,"closures",closureId);
+    const closureSnap=await getDoc(closureRef);
+    if(!closureSnap.exists())throw new Error("Clôture introuvable.");
+    const c=closureSnap.data()||{};
+    const existing=Array.isArray(c.sharedWithEmails)?c.sharedWithEmails:[];
+    const sharedWith={...(c.sharedWith||{})};
+    const email=normEmail(profile.ownerEmail);
+    const payload={email,active:true,role:"cabinet",cabinetOwnerUid:profile.ownerUid,updatedAt:new Date().toISOString()};
+    sharedWith[email]=payload;
+    sharedWith[profile.ownerUid]=payload;
+
+    const unique=uniqueEmails([...existing,email]);
+
+    await updateDoc(closureRef,{
+      sharedWith,
+      sharedWithEmails:unique,
+      cabinetShared:true,
+      cabinetOwnerUid:profile.ownerUid,
+      cabinetName:profile.cabinetName,
+      ownerCompanyName:profile.cabinetName,
+      sharedByUid:currentUser.uid,
+      sharedByEmail:currentUser.email || "",
+      updatedAt:serverTimestamp()
+    });
+
+    await setDoc(doc(db,"users",currentUser.uid,"cabinetSharedClosures",closureId),{
+      closureId,
+      companyName:c.companyName||companyName||"Société sans nom",
+      startDate:c.startDate||"",
+      endDate:c.endDate||"",
+      status:c.status||"shared",
+      scoreQualite:c.scoreQualite||null,
+      scoreQuality:c.scoreQuality||null,
+      scoreFinal:c.scoreFinal||null,
+      cabinetOwnerUid:profile.ownerUid,
+      cabinetName:profile.cabinetName,
+      ownerCompanyName:profile.cabinetName,
+      sharedWith,
+      sharedWithEmails:unique,
+      sharedByUid:currentUser.uid,
+      sharedByEmail:currentUser.email || "",
+      updatedAt:serverTimestamp()
+    },{merge:true});
+
+    msg.style.display="block";
+    msg.innerHTML=`<b class="okText">Clôture partagée avec le cabinet.</b>`;
+    btn.textContent="Partagé";
+    await loadDashboard(currentUser);
+  }catch(e){
+    console.error(e);
+    msg.style.display="block";
+    msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors du partage avec le cabinet.")}</b>`;
+    btn.disabled=false;btn.textContent="Partager avec le cabinet";
+  }
 }
 
 async function renderShareClosure(closureId,companyName){
