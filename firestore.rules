@@ -66,14 +66,15 @@ service cloud.firestore {
         || hasSharedWithMap(data);
     }
 
-    function canReadClosure(userId, data) {
-      return isSignedIn()
-        && (
-          isOwner(userId)
-          || isAdmin()
-          || isSharedClosure(data)
-        );
-    }
+   function canReadClosure(userId, data) {
+  return isSignedIn()
+    && (
+      isOwner(userId)
+      || isAdmin()
+      || isSharedClosure(data)
+      || isMyCabinetOwner(userId)
+    );
+}
 
     function canUpdateClosure(userId, data) {
       return isSignedIn()
