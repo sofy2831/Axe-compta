@@ -39,6 +39,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div>
 </div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th>Score</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Ordre conseillé : Résultat → Dossier de révision → Affectation → Extournes → Score qualité → Validation → Rapport → Archivage.</div></section>
+<section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead><tr><th>Société</th><th>Exercice</th><th>Partagé par</th><th>Statut</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <div class="modalOverlay" id="menuModal"><div class="modal" role="dialog" aria-modal="true"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Menu Axe Compta</div><div class="muted" id="modalSubtitle">Axe Compta évolue grâce aux retours de ses utilisateurs.</div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div id="modalContent"></div></div></div>
@@ -56,6 +57,7 @@ const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncSt
 const SUPPORT_EMAIL="contact@axe-dossier.fr";
 
 const rows=document.getElementById("closuresRows");
+const sharedRows=document.getElementById("sharedRows");
 const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
 let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[];
@@ -105,8 +107,38 @@ async function loadCabinetMemberships(user){
   return results;
 }
 
+
+function renderSharedRows(items){
+  if(!sharedRows)return;
+  if(!items.length){
+    sharedRows.innerHTML=`<tr><td colspan="5" class="muted">Aucune clôture partagée reçue pour le moment.</td></tr>`;
+    return;
+  }
+  sharedRows.innerHTML=items.map(item=>{
+    const c=item.data||{};
+    const paid=true;
+    const links=[
+      stepLink("Résultat","cloture-resultat.html",item.id,item.ownerUid,c,paid,"result"),
+      stepLink("Révision","dossier-revision.html",item.id,item.ownerUid,c,paid,"revision"),
+      stepLink("Affectation","affectation-resultat.html",item.id,item.ownerUid,c,paid,"affectation"),
+      stepLink("Extournes","extournes-automatiques.html",item.id,item.ownerUid,c,paid,"extournes"),
+      stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score"),
+      stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
+      stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report")
+    ].join(" ");
+    return `<tr>
+      <td>${safe(c.companyName||"Société sans nom")}</td>
+      <td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td>
+      <td>${safe(item.cabinetName||c.cabinetName||c.ownerCompanyName||"Cabinet")}</td>
+      <td><span class="pill dev">${safe(statusLabel(c.status))}</span></td>
+      <td><div class="actions inlineActions">${links}</div></td>
+    </tr>`;
+  }).join("");
+}
+
 function renderEmpty(msg="Aucune clôture disponible."){
   rows.innerHTML=`<tr><td colspan="6" class="muted">${safe(msg)}</td></tr><tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;
+  if(sharedRows && !sharedRows.innerHTML.trim())renderSharedRows([]);
   Object.values(moduleLinks).forEach(el=>{el.href="#";el.classList.add("disabled")});
 }
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
@@ -139,6 +171,39 @@ async function collectSharedClosures(user){
   return [...byKey.values()].sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));
 }
 
+
+async function collectSharedClosuresFallback(user){
+  const email=normEmail(user.email);
+  const byKey=new Map();
+
+  for(const m of currentMemberships){
+    const ownerUid=m.cabinetOwnerUid;
+    if(!ownerUid)continue;
+    try{
+      const snap=await getDocs(query(
+        collection(db,"users",ownerUid,"cabinetSharedClosures"),
+        where("sharedWithEmails","array-contains",email),
+        limit(100)
+      ));
+      snap.docs.forEach(d=>{
+        const x=d.data()||{};
+        const id=x.closureId||d.id;
+        byKey.set(`${ownerUid}/${id}`,{
+          id,
+          ownerUid,
+          shared:true,
+          cabinetName:x.cabinetName||x.ownerCompanyName||m.cabinetName||"Cabinet",
+          data:x
+        });
+      });
+    }catch(e){
+      console.warn("Fallback cabinetSharedClosures refusé pour",ownerUid,e);
+    }
+  }
+
+  return [...byKey.values()].sort((a,b)=>(b.data.updatedAt?.seconds||0)-(a.data.updatedAt?.seconds||0));
+}
+
 async function loadDashboard(user){
   userEmailEl.textContent=user.email||"";
   currentMemberships=await loadCabinetMemberships(user);
@@ -163,8 +228,17 @@ async function loadDashboard(user){
   try{own=await collectOwnClosures(user);}catch(e){ownError=e;console.error("Clôtures propres non chargées :",e);}
   try{shared=await collectSharedClosures(user);}catch(e){sharedError=e;console.error("Clôtures partagées non chargées :",e);}
 
+  if(!shared.length && currentMemberships.length){
+    const fallbackShared=await collectSharedClosuresFallback(user);
+    if(fallbackShared.length){
+      shared=fallbackShared;
+      sharedError=null;
+    }
+  }
+  renderSharedRows(shared);
+
   const seen=new Set();
-  const all=[...own,...shared].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
+  const all=[...own].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
 
   try{
     if(!all.length){
