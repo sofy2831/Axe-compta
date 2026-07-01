@@ -105,26 +105,28 @@ async function collectSharedClosures(user){
   try{
     const snap = await getDocs(
       query(
-        collectionGroup(db, "cabinetSharedClosures"),
+        collectionGroup(db, "closures"),
         where("sharedWithEmails", "array-contains", email),
         limit(100)
       )
     );
 
     snap.docs.forEach(d => {
-      const data = d.data() || {};
-      const ownerUid = data.cabinetOwnerUid;
+      const ownerDoc = d.ref.parent.parent;
+      if(!ownerDoc) return;
 
-      if(!ownerUid || ownerUid === user.uid) return;
+      const ownerUid = ownerDoc.id;
+      if(ownerUid === user.uid) return;
 
       all.push({
-        id: data.closureId || d.id,
+        id: d.id,
         ownerUid,
         shared: true,
-        cabinetName: data.cabinetName || data.ownerCompanyName || "Cabinet",
-        data
+        cabinetName: d.data().cabinetName || d.data().ownerCompanyName || "Cabinet",
+        data: d.data() || {}
       });
     });
+
   }catch(e){
     console.warn("Dossiers partagés non chargés", e);
   }
