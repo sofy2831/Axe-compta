@@ -107,6 +107,15 @@ service cloud.firestore {
       allow read, update: if canReadOrUpdateClosure("", resource.data);
     }
 
+match /{path=**}/cabinetSharedClosures/{sharedId} {
+  allow read: if isSignedIn()
+    && (
+      isAdmin()
+      || resource.data.cabinetOwnerUid == request.auth.uid
+      || isSharedClosureData(resource.data)
+    );
+}
+
     match /users/{userId} {
 
       allow read, write: if isOwner(userId) || isAdmin();
