@@ -212,6 +212,46 @@ async function collectSharedClosures(user){
 }
 
 
+
+async function collectCabinetReceivedClosures(user){
+  const byKey=new Map();
+
+  async function addSummaryDoc(d,sourceLabel){
+    const x=d.data()||{};
+    const ownerUid=x.sharedByUid||x.ownerUid||"";
+    const id=x.closureId||d.id;
+    if(!ownerUid||ownerUid===user.uid)return;
+    const item=await sourceClosure(ownerUid,id,x,sourceLabel);
+    byKey.set(`${ownerUid}/${id}`,item);
+  }
+
+  try{
+    const snap=await getDocs(query(
+      collectionGroup(db,"cabinetSharedClosures"),
+      where("cabinetOwnerUid","==",user.uid),
+      limit(100)
+    ));
+    for(const d of snap.docs) await addSummaryDoc(d,"cabinetSharedClosures cabinetOwnerUid");
+  }catch(e){
+    console.warn("Dashboard cabinetSharedClosures/cabinetOwnerUid refusé :",e);
+  }
+
+  try{
+    if(user.email){
+      const snap=await getDocs(query(
+        collectionGroup(db,"cabinetSharedClosures"),
+        where("sharedWithEmails","array-contains",normEmail(user.email)),
+        limit(100)
+      ));
+      for(const d of snap.docs) await addSummaryDoc(d,"cabinetSharedClosures email");
+    }
+  }catch(e){
+    console.warn("Dashboard cabinetSharedClosures/email refusé :",e);
+  }
+
+  return [...byKey.values()].sort((a,b)=>(b.data.updatedAt?.seconds||b.data.createdAt?.seconds||0)-(a.data.updatedAt?.seconds||a.data.createdAt?.seconds||0));
+}
+
 async function collectSharedClosuresFallback(user){
   const email=normEmail(user.email);
   const byKey=new Map();
@@ -291,9 +331,18 @@ async function loadDashboard(user){
       sharedError=null;
     }
   }
+
+  if(!shared.length && isCabinetOwner(currentUserData)){
+    const receivedFromCollaborators=await collectCabinetReceivedClosures(user);
+    if(receivedFromCollaborators.length){
+      shared=receivedFromCollaborators;
+      sharedError=null;
+    }
+  }
   if(!shared.length && sharedRows){
     const owners=currentMemberships.map(m=>m.cabinetOwnerUid).filter(Boolean).join(", ")||"aucun cabinetOwnerUid";
-    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue. Debug : email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
+    const mode=isCabinetOwner(currentUserData)?"cabinet owner":"collaborateur";
+    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue. Debug : mode=${safe(mode)} / email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
   }else{
     renderSharedRows(shared);
   }
