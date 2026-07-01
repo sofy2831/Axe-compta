@@ -31,68 +31,53 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function myCabinetOwnerUid() {
-      return userDocExists(request.auth.uid)
-        ? currentUserData().cabinetOwnerUid
-        : "";
-    }
-
-    function isCabinetMember() {
+    function isSharedWithEmail(data) {
       return isSignedIn()
-        && userDocExists(request.auth.uid)
-        && currentUserData().cabinetMember == true
-        && currentUserData().cabinetOwnerUid != null;
-    }
-
-    function hasSharedWithEmails(data) {
-      return data.keys().hasAny(["sharedWithEmails"])
+        && data.keys().hasAny(["sharedWithEmails"])
         && data.sharedWithEmails is list
         && data.sharedWithEmails.hasAny([userEmail()]);
     }
 
-    function hasSharedWithMap(data) {
-      return data.keys().hasAny(["sharedWith"])
+    function isSharedWithMap(data) {
+      return isSignedIn()
+        && data.keys().hasAny(["sharedWith"])
         && data.sharedWith is map
         && data.sharedWith.keys().hasAny([userEmail()])
         && data.sharedWith[userEmail()].active == true;
     }
 
-    function isSharedData(data) {
-      return isSignedIn()
-        && (
-          hasSharedWithEmails(data)
-          || hasSharedWithMap(data)
-        );
+    function isSharedClosure(data) {
+      return isSharedWithEmail(data) || isSharedWithMap(data);
     }
 
-    function canAccessClosure(userId, data) {
+    function canReadClosure(userId, data) {
       return isSignedIn()
         && (
           isOwner(userId)
           || isAdmin()
-          || isSharedData(data)
-          || (
-            data.keys().hasAny(["ownerUid"])
-            && data.ownerUid == request.auth.uid
-          )
-          || (
-            data.keys().hasAny(["cabinetOwnerUid"])
-            && data.cabinetOwnerUid == request.auth.uid
-          )
-          || (
-            isCabinetMember()
-            && data.keys().hasAny(["cabinetOwnerUid"])
-            && data.cabinetOwnerUid == myCabinetOwnerUid()
-          )
+          || isSharedClosure(data)
         );
     }
 
-    match /{path=**}/cabinetSharedClosures/{sharedId} {
+    function canUpdateClosure(userId, data) {
+      return isSignedIn()
+        && (
+          isOwner(userId)
+          || isAdmin()
+          || isSharedClosure(data)
+        );
+    }
+
+    /*
+      IMPORTANT :
+      règle dédiée aux requêtes collectionGroup("closures").
+      Sans ça, le collaborateur peut être bloqué par Missing permissions.
+    */
+    match /{path=**}/closures/{closureId} {
       allow read: if isSignedIn()
         && (
           isAdmin()
-          || resource.data.cabinetOwnerUid == request.auth.uid
-          || isSharedData(resource.data)
+          || isSharedClosure(resource.data)
         );
     }
 
@@ -105,13 +90,26 @@ service cloud.firestore {
         );
     }
 
+    match /{path=**}/cabinetSharedClosures/{sharedId} {
+      allow read: if isSignedIn()
+        && (
+          isAdmin()
+          || resource.data.cabinetOwnerUid == request.auth.uid
+          || isSharedClosure(resource.data)
+        );
+    }
+
     match /users/{userId} {
 
       allow read, write: if isOwner(userId) || isAdmin();
 
       match /closures/{closureId} {
         allow create: if isOwner(userId) || isAdmin();
-        allow read, update: if canAccessClosure(userId, resource.data);
+
+        allow read: if canReadClosure(userId, resource.data);
+
+        allow update: if canUpdateClosure(userId, resource.data);
+
         allow delete: if isOwner(userId) || isAdmin();
       }
 
@@ -128,9 +126,12 @@ service cloud.firestore {
       }
 
       match /cabinetSharedClosures/{sharedId} {
-        allow read: if isOwner(userId)
-          || isAdmin()
-          || isSharedData(resource.data);
+        allow read: if isSignedIn()
+          && (
+            isOwner(userId)
+            || isAdmin()
+            || isSharedClosure(resource.data)
+          );
 
         allow write: if isOwner(userId) || isAdmin();
       }
