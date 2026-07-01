@@ -248,11 +248,6 @@ async function getCabinetCollaborators(){
   return snap.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(c=>!["removed","suspended"].includes(String(c.status||"")));
 }
 
-async function getUserUidByEmail(email){
-  const qSnap=await getDocs(query(collection(db,"users"),where("email","==",normEmail(email)),limit(1)));
-  return qSnap.empty?"":qSnap.docs[0].id;
-}
-
 async function getCabinetOwnerProfile(){
   const ownerUid=currentUserData.cabinetOwnerUid||currentMemberships[0]?.cabinetOwnerUid||"";
   if(!ownerUid)throw new Error("Cabinet introuvable sur le compte collaborateur.");
@@ -344,22 +339,22 @@ async function renderShareClosure(closureId,companyName){
       return;
     }
 
-    const enriched=await Promise.all(collaborators.map(async c=>{
+    const enriched=collaborators.map(c=>{
       const email=normEmail(c.email);
-      const uid=c.uid||c.userUid||await getUserUidByEmail(email);
+      const uid=c.uid||c.userUid||c.collaboratorUid||"";
       return {...c,email,uid};
-    }));
+    });
 
     document.getElementById("modalContent").innerHTML=`<div class="notice">Cochez les collaborateurs autorisés à consulter et intervenir sur cette clôture.</div>
     <div id="shareList">${enriched.map(c=>{
-      const checked=existingEmails.includes(c.email)||existingUids.includes(c.uid)||sharedWith[c.email]?.active===true||sharedWith[c.id]?.active===true||sharedWith[c.uid]?.active===true;
-      return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(c.email)}" data-collab-uid="${safe(c.uid||"")}" ${checked?"checked":""}><span><b>${safe(c.name||c.email)}</b><span>${safe(c.email)}${c.uid?` — UID OK`:` — UID non trouvé, accès email seulement`}</span></span></label>`;
+      const checked=existingEmails.includes(c.email)||(c.uid&&existingUids.includes(c.uid))||sharedWith[c.email]?.active===true||sharedWith[c.id]?.active===true||(c.uid&&sharedWith[c.uid]?.active===true);
+      return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(c.email)}" data-collab-uid="${safe(c.uid||"")}" ${checked?"checked":""}><span><b>${safe(c.name||c.email)}</b><span>${safe(c.email)}${c.uid?` — UID enregistré`:` — accès email`}</span></span></label>`;
     }).join("")}</div>
     <div class="actions"><button class="btn primary" type="button" id="saveShareBtn">Enregistrer le partage</button><a class="btn" href="cabinet-espace.html">Espace Cabinet</a></div><div id="shareMsg" class="notice" style="display:none"></div>`;
     document.getElementById("saveShareBtn").addEventListener("click",()=>saveClosureSharing(closureId,companyName));
   }catch(e){
     console.error(e);
-    document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Impossible de charger le partage.</b></div>`;
+    document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>${safe(e.message||"Impossible de charger le partage.")}</b></div>`;
   }
 }
 
@@ -420,7 +415,7 @@ async function startSubscription(plan){if(!currentUser)return;try{const r=await 
 function renderSuggestForm(type="suggestion"){openModal(type==="bug"?"Signaler un problème":"Suggérer une fonctionnalité",type==="bug"?"Bug, erreur d'analyse ou problème d'affichage.":"Votre demande sera enregistrée et suivie.",`<div class="field"><label>Titre</label><input id="feedbackTitle"></div><div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>${type==="bug"?"Bug":"Contrôle comptable"}</option><option>Erreur d'analyse</option><option>Export</option><option>Ergonomie</option><option>Autre</option></select></div><div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback(type));}
 async function sendFeedback(type){const title=document.getElementById("feedbackTitle")?.value.trim()||"",category=document.getElementById("feedbackCategory")?.value||"",message=document.getElementById("feedbackMessage")?.value.trim()||"",msg=document.getElementById("feedbackMsg"),btn=document.getElementById("sendFeedbackBtn");if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}btn.disabled=true;try{const response=await fetch(SUBMIT_FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,userEmail:currentUser.email,type,category,title,message,closureId:"",page:location.href,screenshotName:""})});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error(data.error||"Erreur lors de l'enregistrement.");msg.style.display="block";msg.innerHTML=`<b class="okText">Retour enregistré.</b>`;btn.textContent="Envoyé";}catch(e){msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message)}</b>`;btn.disabled=false;}}
 function renderMySuggestions(){openModal("Mes suggestions","Demandes enregistrées sur votre compte.",`<div class="notice">Le suivi détaillé reste branché sur Firestore. Utilisez cette entrée pour vérifier vos demandes.</div>`);}
-function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur renforcé.</b><br>Ajout de sharedWithUids, lecture collectionGroup et partage collaborateur → cabinet.</div>`);}
+function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur stabilisé.</b><br>Écriture standard : sharedWith, sharedWithEmails, sharedWithUids quand l’UID est disponible, et liens ?owner=.</div>`);}
 async function openCustomerPortal(){try{const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");location.href=d.url;}catch(e){alert(e.message||"Portail Stripe non disponible.");}}
 function renderSubscription(){const isMember=isCabinetMember()&&!isCabinetOwner(currentUserData);openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Statut</span><b>${safe(isMember?"Actif via Cabinet":accountStatusEl.textContent)}</b></div></div>${isMember?`<div class="notice"><b>Accès collaborateur Cabinet.</b><br>Votre accès est pris en charge par le cabinet.</div>`:`<div class="notice">Gestion via Stripe pour les formules mensuelles.</div>`}<div class="actions"><button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button><button class="btn primary" type="button" data-sub-plan="expert">Choisir Expert</button><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a><a class="btn" href="nouvelle-cloture.html?plan=solo">Clôture Solo</a><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Support</a></div>`);document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);}
 
