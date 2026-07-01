@@ -132,17 +132,35 @@ service cloud.firestore {
         allow delete: if isOwner(userId) || isAdmin();
       }
 
-      match /cabinetCollaborators/{collabId} {
-        allow read: if isSignedIn()
-          && (
-            isOwner(userId)
-            || isAdmin()
-            || resource.data.email == userEmail()
-            || resource.data.cabinetOwnerUid == request.auth.uid
-          );
+     match /cabinetCollaborators/{collabId} {
+  allow read: if isSignedIn()
+    && (
+      isOwner(userId)
+      || isAdmin()
+      || resource.data.email == userEmail()
+      || resource.data.cabinetOwnerUid == request.auth.uid
+    );
 
-        allow create, update, delete: if isOwner(userId) || isAdmin();
-      }
+  allow create, delete: if isOwner(userId) || isAdmin();
+
+  allow update: if isOwner(userId)
+    || isAdmin()
+    || (
+      isSignedIn()
+      && resource.data.email == userEmail()
+      && request.resource.data.email == resource.data.email
+      && request.resource.data.cabinetOwnerUid == resource.data.cabinetOwnerUid
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        "status",
+        "uid",
+        "userUid",
+        "collaboratorUid",
+        "acceptedAt",
+        "activatedAt",
+        "updatedAt"
+      ])
+    );
+}
 
       match /cabinetSharedClosures/{sharedId} {
       allow read: if isSignedIn()
