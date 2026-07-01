@@ -161,6 +161,37 @@ function renderSentRights(){
   `).join("");
 }
 
+
+async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="partage"){
+  try{
+    const snap=await getDoc(doc(db,"users",ownerUid,"closures",closureId));
+    if(snap.exists()){
+      const data=snap.data()||{};
+      return {
+        ...data,
+        id:closureId,
+        ownerUid,
+        companyName:data.companyName||fallbackData.companyName||"Société sans nom",
+        startDate:data.startDate||fallbackData.startDate||"",
+        endDate:data.endDate||fallbackData.endDate||"",
+        status:data.status||fallbackData.status||"",
+        sharedByEmail:data.sharedByEmail||fallbackData.sharedByEmail||fallbackData.ownerEmail||"",
+        ownerEmail:fallbackData.ownerEmail||"",
+        _source:"clôture source"
+      };
+    }
+  }catch(e){
+    console.warn("Lecture source collaborateur impossible",ownerUid,closureId,e);
+  }
+
+  return {
+    id:closureId,
+    ownerUid,
+    _source:sourceLabel+" / résumé",
+    ...fallbackData
+  };
+}
+
 function renderReceivedRights(){
   if(!receivedClosures.length){
     $("receivedRows").innerHTML=`<tr><td colspan="5" class="muted">Aucun dossier reçu pour le moment.</td></tr>`;
@@ -171,7 +202,7 @@ function renderReceivedRights(){
     <tr>
       <td>${safe(x.companyName||"Société sans nom")}</td>
       <td>${safe(x.startDate||"—")} → ${safe(x.endDate||"—")}</td>
-      <td>${safe(x.sharedByEmail||x.ownerEmail||x.ownerUid||"Collaborateur")}</td>
+      <td>${safe(x.sharedByEmail||x.ownerEmail||x.ownerUid||"Collaborateur")}<br><span class="muted">${safe(x._source||"partage")}</span></td>
       <td><span class="pill dev">${safe(closureStatusLabel(x.status))}</span></td>
       <td><div class="actions inlineActions">${actionLinks(x.id,x.ownerUid)}</div></td>
     </tr>
@@ -181,35 +212,60 @@ function renderReceivedRights(){
 async function loadReceivedClosures(user){
   const byKey=new Map();
 
-  async function addSnap(snap){
-    snap.docs.forEach(d=>{
-      const ownerDoc=d.ref.parent.parent;
-      if(!ownerDoc)return;
-      const ownerUid=ownerDoc.id;
-      if(ownerUid===user.uid)return;
-      const data=d.data()||{};
-      byKey.set(`${ownerUid}/${d.id}`,{id:d.id,ownerUid,...data});
-    });
+  async function addClosureDoc(d,sourceLabel){
+    const ownerDoc=d.ref.parent.parent;
+    if(!ownerDoc)return;
+    const ownerUid=ownerDoc.id;
+    if(ownerUid===user.uid)return;
+    const data=d.data()||{};
+    const item=await sourceClosure(ownerUid,d.id,data,sourceLabel);
+    byKey.set(`${ownerUid}/${d.id}`,item);
+  }
+
+  async function addSharedSummaryDoc(d,sourceLabel){
+    const data=d.data()||{};
+    const ownerUid=data.sharedByUid||data.ownerUid||"";
+    const closureId=data.closureId||d.id;
+    if(!ownerUid||ownerUid===user.uid)return;
+    const item=await sourceClosure(ownerUid,closureId,data,sourceLabel);
+    byKey.set(`${ownerUid}/${closureId}`,item);
   }
 
   try{
     const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
-    await addSnap(uidSnap);
+    for(const d of uidSnap.docs) await addClosureDoc(d,"collectionGroup closures uid");
   }catch(e){
-    console.warn("Dossiers reçus par UID non chargés :",e);
+    console.warn("Dossiers reçus closures/uid non chargés :",e);
   }
 
   try{
     if(user.email){
       const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
-      await addSnap(emailSnap);
+      for(const d of emailSnap.docs) await addClosureDoc(d,"collectionGroup closures email");
     }
   }catch(e){
-    console.warn("Dossiers reçus par email non chargés :",e);
+    console.warn("Dossiers reçus closures/email non chargés :",e);
   }
 
-  return [...byKey.values()].sort((a,b)=>(b.updatedAt?.seconds||0)-(a.updatedAt?.seconds||0));
+  try{
+    const summarySnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("cabinetOwnerUid","==",user.uid),limit(100)));
+    for(const d of summarySnap.docs) await addSharedSummaryDoc(d,"cabinetSharedClosures cabinetOwnerUid");
+  }catch(e){
+    console.warn("Dossiers reçus cabinetSharedClosures/cabinetOwnerUid non chargés :",e);
+  }
+
+  try{
+    if(user.email){
+      const summaryEmailSnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
+      for(const d of summaryEmailSnap.docs) await addSharedSummaryDoc(d,"cabinetSharedClosures email");
+    }
+  }catch(e){
+    console.warn("Dossiers reçus cabinetSharedClosures/email non chargés :",e);
+  }
+
+  return [...byKey.values()].sort((a,b)=>(b.updatedAt?.seconds||b.createdAt?.seconds||0)-(a.updatedAt?.seconds||a.createdAt?.seconds||0));
 }
+
 
 async function loadCabinetPage(user){
   const userSnap=await getDoc(doc(db,"users",user.uid));
