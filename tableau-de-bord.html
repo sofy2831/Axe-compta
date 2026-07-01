@@ -20,18 +20,16 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <main><div class="wrap">
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
 <div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
-
 <section class="box"><h2>Mes modules</h2><div class="modulesGrid">
-  <div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" href="nouvelle-cloture.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>📘 Résultat</b><span>Analyser, corriger, recharger les fichiers si besoin, puis valider les écritures de clôture.</span><a class="btn" id="resultModuleLink" href="cloture-resultat.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>📚 Dossier de révision</b><span>Documenter les OD : justificatif, calcul, commentaire et statut de validation.</span><a class="btn" id="revisionModuleLink" href="dossier-revision.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>📊 Affectation du résultat</b><span>Préparer l’affectation 120/129 vers 1068, 110, 119 ou 457 à partir d’une clôture documentée.</span><a class="btn" id="affectationModuleLink" href="affectation-resultat.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>🔄 Extournes automatiques</b><span>Générer les OD de contrepassation N+1 après affectation du résultat.</span><a class="btn" id="extournesModuleLink" href="extournes-automatiques.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>⭐ Score qualité</b><span>Contrôle global : OD, révision, affectation, extournes, justificatifs, anomalies et score /100.</span><a class="btn" id="scoreModuleLink" href="score-qualite.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>✅ Validation clôture</b><span>Figer le dossier après score final avant génération du rapport.</span><a class="btn" id="validationModuleLink" href="validation-cloture.html">Ouvrir</a></div>
-  <div class="moduleCard"><b>📄 Rapport de clôture</b><span>Export final PDF / Word et archivage du dossier de clôture.</span><a class="btn" id="reportModuleLink" href="rapport-cloture.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" href="nouvelle-cloture.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📘 Résultat</b><span>Analyser, corriger, recharger les fichiers si besoin, puis valider les écritures de clôture.</span><a class="btn" id="resultModuleLink" href="cloture-resultat.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📚 Dossier de révision</b><span>Documenter les OD : justificatif, calcul, commentaire et statut de validation.</span><a class="btn" id="revisionModuleLink" href="dossier-revision.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📊 Affectation du résultat</b><span>Préparer l’affectation 120/129 vers 1068, 110, 119 ou 457 à partir d’une clôture documentée.</span><a class="btn" id="affectationModuleLink" href="affectation-resultat.html">Ouvrir</a></div>
+<div class="moduleCard"><b>🔄 Extournes automatiques</b><span>Générer les OD de contrepassation N+1 après affectation du résultat.</span><a class="btn" id="extournesModuleLink" href="extournes-automatiques.html">Ouvrir</a></div>
+<div class="moduleCard"><b>⭐ Score qualité</b><span>Contrôle global : OD, révision, affectation, extournes, justificatifs, anomalies et score /100.</span><a class="btn" id="scoreModuleLink" href="score-qualite.html">Ouvrir</a></div>
+<div class="moduleCard"><b>✅ Validation clôture</b><span>Figer le dossier après score final avant génération du rapport.</span><a class="btn" id="validationModuleLink" href="validation-cloture.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📄 Rapport de clôture</b><span>Export final PDF / Word et archivage du dossier de clôture.</span><a class="btn" id="reportModuleLink" href="rapport-cloture.html">Ouvrir</a></div>
 </div></section>
-
 <section class="box"><h2>Menu Axe Compta</h2><p class="muted">Axe Compta évolue grâce aux retours de ses utilisateurs. Chaque suggestion est étudiée.</p><div class="menuGrid"><div class="menuCard" data-menu-action="suggest"><b>💡 Suggérer une fonctionnalité</b><span>Contrôle manquant, export à ajouter, amélioration métier ou idée de module.</span></div><div class="menuCard" data-menu-action="mySuggestions"><b>📬 Mes suggestions</b><span>Retrouvez vos demandes et leur statut : à l’étude, en développement, disponible ou non retenue.</span></div><div class="menuCard" data-menu-action="bug"><b>🐞 Signaler un problème</b><span>Bug, erreur d’analyse, écriture discutable ou problème d’affichage.</span></div><div class="menuCard" data-menu-action="news"><b>🆕 Nouveautés</b><span>Historique réel des améliorations et prochaines mises à jour.</span></div><div class="menuCard" data-menu-action="subscription"><b>👤 Mon abonnement</b><span>Formule actuelle, factures, moyen de paiement et désabonnement.</span></div><div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div></div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th>Score</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Ordre conseillé : Résultat → Dossier de révision → Affectation → Extournes → Score qualité → Validation → Rapport → Archivage.</div></section>
 </div></main>
@@ -52,6 +50,7 @@ const rows=document.getElementById("closuresRows"),resultModuleLink=document.get
 let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentHasPaidSoloClosure=false,currentMemberships=[];
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
+function uniqueEmails(arr){return [...new Set(arr.map(normEmail).filter(Boolean))];}
 function planDisplay(plan){if(plan==="solo")return"Solo 99 €";if(plan==="expert")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="monthly")return"Expert 149 €/mois";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
 function isCabinetOwner(data){return data.developerAccess===true||data.role==="admin"||data.cabinetOwner===true||data.plan==="cabinet"||data.planRequested==="cabinet"||data.cabinetSetup?.status==="active"||data.cabinetSetup?.status==="pending_payment";}
 function isCabinetMember(){return currentUserData.cabinetMember===true || currentMemberships.length>0;}
@@ -61,29 +60,15 @@ function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabin
 function isSubscriptionActive(data){return data.developerAccess===true||data.role==="admin"||data.subscriptionActive===true||(data.active!==false&&["expert","cabinet","extra-collab","monthly"].includes(data.plan));}
 function hasPaidAccess(){return isSubscriptionActive(currentUserData)||isCabinetMember();}
 function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
-function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Résultat à valider";if(status==="paid")return"Activée";return"À compléter";}
+function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Résultat à valider";if(status==="paid")return"Activée";if(status==="shared")return"Partagée";return"À compléter";}
 function hasFinalEntries(c){return Array.isArray(c.entries)&&c.entries.length>0}
 function hasRevision(c){return c.dossierRevision?.status==="completed"||c.dossierRevision?.status==="in_progress"||Array.isArray(c.dossierRevision?.items)}
 function hasAffectation(c){return c.affectationResult?.status==="generated"||(Array.isArray(c.affectationResult?.entries)&&c.affectationResult.entries.length>0)}
 function hasExtournes(c){return c.extournesN1?.status==="generated"||(Array.isArray(c.extournesN1?.entries)&&c.extournesN1.entries.length>0)}
 function hasScore(c){return c.scoreQualite?.status==="generated"||c.scoreQuality?.status==="generated"||typeof c.scoreQualite?.score==="number"||typeof c.scoreQuality?.score==="number"}
-function hasValidation(c){
-  return c.validated === true
-    || c.validation?.status === "validated"
-    || c.validationDefinitive?.status === "validated"
-    || c.validationCloture?.status === "validated"
-    || c.closureValidation?.status === "validated";
-}
-
-function hasReport(c){
-  return c.rapportCloture?.status === "saved"
-    || c.rapportCloture?.status === "generated"
-    || c.rapportCloture?.status === "archived"
-    || c.closureReport?.status === "saved"
-    || c.closureReport?.status === "generated";
-}
+function hasValidation(c){return c.validated===true||c.validation?.status==="validated"||c.validationDefinitive?.status==="validated"||c.validationCloture?.status==="validated"||c.closureValidation?.status==="validated";}
+function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="saved"||c.closureReport?.status==="generated";}
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
-function scoreLabel(c){const s=scoreValue(c);return s===null?"—":`${s}%`}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
 function stepClass(c,paid,step){if(!paid)return"locked";if(step==="result")return hasFinalEntries(c)?"done":"current";if(step==="revision")return hasRevision(c)?"done":hasFinalEntries(c)?"current":"todo";if(step==="affectation")return hasAffectation(c)?"done":hasRevision(c)?"current":"todo";if(step==="extournes")return hasExtournes(c)?"done":hasAffectation(c)?"current":"todo";if(step==="score")return hasScore(c)?"done":hasExtournes(c)?"current":"todo";if(step==="validation")return hasValidation(c)?"done":hasScore(c)?"current":"todo";if(step==="report")return hasReport(c)?"done":hasValidation(c)?"current":"todo";return"todo";}
 function linkFor(page,id,ownerUid){const ownerParam=ownerUid&&ownerUid!==currentUser.uid?`&owner=${encodeURIComponent(ownerUid)}`:"";return `${page}?id=${encodeURIComponent(id)}${ownerParam}`;}
@@ -93,116 +78,13 @@ async function loadCabinetMemberships(user){const email=normEmail(user.email);tr
 function renderEmpty(){rows.innerHTML=`<tr><td>Nouvelle clôture</td><td>—</td><td><span class="pill">Disponible</span></td><td>—</td><td><span class="pill dark">—</span></td><td><a class="btn small primary" href="nouvelle-cloture.html">Créer</a></td></tr>`;[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled")});}
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
 async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),orderBy("createdAt","desc"),limit(50)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}}));}
-async function collectSharedClosures(user){
-  const email = normEmail(user.email);
-  const all = [];
-
-  try{
-    const snap = await getDocs(
-      query(
-        collectionGroup(db, "cabinetSharedClosures"),
-        where("sharedWithEmails", "array-contains", email),
-        limit(100)
-      )
-    );
-
-    snap.docs.forEach(d=>{
-      const data = d.data() || {};
-
-      if(!data.cabinetOwnerUid || !data.closureId) return;
-
-      all.push({
-        id: data.closureId,
-        ownerUid: data.cabinetOwnerUid,
-        shared: true,
-        cabinetName: data.cabinetName || data.ownerCompanyName || "Dossier partagé",
-        data
-      });
-    });
-
-  }catch(e){
-    console.warn("Dossiers partagés non chargés", e);
-  }
-
-  return all;
-}
-  async function loadDashboard(user){
-  userEmailEl.textContent=user.email;
-  currentMemberships=await loadCabinetMemberships(user);
-  const userSnap=await getDoc(doc(db,"users",user.uid));
-  let active=false;currentUserData={};
-  if(userSnap.exists()){
-    const data=userSnap.data();
-    currentUserData=data;
-    showAdminFeedbackIfAllowed(user,currentUserData);
-    if(data.cabinetMember===true&&data.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===data.cabinetOwnerUid)){
-      currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:data.cabinetOwnerUid,cabinetName:data.cabinetName||"Cabinet"});
-    }
-    active=data.active!==false || isSubscriptionActive(data) || isCabinetMember();
-  }
-  currentPlanLabel=dashboardPlanLabel(currentUserData);
-  refreshCabinetAccess();
-  planLabelEl.textContent=currentPlanLabel;
-  accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);
-  const subscriptionOk=hasPaidAccess();
-  try{
-    const all=[...(await collectOwnClosures(user)),...(await collectSharedClosures(user))];
-    if(!all.length){activeClosuresEl.textContent="0";exportsCountEl.textContent="0";renderEmpty();return;}
-    currentHasPaidSoloClosure=all.some(x=>!x.shared&&x.data.archived!==true&&isSoloActive(x.data));
-    if(currentPlanLabel==="À activer"&&currentHasPaidSoloClosure){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}
-    rows.innerHTML="";let exports=0,activeCount=0,firstAccessible=null;
-    all.forEach(item=>{
-      const c=item.data,archived=c.archived===true,paid=item.shared||isSoloActive(c)||subscriptionOk;
-      if(!archived)activeCount++; if(paid&&!archived)exports++; if(paid&&!archived&&!firstAccessible)firstAccessible=item;
-      const status=item.shared?`${statusLabel(c.status)} <span class="pill dev">Partagée</span>`:(archived?"Archivée":statusLabel(c.status));
-      const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';
-      const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";
-      const archiveBtn=!item.shared?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`):`<span class="pill dev">Cabinet</span>`;
-      const actionLinks=`${stepLink("Résultat","cloture-resultat.html",item.id,item.ownerUid,c,paid,"result")} ${stepLink("Révision","dossier-revision.html",item.id,item.ownerUid,c,paid,"revision")} ${stepLink("Affectation","affectation-resultat.html",item.id,item.ownerUid,c,paid,"affectation")} ${stepLink("Extournes","extournes-automatiques.html",item.id,item.ownerUid,c,paid,"extournes")} ${stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score")} ${stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation")} ${stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report")} ${shareButton} ${archiveBtn}`;
-      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">${safe(item.cabinetName)}</span>`:""}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
-    });
-    if(firstAccessible){
-      resultModuleLink.href=linkFor("cloture-resultat.html",firstAccessible.id,firstAccessible.ownerUid);
-      revisionModuleLink.href=linkFor("dossier-revision.html",firstAccessible.id,firstAccessible.ownerUid);
-      affectationModuleLink.href=linkFor("affectation-resultat.html",firstAccessible.id,firstAccessible.ownerUid);
-      extournesModuleLink.href=linkFor("extournes-automatiques.html",firstAccessible.id,firstAccessible.ownerUid);
-      scoreModuleLink.href=linkFor("score-qualite.html",firstAccessible.id,firstAccessible.ownerUid);
-      validationModuleLink.href=linkFor("validation-cloture.html",firstAccessible.id,firstAccessible.ownerUid);
-      reportModuleLink.href=linkFor("rapport-cloture.html",firstAccessible.id,firstAccessible.ownerUid);
-      [resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>el.classList.remove("disabled"));
-    }else{
-      [resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled");el.title="Disponible après paiement d'une clôture";});
-    }
-    activeClosuresEl.textContent=activeCount;exportsCountEl.textContent=exports;
-    document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}));
-    document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));
-  }catch(e){console.error(e);renderEmpty();}
-}
+async function collectSharedClosures(user){const email=normEmail(user.email);const all=[];try{const snap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",email),limit(100)));snap.docs.forEach(d=>{const data=d.data()||{};const ownerDoc=d.ref.parent.parent;const ownerUid=data.cabinetOwnerUid||ownerDoc?.id||"";if(!data.closureId||!ownerUid||ownerUid===user.uid)return;all.push({id:data.closureId,ownerUid,shared:true,cabinetName:data.cabinetName||data.ownerCompanyName||"Dossier partagé",data:{...data,companyName:data.companyName||"Dossier partagé",startDate:data.startDate||"",endDate:data.endDate||"",status:data.status||"shared",paid:true,cabinetShared:true,cabinetOwnerUid:ownerUid,sharedWithEmails:Array.isArray(data.sharedWithEmails)?data.sharedWithEmails:[]}});});}catch(e){console.warn("Dossiers partagés non chargés",e);}return all;}
+async function loadDashboard(user){userEmailEl.textContent=user.email;currentMemberships=await loadCabinetMemberships(user);const userSnap=await getDoc(doc(db,"users",user.uid));let active=false;currentUserData={};if(userSnap.exists()){const data=userSnap.data();currentUserData=data;showAdminFeedbackIfAllowed(user,currentUserData);if(data.cabinetMember===true&&data.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===data.cabinetOwnerUid)){currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:data.cabinetOwnerUid,cabinetName:data.cabinetName||"Cabinet"});}active=data.active!==false||isSubscriptionActive(data)||isCabinetMember();}currentPlanLabel=dashboardPlanLabel(currentUserData);refreshCabinetAccess();planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);const subscriptionOk=hasPaidAccess();try{const all=[...(await collectOwnClosures(user)),...(await collectSharedClosures(user))];if(!all.length){activeClosuresEl.textContent="0";exportsCountEl.textContent="0";renderEmpty();return;}currentHasPaidSoloClosure=all.some(x=>!x.shared&&x.data.archived!==true&&isSoloActive(x.data));if(currentPlanLabel==="À activer"&&currentHasPaidSoloClosure){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}rows.innerHTML="";let exports=0,activeCount=0,firstAccessible=null;all.forEach(item=>{const c=item.data,archived=c.archived===true,paid=item.shared||isSoloActive(c)||subscriptionOk;if(!archived)activeCount++;if(paid&&!archived)exports++;if(paid&&!archived&&!firstAccessible)firstAccessible=item;const status=item.shared?`${statusLabel(c.status)} <span class="pill dev">Partagée</span>`:(archived?"Archivée":statusLabel(c.status));const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";const archiveBtn=!item.shared?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`):`<span class="pill dev">Cabinet</span>`;const actionLinks=`${stepLink("Résultat","cloture-resultat.html",item.id,item.ownerUid,c,paid,"result")} ${stepLink("Révision","dossier-revision.html",item.id,item.ownerUid,c,paid,"revision")} ${stepLink("Affectation","affectation-resultat.html",item.id,item.ownerUid,c,paid,"affectation")} ${stepLink("Extournes","extournes-automatiques.html",item.id,item.ownerUid,c,paid,"extournes")} ${stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score")} ${stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation")} ${stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report")} ${shareButton} ${archiveBtn}`;rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">${safe(item.cabinetName)}</span>`:""}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;});if(firstAccessible){resultModuleLink.href=linkFor("cloture-resultat.html",firstAccessible.id,firstAccessible.ownerUid);revisionModuleLink.href=linkFor("dossier-revision.html",firstAccessible.id,firstAccessible.ownerUid);affectationModuleLink.href=linkFor("affectation-resultat.html",firstAccessible.id,firstAccessible.ownerUid);extournesModuleLink.href=linkFor("extournes-automatiques.html",firstAccessible.id,firstAccessible.ownerUid);scoreModuleLink.href=linkFor("score-qualite.html",firstAccessible.id,firstAccessible.ownerUid);validationModuleLink.href=linkFor("validation-cloture.html",firstAccessible.id,firstAccessible.ownerUid);reportModuleLink.href=linkFor("rapport-cloture.html",firstAccessible.id,firstAccessible.ownerUid);[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>el.classList.remove("disabled"));}else{[resultModuleLink,revisionModuleLink,affectationModuleLink,extournesModuleLink,scoreModuleLink,validationModuleLink,reportModuleLink].forEach(el=>{el.href="#";el.classList.add("disabled");el.title="Disponible après paiement d'une clôture";});}activeClosuresEl.textContent=activeCount;exportsCountEl.textContent=exports;document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}));document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));}catch(e){console.error(e);renderEmpty();}}
 function openModal(title,subtitle,html){document.getElementById("modalTitle").textContent=title;document.getElementById("modalSubtitle").textContent=subtitle;document.getElementById("modalContent").innerHTML=html;document.getElementById("menuModal").classList.add("open");}
 function closeModal(){document.getElementById("menuModal").classList.remove("open");}
 async function getCabinetCollaborators(){const snap=await getDocs(query(collection(db,"users",currentUser.uid,"cabinetCollaborators"),orderBy("createdAt","desc"),limit(100)));return snap.docs.map(d=>({id:d.id,...(d.data()||{})})).filter(c=>c.status!=="removed");}
-async function renderShareClosure(closureId,companyName){openModal("Partager la clôture",`Dossier : ${companyName}`,`<div class="notice">Chargement des collaborateurs...</div>`);try{const closureRef=doc(db,"users",currentUser.uid,"closures",closureId);const closureSnap=await getDoc(closureRef);const sharedWith=(closureSnap.exists()?closureSnap.data().sharedWith:{})||{};const collaborators=await getCabinetCollaborators();if(!collaborators.length){document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Aucun collaborateur disponible.</b><br>Créez d’abord une invitation dans l’Espace Cabinet.</div><div class="actions"><a class="btn primary" href="cabinet-espace.html">Ouvrir l’Espace Cabinet</a></div>`;return;}document.getElementById("modalContent").innerHTML=`<div class="notice">Cochez les collaborateurs autorisés à consulter et intervenir sur cette clôture.</div><div id="shareList">${collaborators.map(c=>{const email=normEmail(c.email);const checked=sharedWith[c.id]?.active===true||sharedWith[email]?.active===true||sharedWith[c.email]?.active===true;return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(email)}" ${checked?"checked":""}><span><b>${safe(c.name || email)}</b><span>${safe(email)} — accès au dossier coché</span></span></label>`;}).join("")}</div><div class="actions"><button class="btn primary" type="button" id="saveShareBtn">Enregistrer le partage</button><a class="btn" href="cabinet-espace.html">Espace Cabinet</a></div><div id="shareMsg" class="notice" style="display:none"></div>`;document.getElementById("saveShareBtn").addEventListener("click",()=>saveClosureSharing(closureId,companyName));}catch(e){console.error(e);document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Impossible de charger le partage.</b></div>`;}}
-async function saveClosureSharing(closureId,companyName){const btn=document.getElementById("saveShareBtn"),msg=document.getElementById("shareMsg");btn.disabled=true;btn.textContent="Enregistrement...";try{const checks=[...document.querySelectorAll("[data-collab-id]")];const sharedWith={},sharedWithEmails=[];checks.forEach(ch=>{if(ch.checked){const id=ch.dataset.collabId,email=normEmail(ch.dataset.collabEmail);sharedWith[id]={email,active:true,role:"collaborator",updatedAt:new Date().toISOString()};sharedWith[email]={email,active:true,role:"collaborator",updatedAt:new Date().toISOString()};sharedWithEmails.push(email);}});
- await updateDoc(doc(db,"users",currentUser.uid,"closures",closureId),{
-  sharedWith,
-  sharedWithEmails,
-  cabinetShared:true,
-  cabinetOwnerUid:currentUser.uid,
-  cabinetName: currentUserData.cabinetName || currentUserData.companyName || "Cabinet",
-  ownerCompanyName: currentUserData.companyName || currentUserData.cabinetName || "Cabinet",
-  updatedAt:serverTimestamp()
-});                                                                                                                                                                                                            
-await setDoc(doc(db,"users",currentUser.uid,"cabinetSharedClosures",closureId),{
-  closureId,
-  companyName,
-  sharedWith,
-  sharedWithEmails,
-  cabinetOwnerUid:currentUser.uid,
-  cabinetName: currentUserData.cabinetName || currentUserData.companyName || "Cabinet",
-  ownerCompanyName: currentUserData.companyName || currentUserData.cabinetName || "Cabinet",
-  updatedAt:serverTimestamp()
-},{merge:true});
-msg.style.display="block";msg.innerHTML=`<b class="okText">Partage enregistré.</b><br>${sharedWithEmails.length} collaborateur(s) autorisé(s).`;btn.textContent="Enregistré";}catch(e){console.error(e);msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de l’enregistrement du partage.")}</b>`;btn.disabled=false;btn.textContent="Enregistrer le partage";}}
+async function renderShareClosure(closureId,companyName){openModal("Partager la clôture",`Dossier : ${companyName}`,`<div class="notice">Chargement des collaborateurs...</div>`);try{const closureRef=doc(db,"users",currentUser.uid,"closures",closureId);const closureSnap=await getDoc(closureRef);const closureData=closureSnap.exists()?closureSnap.data():{};const sharedWith=closureData.sharedWith||{};const existingEmails=Array.isArray(closureData.sharedWithEmails)?closureData.sharedWithEmails.map(normEmail):[];const collaborators=await getCabinetCollaborators();if(!collaborators.length){document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Aucun collaborateur disponible.</b><br>Créez d’abord une invitation dans l’Espace Cabinet.</div><div class="actions"><a class="btn primary" href="cabinet-espace.html">Ouvrir l’Espace Cabinet</a></div>`;return;}document.getElementById("modalContent").innerHTML=`<div class="notice">Cochez les collaborateurs autorisés à consulter et intervenir sur cette clôture.</div><div id="shareList">${collaborators.map(c=>{const email=normEmail(c.email);const checked=existingEmails.includes(email)||sharedWith[c.id]?.active===true||sharedWith[email]?.active===true||sharedWith[c.email]?.active===true;return `<label class="collabChoice"><input type="checkbox" data-collab-id="${safe(c.id)}" data-collab-email="${safe(email)}" ${checked?"checked":""}><span><b>${safe(c.name || email)}</b><span>${safe(email)} — accès au dossier coché</span></span></label>`;}).join("")}</div><div class="actions"><button class="btn primary" type="button" id="saveShareBtn">Enregistrer le partage</button><a class="btn" href="cabinet-espace.html">Espace Cabinet</a></div><div id="shareMsg" class="notice" style="display:none"></div>`;document.getElementById("saveShareBtn").addEventListener("click",()=>saveClosureSharing(closureId,companyName));}catch(e){console.error(e);document.getElementById("modalContent").innerHTML=`<div class="notice warnNotice"><b>Impossible de charger le partage.</b></div>`;}}
+async function saveClosureSharing(closureId,companyName){const btn=document.getElementById("saveShareBtn"),msg=document.getElementById("shareMsg");btn.disabled=true;btn.textContent="Enregistrement...";try{const checks=[...document.querySelectorAll("[data-collab-id]")];const sharedWith={},sharedWithEmails=[];checks.forEach(ch=>{if(ch.checked){const id=ch.dataset.collabId,email=normEmail(ch.dataset.collabEmail);sharedWith[id]={email,active:true,role:"collaborator",updatedAt:new Date().toISOString()};sharedWith[email]={email,active:true,role:"collaborator",updatedAt:new Date().toISOString()};sharedWithEmails.push(email);}});const unique=uniqueEmails(sharedWithEmails);const closureRef=doc(db,"users",currentUser.uid,"closures",closureId);const closureSnap=await getDoc(closureRef);if(!closureSnap.exists())throw new Error("Clôture introuvable.");const c=closureSnap.data()||{};const cabinetName=currentUserData.cabinetName||currentUserData.companyName||currentUserData.cabinetSetup?.cabinetName||"Cabinet";const ownerCompanyName=currentUserData.companyName||currentUserData.cabinetName||currentUserData.cabinetSetup?.cabinetName||"Cabinet";await updateDoc(closureRef,{sharedWith,sharedWithEmails:unique,cabinetShared:unique.length>0,cabinetOwnerUid:currentUser.uid,cabinetName,ownerCompanyName,updatedAt:serverTimestamp()});await setDoc(doc(db,"users",currentUser.uid,"cabinetSharedClosures",closureId),{closureId,companyName:c.companyName||companyName||"Société sans nom",startDate:c.startDate||"",endDate:c.endDate||"",status:c.status||"shared",scoreQualite:c.scoreQualite||null,scoreQuality:c.scoreQuality||null,scoreFinal:c.scoreFinal||null,cabinetOwnerUid:currentUser.uid,cabinetName,ownerCompanyName,sharedWith,sharedWithEmails:unique,updatedAt:serverTimestamp()},{merge:true});msg.style.display="block";msg.innerHTML=`<b class="okText">Partage enregistré.</b><br>${unique.length} collaborateur(s) autorisé(s).`;btn.textContent="Enregistré";await loadDashboard(currentUser);}catch(e){console.error(e);msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message||"Erreur lors de l’enregistrement du partage.")}</b>`;btn.disabled=false;btn.textContent="Enregistrer le partage";}}
 async function startSubscription(plan){if(!currentUser)return;const btn=document.querySelector(`[data-sub-plan="${plan}"]`);try{if(btn){btn.disabled=true;btn.textContent="Redirection Stripe...";}const r=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,plan,email:currentUser.email})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe.");location.href=d.url;}catch(e){alert(e.message||"Erreur Stripe.");if(btn){btn.disabled=false;btn.textContent=btn.dataset.original||"Changer";}}}
 function renderSuggestForm(){openModal("Suggérer une fonctionnalité","Votre demande sera enregistrée et suivie dans Mes suggestions.",`<div class="notice">Chaque suggestion est étudiée.</div><div class="field"><label>Titre de la demande</label><input id="feedbackTitle" placeholder="Ex : Ajouter un contrôle des comptes 467"></div><div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>Contrôle comptable</option><option>Export</option><option>Ergonomie</option><option>Module IA</option><option>Autre</option></select></div><div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer la suggestion</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("suggestion"));}
 function renderBugForm(){openModal("Signaler un problème","Bug, erreur d'analyse, écriture discutable ou problème d'affichage.",`<div class="field"><label>Type de problème</label><select id="feedbackCategory"><option>Bug</option><option>Erreur d'analyse</option><option>Écriture discutable</option><option>Problème d'affichage</option></select></div><div class="field"><label>Titre du problème</label><input id="feedbackTitle"></div><div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer le signalement</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback("bug"));}
