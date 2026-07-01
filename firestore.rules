@@ -45,14 +45,14 @@ service cloud.firestore {
         && data.sharedWithUids.hasAny([request.auth.uid]);
     }
 
-    function isSharedWithEmail(data) {
+    function hasSharedWithEmail(data) {
       return isSignedIn()
         && data.keys().hasAny(["sharedWithEmails"])
         && data.sharedWithEmails is list
         && data.sharedWithEmails.hasAny([userEmail()]);
     }
 
-    function isSharedWithMap(data) {
+    function hasSharedWithMap(data) {
       return isSignedIn()
         && data.keys().hasAny(["sharedWith"])
         && data.sharedWith is map
@@ -62,8 +62,8 @@ service cloud.firestore {
 
     function isSharedClosure(data) {
       return hasSharedWithUid(data)
-        || isSharedWithEmail(data)
-        || isSharedWithMap(data);
+        || hasSharedWithEmail(data)
+        || hasSharedWithMap(data);
     }
 
     function canReadClosure(userId, data) {
@@ -72,7 +72,6 @@ service cloud.firestore {
           isOwner(userId)
           || isAdmin()
           || isSharedClosure(data)
-          || isMyCabinetOwner(userId)
         );
     }
 
@@ -82,31 +81,19 @@ service cloud.firestore {
           isOwner(userId)
           || isAdmin()
           || isSharedClosure(data)
-          || isMyCabinetOwner(userId)
         );
     }
 
-    /*
-      CollectionGroup closures :
-      nécessaire pour :
-      collectionGroup("closures")
-      where("sharedWithEmails", "array-contains", email)
-      ou sharedWithUids côté futur tableau.
-    */
+    // Requêtes collectionGroup("closures")
     match /{path=**}/closures/{closureId} {
-      allow read: if isSignedIn()
-        && (
-          isAdmin()
-          || isSharedClosure(resource.data)
-        );
-
-      allow update: if isSignedIn()
+      allow read, update: if isSignedIn()
         && (
           isAdmin()
           || isSharedClosure(resource.data)
         );
     }
 
+    // Requêtes collectionGroup("cabinetCollaborators")
     match /{path=**}/cabinetCollaborators/{collabId} {
       allow read: if isSignedIn()
         && (
@@ -116,6 +103,7 @@ service cloud.firestore {
         );
     }
 
+    // Requêtes collectionGroup("cabinetSharedClosures")
     match /{path=**}/cabinetSharedClosures/{sharedId} {
       allow read: if isSignedIn()
         && (
@@ -160,10 +148,19 @@ service cloud.firestore {
           && (
             isOwner(userId)
             || isAdmin()
+            || resource.data.cabinetOwnerUid == request.auth.uid
             || isSharedClosure(resource.data)
           );
 
-        allow write: if isOwner(userId) || isAdmin();
+        allow create, update: if isSignedIn()
+          && (
+            isOwner(userId)
+            || isAdmin()
+            || resource.data.cabinetOwnerUid == request.auth.uid
+            || isSharedClosure(resource.data)
+          );
+
+        allow delete: if isOwner(userId) || isAdmin();
       }
 
       match /{document=**} {
