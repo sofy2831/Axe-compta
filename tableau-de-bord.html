@@ -39,7 +39,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div>
 </div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th>Score</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Ordre conseillé : Résultat → Dossier de révision → Affectation → Extournes → Score qualité → Validation → Rapport → Archivage.</div></section>
-<section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead><tr><th>Société</th><th>Exercice</th><th>Partagé par</th><th>Statut</th><th>Score</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
+<section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted" id="sharedHelp">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead id="sharedHead"><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Score</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <div class="modalOverlay" id="menuModal"><div class="modal" role="dialog" aria-modal="true"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Menu Axe Compta</div><div class="muted" id="modalSubtitle">Axe Compta évolue grâce aux retours de ses utilisateurs.</div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div id="modalContent"></div></div></div>
@@ -58,6 +58,8 @@ const SUPPORT_EMAIL="contact@axe-dossier.fr";
 
 const rows=document.getElementById("closuresRows");
 const sharedRows=document.getElementById("sharedRows");
+const sharedHead=document.getElementById("sharedHead");
+const sharedHelp=document.getElementById("sharedHelp");
 const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
 let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[];
@@ -85,6 +87,9 @@ function hasValidation(c){return c.validated===true||c.validation?.status==="val
 function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="saved"||c.closureReport?.status==="generated";}
 function scoreValue(c){const s=c.scoreQualite?.score??c.scoreQuality?.score??c.scoreFinal??null;const n=Number(s);return Number.isFinite(n)?Math.round(n):null}
 function scorePill(c){const s=scoreValue(c);if(s===null)return'<span class="pill dark">—</span>';const cls=s>=96?"pill":s>=80?"pill scorePill":"pill warn";return`<span class="${cls}">${s}%</span>`}
+function sharedAuthorLabel(item,c){
+  return c.sharedByName || c.collaboratorName || c.sharedByEmail || c.ownerEmail || item.sharedByEmail || item.ownerEmail || "Collaborateur";
+}
 function sharedCabinetBadge(c){
   const isShared = c.cabinetShared===true || (Array.isArray(c.sharedWithEmails)&&c.sharedWithEmails.length>0) || (Array.isArray(c.sharedWithUids)&&c.sharedWithUids.length>0);
   if(!isShared)return "";
@@ -125,7 +130,7 @@ async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="par
         ownerUid,
         shared:true,
         cabinetName:data.cabinetName||data.ownerCompanyName||fallbackData.cabinetName||fallbackData.ownerCompanyName||"Cabinet",
-        data:{...data,_source:"clôture source"}
+        data:{...data,sharedByEmail:data.sharedByEmail||fallbackData.sharedByEmail||fallbackData.ownerEmail||"",sharedByName:data.sharedByName||fallbackData.sharedByName||fallbackData.ownerName||fallbackData.collaboratorName||"",ownerEmail:fallbackData.ownerEmail||"",_source:"clôture source"}
       };
     }
   }catch(e){
@@ -143,8 +148,19 @@ async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="par
 
 function renderSharedRows(items){
   if(!sharedRows)return;
+  const cabinetMode=isCabinetOwner(currentUserData);
+  if(sharedHead){
+    sharedHead.innerHTML=cabinetMode
+      ? `<tr><th>Société</th><th>Exercice</th><th>Collaborateur</th><th>Statut</th><th>Score</th><th></th></tr>`
+      : `<tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Score</th><th></th></tr>`;
+  }
+  if(sharedHelp){
+    sharedHelp.textContent=cabinetMode
+      ? "Clôtures transmises par les collaborateurs au cabinet."
+      : "Clôtures transmises par le cabinet.";
+  }
   if(!items.length){
-    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue pour le moment.</td></tr>`;
+    sharedRows.innerHTML=`<tr><td colspan="${cabinetMode?6:5}" class="muted">Aucune clôture partagée reçue pour le moment.</td></tr>`;
     return;
   }
   sharedRows.innerHTML=items.map(item=>{
@@ -159,10 +175,15 @@ function renderSharedRows(items){
       stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
       stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report")
     ].join(" ");
+
+    const collaboratorCell=cabinetMode
+      ? `<td>${safe(sharedAuthorLabel(item,c))}</td>`
+      : "";
+
     return `<tr>
       <td>${safe(c.companyName||"Société sans nom")}</td>
       <td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td>
-      <td>${safe(item.cabinetName||c.cabinetName||c.ownerCompanyName||"Cabinet")}<br><span class="muted">${safe(c._source||"partage")}</span></td>
+      ${collaboratorCell}
       <td><span class="pill dev">${safe(statusLabel(c.status))}</span></td>
       <td>${scorePill(c)}</td>
       <td><div class="actions inlineActions">${links}</div></td>
@@ -342,7 +363,7 @@ async function loadDashboard(user){
   if(!shared.length && sharedRows){
     const owners=currentMemberships.map(m=>m.cabinetOwnerUid).filter(Boolean).join(", ")||"aucun cabinetOwnerUid";
     const mode=isCabinetOwner(currentUserData)?"cabinet owner":"collaborateur";
-    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue. Debug : mode=${safe(mode)} / email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
+    sharedRows.innerHTML=`<tr><td colspan="${isCabinetOwner(currentUserData)?6:5}" class="muted">Aucune clôture partagée reçue. Debug : mode=${safe(mode)} / email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
   }else{
     renderSharedRows(shared);
   }
