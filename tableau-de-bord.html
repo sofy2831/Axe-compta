@@ -39,7 +39,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="menuCard hidden" id="cabinetMenuCard" data-menu-action="cabinet"><b>🏢 Espace Cabinet</b><span>Inviter les collaborateurs, suspendre les accès et gérer les droits par dossier.</span></div>
 </div></section>
 <section class="box"><h2>Mes clôtures</h2><table><thead><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Paiement</th><th>Score</th><th></th></tr></thead><tbody id="closuresRows"><tr><td colspan="6" class="muted">Chargement...</td></tr></tbody></table><div class="notice">Ordre conseillé : Résultat → Dossier de révision → Affectation → Extournes → Score qualité → Validation → Rapport → Archivage.</div></section>
-<section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead><tr><th>Société</th><th>Exercice</th><th>Partagé par</th><th>Statut</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
+<section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead><tr><th>Société</th><th>Exercice</th><th>Partagé par</th><th>Statut</th><th>Score</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <div class="modalOverlay" id="menuModal"><div class="modal" role="dialog" aria-modal="true"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Menu Axe Compta</div><div class="muted" id="modalSubtitle">Axe Compta évolue grâce aux retours de ses utilisateurs.</div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div id="modalContent"></div></div></div>
@@ -108,10 +108,37 @@ async function loadCabinetMemberships(user){
 }
 
 
+
+async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="partage"){
+  try{
+    const snap=await getDoc(doc(db,"users",ownerUid,"closures",closureId));
+    if(snap.exists()){
+      const data=snap.data()||{};
+      return {
+        id:closureId,
+        ownerUid,
+        shared:true,
+        cabinetName:data.cabinetName||data.ownerCompanyName||fallbackData.cabinetName||fallbackData.ownerCompanyName||"Cabinet",
+        data:{...data,_source:"clôture source"}
+      };
+    }
+  }catch(e){
+    console.warn("Lecture clôture source impossible",ownerUid,closureId,e);
+  }
+
+  return {
+    id:closureId,
+    ownerUid,
+    shared:true,
+    cabinetName:fallbackData.cabinetName||fallbackData.ownerCompanyName||"Cabinet",
+    data:{...fallbackData,_source:sourceLabel+" / résumé"}
+  };
+}
+
 function renderSharedRows(items){
   if(!sharedRows)return;
   if(!items.length){
-    sharedRows.innerHTML=`<tr><td colspan="5" class="muted">Aucune clôture partagée reçue pour le moment.</td></tr>`;
+    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue pour le moment.</td></tr>`;
     return;
   }
   sharedRows.innerHTML=items.map(item=>{
@@ -131,6 +158,7 @@ function renderSharedRows(items){
       <td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td>
       <td>${safe(item.cabinetName||c.cabinetName||c.ownerCompanyName||"Cabinet")}<br><span class="muted">${safe(c._source||"partage")}</span></td>
       <td><span class="pill dev">${safe(statusLabel(c.status))}</span></td>
+      <td>${scorePill(c)}</td>
       <td><div class="actions inlineActions">${links}</div></td>
     </tr>`;
   }).join("");
@@ -148,20 +176,20 @@ async function collectSharedClosures(user){
   const email=normEmail(user.email);
   const byKey=new Map();
 
-  function addDoc(d,sourceLabel){
+  async function addDoc(d,sourceLabel){
     const ownerDoc=d.ref.parent.parent;
     if(!ownerDoc)return;
     const ownerUid=ownerDoc.id;
     if(ownerUid===user.uid)return;
     const c=d.data()||{};
-    const key=`${ownerUid}/${d.id}`;
-    byKey.set(key,{id:d.id,ownerUid,shared:true,cabinetName:c.cabinetName||c.ownerCompanyName||"Cabinet",data:{...c,_source:sourceLabel}});
+    const item=await sourceClosure(ownerUid,d.id,c,sourceLabel);
+    byKey.set(`${ownerUid}/${d.id}`,item);
   }
 
   if(email){
     try{
       const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",email),limit(100)));
-      emailSnap.docs.forEach(d=>addDoc(d,"collectionGroup email"));
+      for(const d of emailSnap.docs) await addDoc(d,"collectionGroup email");
     }catch(e){
       console.warn("collectionGroup closures/email refusé :",e);
     }
@@ -169,7 +197,7 @@ async function collectSharedClosures(user){
 
   try{
     const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
-    uidSnap.docs.forEach(d=>addDoc(d,"collectionGroup uid"));
+    for(const d of uidSnap.docs) await addDoc(d,"collectionGroup uid");
   }catch(e){
     console.warn("collectionGroup closures/uid refusé :",e);
   }
@@ -182,16 +210,11 @@ async function collectSharedClosuresFallback(user){
   const email=normEmail(user.email);
   const byKey=new Map();
 
-  function addDoc(ownerUid,d,sourceLabel){
+  async function addDoc(ownerUid,d,sourceLabel){
     const x=d.data()||{};
     const id=x.closureId||d.id;
-    byKey.set(`${ownerUid}/${id}`,{
-      id,
-      ownerUid,
-      shared:true,
-      cabinetName:x.cabinetName||x.ownerCompanyName||"Cabinet",
-      data:{...x,_source:sourceLabel}
-    });
+    const item=await sourceClosure(ownerUid,id,x,sourceLabel);
+    byKey.set(`${ownerUid}/${id}`,item);
   }
 
   for(const m of currentMemberships){
@@ -199,45 +222,29 @@ async function collectSharedClosuresFallback(user){
     if(!ownerUid)continue;
 
     try{
-      const snap=await getDocs(query(
-        collection(db,"users",ownerUid,"closures"),
-        where("sharedWithEmails","array-contains",email),
-        limit(100)
-      ));
-      snap.docs.forEach(d=>addDoc(ownerUid,d,"direct closures email"));
+      const snap=await getDocs(query(collection(db,"users",ownerUid,"closures"),where("sharedWithEmails","array-contains",email),limit(100)));
+      for(const d of snap.docs) await addDoc(ownerUid,d,"direct closures email");
     }catch(e){
       console.warn("Fallback direct closures/email refusé pour",ownerUid,e);
     }
 
     try{
-      const snap=await getDocs(query(
-        collection(db,"users",ownerUid,"closures"),
-        where("sharedWithUids","array-contains",user.uid),
-        limit(100)
-      ));
-      snap.docs.forEach(d=>addDoc(ownerUid,d,"direct closures uid"));
+      const snap=await getDocs(query(collection(db,"users",ownerUid,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
+      for(const d of snap.docs) await addDoc(ownerUid,d,"direct closures uid");
     }catch(e){
       console.warn("Fallback direct closures/uid refusé pour",ownerUid,e);
     }
 
     try{
-      const snap=await getDocs(query(
-        collection(db,"users",ownerUid,"cabinetSharedClosures"),
-        where("sharedWithEmails","array-contains",email),
-        limit(100)
-      ));
-      snap.docs.forEach(d=>addDoc(ownerUid,d,"cabinetSharedClosures email"));
+      const snap=await getDocs(query(collection(db,"users",ownerUid,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",email),limit(100)));
+      for(const d of snap.docs) await addDoc(ownerUid,d,"cabinetSharedClosures email");
     }catch(e){
       console.warn("Fallback cabinetSharedClosures/email refusé pour",ownerUid,e);
     }
 
     try{
-      const snap=await getDocs(query(
-        collection(db,"users",ownerUid,"cabinetSharedClosures"),
-        where("sharedWithUids","array-contains",user.uid),
-        limit(100)
-      ));
-      snap.docs.forEach(d=>addDoc(ownerUid,d,"cabinetSharedClosures uid"));
+      const snap=await getDocs(query(collection(db,"users",ownerUid,"cabinetSharedClosures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
+      for(const d of snap.docs) await addDoc(ownerUid,d,"cabinetSharedClosures uid");
     }catch(e){
       console.warn("Fallback cabinetSharedClosures/uid refusé pour",ownerUid,e);
     }
@@ -280,7 +287,7 @@ async function loadDashboard(user){
   }
   if(!shared.length && sharedRows){
     const owners=currentMemberships.map(m=>m.cabinetOwnerUid).filter(Boolean).join(", ")||"aucun cabinetOwnerUid";
-    sharedRows.innerHTML=`<tr><td colspan="5" class="muted">Aucune clôture partagée reçue. Debug : email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
+    sharedRows.innerHTML=`<tr><td colspan="6" class="muted">Aucune clôture partagée reçue. Debug : email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
   }else{
     renderSharedRows(shared);
   }
@@ -537,7 +544,7 @@ async function startSubscription(plan){if(!currentUser)return;try{const r=await 
 function renderSuggestForm(type="suggestion"){openModal(type==="bug"?"Signaler un problème":"Suggérer une fonctionnalité",type==="bug"?"Bug, erreur d'analyse ou problème d'affichage.":"Votre demande sera enregistrée et suivie.",`<div class="field"><label>Titre</label><input id="feedbackTitle"></div><div class="field"><label>Catégorie</label><select id="feedbackCategory"><option>${type==="bug"?"Bug":"Contrôle comptable"}</option><option>Erreur d'analyse</option><option>Export</option><option>Ergonomie</option><option>Autre</option></select></div><div class="field"><label>Détail</label><textarea id="feedbackMessage"></textarea></div><div class="actions"><button class="btn primary" type="button" id="sendFeedbackBtn">Envoyer</button></div><div id="feedbackMsg" class="notice" style="display:none"></div>`);document.getElementById("sendFeedbackBtn").addEventListener("click",()=>sendFeedback(type));}
 async function sendFeedback(type){const title=document.getElementById("feedbackTitle")?.value.trim()||"",category=document.getElementById("feedbackCategory")?.value||"",message=document.getElementById("feedbackMessage")?.value.trim()||"",msg=document.getElementById("feedbackMsg"),btn=document.getElementById("sendFeedbackBtn");if(!title||!message){msg.style.display="block";msg.innerHTML="<b>Merci de renseigner un titre et un détail.</b>";return;}btn.disabled=true;try{const response=await fetch(SUBMIT_FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,userEmail:currentUser.email,type,category,title,message,closureId:"",page:location.href,screenshotName:""})});const data=await response.json().catch(()=>({}));if(!response.ok||!data.ok)throw new Error(data.error||"Erreur lors de l'enregistrement.");msg.style.display="block";msg.innerHTML=`<b class="okText">Retour enregistré.</b>`;btn.textContent="Envoyé";}catch(e){msg.style.display="block";msg.innerHTML=`<b class="errText">${safe(e.message)}</b>`;btn.disabled=false;}}
 function renderMySuggestions(){openModal("Mes suggestions","Demandes enregistrées sur votre compte.",`<div class="notice">Le suivi détaillé reste branché sur Firestore. Utilisez cette entrée pour vérifier vos demandes.</div>`);}
-function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur stabilisé.</b><br>Écriture standard : sharedWith, sharedWithEmails, sharedWithUids quand l’UID est disponible, et liens ?owner=.</div>`);}
+function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur stabilisé.</b><br>Les clôtures partagées affichent maintenant la clôture source, pas la copie résumé.</div>`);}
 async function openCustomerPortal(){try{const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");location.href=d.url;}catch(e){alert(e.message||"Portail Stripe non disponible.");}}
 function renderSubscription(){const isMember=isCabinetMember()&&!isCabinetOwner(currentUserData);openModal("Mon abonnement","Gestion de l'offre actuelle.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>${safe(currentPlanLabel)}</b></div><div class="metric"><span>Statut</span><b>${safe(isMember?"Actif via Cabinet":accountStatusEl.textContent)}</b></div></div>${isMember?`<div class="notice"><b>Accès collaborateur Cabinet.</b><br>Votre accès est pris en charge par le cabinet.</div>`:`<div class="notice">Gestion via Stripe pour les formules mensuelles.</div>`}<div class="actions"><button class="btn primary" type="button" id="portalInvoicesBtn">Mes factures / moyen de paiement</button><button class="btn primary" type="button" data-sub-plan="expert">Choisir Expert</button><a class="btn primary" href="cabinet-parametrage.html?plan=cabinet">Choisir Cabinet</a><a class="btn" href="nouvelle-cloture.html?plan=solo">Clôture Solo</a><a class="btn" href="mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('[Axe Compta] Mon abonnement')}">Support</a></div>`);document.querySelectorAll("[data-sub-plan]").forEach(btn=>btn.addEventListener("click",()=>startSubscription(btn.dataset.subPlan)));document.getElementById("portalInvoicesBtn")?.addEventListener("click",openCustomerPortal);}
 
