@@ -112,17 +112,24 @@ exports.stripeWebhook = onRequest(
     }
 
     async function findUserBySubscription(subscriptionId) {
-      if (!subscriptionId) return null;
+  if (!subscriptionId) return null;
 
-      const snap = await db
-        .collection("users")
-        .where("stripeSubscriptionId", "==", subscriptionId)
-        .limit(1)
-        .get();
+  let snap = await db.collection("users")
+    .where("stripeSubscriptionId", "==", subscriptionId)
+    .limit(1)
+    .get();
 
-      if (snap.empty) return null;
-      return snap.docs[0];
-    }
+  if (!snap.empty) return snap.docs[0];
+
+  snap = await db.collection("users")
+    .where("lastExtraCollabSubscriptionId", "==", subscriptionId)
+    .limit(1)
+    .get();
+
+  if (!snap.empty) return snap.docs[0];
+
+  return null;
+}
 
     async function findUserByCustomer(customerId) {
       if (!customerId) return null;
@@ -2171,36 +2178,87 @@ exports.syncStripeSubscription = onRequest(
       }
 
       const user = userSnap.data() || {};
-      const subscriptionId = user.stripeSubscriptionId;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-      if (!subscriptionId) {
-        return res.json({ ok: true, synced: false, reason: "Aucun abonnement Stripe." });
+      const customerId = user.stripeCustomerId;
+
+      if (!customerId) {
+        return res.json({ ok: true, synced: false, reason: "Aucun customer Stripe." });
       }
 
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "all",
+        limit: 100,
+      });
 
-      const cancelAtPeriodEnd = subscription.cancel_at_period_end === true || !!subscription.cancel_at;
-      const subscriptionEndsAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
-      const isActive = ["active", "trialing"].includes(subscription.status);
+      let hasCabinet = false;
+      let hasExpert = false;
+      let extraCollabCount = 0;
+      let mainSubscriptionId = user.stripeSubscriptionId || null;
 
-      await userRef.set(
-        {
-          active: isActive,
-          subscriptionActive: isActive,
-          paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
-          cancelAtPeriodEnd,
-          subscriptionEndsAt,
-          subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+      for (const sub of subscriptions.data || []) {
+        const isActive = ["active", "trialing"].includes(sub.status);
+        if (!isActive) continue;
+
+        const priceIds = (sub.items?.data || [])
+          .map(item => item.price?.id)
+          .filter(Boolean);
+
+        if (priceIds.includes(PRICE_CABINET_399)) {
+          hasCabinet = true;
+          mainSubscriptionId = sub.id;
+        }
+
+        if (priceIds.includes(PRICE_EXPERT_149)) {
+          hasExpert = true;
+          mainSubscriptionId = sub.id;
+        }
+
+        if (priceIds.includes(PRICE_EXTRA_COLLAB_129)) {
+          extraCollabCount += 1;
+        }
+      }
+
+      const updateData = {
+        active: hasCabinet || hasExpert || user.hasSoloPurchase === true,
+        subscriptionActive: hasCabinet || hasExpert,
+        cabinetExtraLicenses: extraCollabCount,
+        subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+
+      if (hasCabinet) {
+        updateData.plan = "cabinet";
+        updateData.cabinetOwner = true;
+        updateData.cabinetMember = false;
+        updateData.role = "owner";
+        updateData.paymentStatus = "active";
+        updateData.stripeSubscriptionId = mainSubscriptionId;
+        updateData["cabinetSetup.status"] = "active";
+        updateData["cabinetSetup.includedLicenses"] = user.cabinetSetup?.includedLicenses || 3;
+      } else if (hasExpert) {
+        updateData.plan = "expert";
+        updateData.paymentStatus = "active";
+        updateData.stripeSubscriptionId = mainSubscriptionId;
+      } else if (user.hasSoloPurchase === true) {
+        updateData.plan = "solo";
+        updateData.paymentStatus = "paid";
+        updateData.subscriptionActive = false;
+      } else {
+        updateData.plan = "";
+        updateData.paymentStatus = "inactive";
+        updateData.subscriptionActive = false;
+        updateData.cabinetOwner = false;
+      }
+
+      await userRef.set(updateData, { merge: true });
 
       return res.json({
         ok: true,
         synced: true,
-        status: subscription.status,
-        cancelAtPeriodEnd,
+        hasCabinet,
+        hasExpert,
+        extraCollabCount,
       });
 
     } catch (error) {
