@@ -214,12 +214,15 @@ exports.stripeWebhook = onRequest(
             }
 
             if (plan === "extra-collab") {
-              updateData.plan = "cabinet";
-              updateData.subscriptionActive = true;
-              updateData.cabinetOwner = true;
-              updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
-              updateData.lastExtraCollabSubscriptionId = session.subscription || null;
-            }
+  updateData.plan = "cabinet";
+  updateData.subscriptionActive = true;
+  updateData.active = true;
+  updateData.cabinetOwner = true;
+  updateData.extraCollabSubscriptionActive = true;
+  updateData.cabinetExtraLicensesPaid = true;
+  updateData.cabinetExtraLicenses = admin.firestore.FieldValue.increment(1);
+  updateData.lastExtraCollabSubscriptionId = session.subscription || null;
+}
 
             await userRef.set(updateData, { merge: true });
           }
