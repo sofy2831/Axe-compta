@@ -92,6 +92,19 @@ function renderChecklist(){
  $("checklistBox").innerHTML=`<table><thead><tr><th>Contrôle</th><th>Statut</th></tr></thead><tbody>${items.map(i=>`<tr><td>${sanitize(i.label)}</td><td>${i.ok?'<span class="pill">OK</span>':'<span class="pill err">Manquant</span>'}</td></tr>`).join("")}</tbody></table>`;
  return items;
 }
+ function updateValidateAccess(){
+  const checked = $("confirmCheck").checked;
+  const alreadyValidated =
+    currentClosure?.validated === true ||
+    currentClosure?.validation?.status === "validated" ||
+    currentClosure?.validationDefinitive?.status === "validated";
+
+  $("validateBtn").disabled = alreadyValidated || !checked;
+  $("validateBtn").textContent = alreadyValidated
+  $("confirmCheck").addEventListener("change", updateValidateAccess);
+    ? "Validation enregistrée"
+    : "Valider définitivement";
+} 
 async function validateClosure(){
   const items = renderChecklist();
   const blocking = items.filter(i => !i.ok);
@@ -165,6 +178,16 @@ $("closeValidationModalBtn").addEventListener("click",()=>{
 
 $("validationModal").addEventListener("click",e=>{
   if(e.target === $("validationModal")) $("validationModal").style.display = "none";
+
+  currentClosure = {
+  ...(currentClosure || {}),
+  validated: false,
+  validation: { ...(currentClosure?.validation || {}), status: "unlocked" },
+  validationDefinitive: { ...(currentClosure?.validationDefinitive || {}), status: "unlocked" }
+};
+
+$("confirmCheck").checked = false;
+updateValidateAccess();
 });
   
 async function loadClosure(user){
@@ -206,6 +229,7 @@ $("validateBtn").textContent = "Valider définitivement";
 ) {
   $("validateBtn").disabled = true;
   $("validateBtn").textContent = "Validation enregistrée";
+   updateValidateAccess();
 } 
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
