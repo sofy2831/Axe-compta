@@ -192,9 +192,11 @@ async function loadClosure(user){
   const saved=Array.isArray(currentClosure.dossierRevision?.items)?currentClosure.dossierRevision.items:null;
   reviewItems=saved||((Array.isArray(currentClosure.entries)?currentClosure.entries:[]).filter(e=>String(e.journal||"").toUpperCase()!=="ANALYSE").map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
-  if(currentClosure.dossierRevision?.status==="completed"){
-    $("saveBtn").textContent="Dossier enregistré";
-  }
+  revisionSaved = currentClosure.dossierRevision?.status === "completed" || currentClosure.dossierRevision?.status === "in_progress";
+
+if(revisionSaved){
+  $("saveBtn").textContent="Dossier enregistré";
+}
   renderRows();
 }
 onAuthStateChanged(auth,async user=>{
