@@ -96,12 +96,7 @@ function stepClass(c,step){if(step==="result")return hasFinalEntries(c)?"done":"
 function activeCount(){return collaborators.filter(c=>c.status!=="removed").length;}
 function includedCount(){return Number(currentUserData.cabinetSetup?.includedLicenses||3);}
 function extraCount(){
-  const paid =
-    currentUserData.extraCollabSubscriptionActive === true ||
-    currentUserData.extraCollaboratorSubscriptionActive === true ||
-    currentUserData.cabinetExtraLicensesPaid === true;
-
-  return paid ? Number(currentUserData.cabinetExtraLicenses || 0) : 0;
+  return Math.max(0, Number(currentUserData.cabinetExtraLicenses || 0));
 }
 function linkFor(page,id,ownerUid){return `${page}?id=${encodeURIComponent(id)}&owner=${encodeURIComponent(ownerUid)}`;}
 function actionLinks(id,ownerUid,c={}){
