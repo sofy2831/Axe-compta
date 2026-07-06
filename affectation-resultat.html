@@ -630,18 +630,20 @@ async function loadClosure(user){
     set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
     setExtournesAccess(true);
     
-    updateSummary();
-    renderAllocationJustification();
+updateSummary();
+renderAllocationJustification();
 
-    generatedRows=Array.isArray(saved.entries)?saved.entries:[];
+generatedRows=Array.isArray(saved.entries)?saved.entries:[];
 
-    if(generatedRows.length){
-      renderEntries(generatedRows);
-      $("saveBtn").disabled=false;
-      $("pvBtn").disabled=false;
-      $("exportBar").style.display="block";
-      renderPrint();
-    }
+if(generatedRows.length){
+  renderEntries(generatedRows);
+  $("saveBtn").disabled=true;
+  $("saveBtn").textContent="Affectation enregistrée";
+  $("pvBtn").disabled=false;
+  $("exportBar").style.display="block";
+  setExtournesAccess(true);
+  renderPrint();
+}
   }else{
     const today=new Date();
     set("pvDate",`${today.getFullYear()}-06-30`);
