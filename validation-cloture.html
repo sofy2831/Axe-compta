@@ -94,17 +94,21 @@ function renderChecklist(){
 }
  function updateValidateAccess(){
   const checked = $("confirmCheck").checked;
+
   const alreadyValidated =
     currentClosure?.validated === true ||
     currentClosure?.validation?.status === "validated" ||
     currentClosure?.validationDefinitive?.status === "validated";
 
   $("validateBtn").disabled = alreadyValidated || !checked;
+
   $("validateBtn").textContent = alreadyValidated
-  $("confirmCheck").addEventListener("change", updateValidateAccess);
     ? "Validation enregistrée"
     : "Valider définitivement";
-} 
+}
+
+$("confirmCheck").addEventListener("change", updateValidateAccess);
+
 async function validateClosure(){
   const items = renderChecklist();
   const blocking = items.filter(i => !i.ok);
@@ -169,6 +173,16 @@ async function unvalidateClosure(){
     '<b class="warnText">Validation déverrouillée.</b><br>Le dossier peut être repris.';
 
   $("rapportBtn").style.display = "none";
+
+  currentClosure = {
+    ...(currentClosure || {}),
+    validated:false,
+    validation:{...(currentClosure?.validation||{}),status:"unlocked"},
+    validationDefinitive:{...(currentClosure?.validationDefinitive||{}),status:"unlocked"}
+  };
+
+  $("confirmCheck").checked=false;
+  updateValidateAccess();
 }
 $("validateBtn").addEventListener("click",()=>validateClosure().catch(e=>{console.error(e);alert("Erreur validation.");}));
 $("unvalidateBtn").addEventListener("click",()=>unvalidateClosure().catch(e=>{console.error(e);alert("Erreur déverrouillage.");}));
@@ -178,16 +192,6 @@ $("closeValidationModalBtn").addEventListener("click",()=>{
 
 $("validationModal").addEventListener("click",e=>{
   if(e.target === $("validationModal")) $("validationModal").style.display = "none";
-
-  currentClosure = {
-  ...(currentClosure || {}),
-  validated: false,
-  validation: { ...(currentClosure?.validation || {}), status: "unlocked" },
-  validationDefinitive: { ...(currentClosure?.validationDefinitive || {}), status: "unlocked" }
-};
-
-$("confirmCheck").checked = false;
-updateValidateAccess();
 });
   
 async function loadClosure(user){
@@ -229,8 +233,9 @@ $("validateBtn").textContent = "Valider définitivement";
 ) {
   $("validateBtn").disabled = true;
   $("validateBtn").textContent = "Validation enregistrée";
-   updateValidateAccess();
-} 
+}
+ updateValidateAccess();
+ updateValidateAccess();
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
 </script>
