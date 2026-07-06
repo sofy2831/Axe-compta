@@ -314,7 +314,21 @@ async function createInvitation(){
   const name=$("inviteName").value.trim();
   if(!email){showMsg("Email obligatoire.",true);return;}
  if(activeCount() >= includedCount() + extraCount()){
-  showMsg("Quota atteint : redirection vers Stripe pour ajouter une licence collaborateur à 129 €/mois.", true);
+  const inviteId = makeInviteId(email);
+
+  await setDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",inviteId), {
+    email,
+    name,
+    note: $("inviteNote").value.trim(),
+    status: "pending_payment",
+    plan: "extra-collab",
+    cabinetOwnerUid: currentUser.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge:true });
+
+  showMsg("Quota atteint : l’invitation est mise en attente. Redirection vers Stripe pour ajouter une licence collaborateur.", true);
+
   await addExtraLicense();
   return;
 }
