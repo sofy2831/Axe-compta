@@ -159,6 +159,23 @@ function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v
 function signedAmount(row){const keys=Object.keys(row||{});let debit=0,credit=0,solde=null,montant=null;for(const k of keys){const x=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");const val=numFromValue(row[k]);if(!val)continue;if(x.includes("debit"))debit+=Math.abs(val);else if(x.includes("credit"))credit+=Math.abs(val);else if(x.includes("solde"))solde=val;else if(x.includes("montant"))montant=val;}if(debit||credit)return debit-credit;if(solde!==null)return solde;if(montant!==null)return montant;return 0}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
 function ownerQueryParam(){return currentOwnerUid&&currentUser&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
+function extournesUrl(){
+  return `extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
+}
+
+function setExtournesAccess(enabled){
+  const buttons = [$("extournesExportBtn"), $("modalExtournesBtn")];
+
+  buttons.forEach(btn=>{
+    if(!btn) return;
+    btn.href = enabled ? extournesUrl() : "#";
+    btn.style.pointerEvents = enabled ? "auto" : "none";
+    btn.style.opacity = enabled ? "1" : ".45";
+    btn.title = enabled
+      ? "Passer aux extournes N+1"
+      : "Disponible après enregistrement de l’affectation";
+  });
+}
 function closureRef(){return doc(db,"users",currentOwnerUid,"closures",closureId)}
 function docDateFr(v){if(!v)return "à compléter";const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:v}
 function exerciceEndFr(){const fy=$("fiscalYear").value||"";const dates=fy.match(/\d{4}-\d{2}-\d{2}/g);if(dates&&dates.length){const last=dates[dates.length-1].split("-");return `${last[2]}/${last[1]}/${last[0]}`}return fy||"l'exercice"}
