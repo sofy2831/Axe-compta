@@ -117,7 +117,7 @@ function renderRows(){
       <div class="grid"><div><label>Calcul / méthode</label><textarea data-calc="${i}">${sanitize(r.calculation)}</textarea></div><div><label>Justificatif attendu ou déposé</label><textarea data-doc="${i}">${sanitize(r.document)}</textarea></div></div>
       <label>Commentaire de révision</label><textarea data-comment="${i}">${sanitize(r.comment)}</textarea>
     </div>`).join(""):`<div class="notice warnNotice">Aucune écriture à documenter.</div>`;
-  document.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("change",()=>{reviewItems[Number(el.dataset.status)].status=el.value;updateAffectationAccess();renderPrint();}));
+  document.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("change",()=>{reviewItems[Number(el.dataset.status)].status=el.value;updateAffectationAccess();scheduleRenderPrint();}));
   document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.why)].why=el.value;renderPrint();}));
   document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.calc)].calculation=el.value;renderPrint();}));
   document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.doc)].document=el.value;renderPrint();}));
@@ -158,7 +158,7 @@ function docHtml(){
 function renderPrint(){$("printArea").innerHTML=docHtml();}
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 $("saveBtn").addEventListener("click",()=>saveReview().catch(e=>{console.error(e);alert("Erreur enregistrement dossier de révision.");}));
-$("printBtn").addEventListener("click",()=>{renderPrint();window.print();});
+$("printBtn").addEventListener("click",()=>{scheduleRenderPrint();window.print();});
 $("excelBtn").addEventListener("click",()=>download(
   "dossier-revision.xls",
   `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,
