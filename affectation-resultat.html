@@ -240,6 +240,7 @@ function updateSummary(){
   $("saveBtn").disabled=true;
   $("pvBtn").disabled=true;
   $("exportBar").style.display="none";
+  setExtournesAccess(false);
 }
 
 function renderAllocationJustification(source="auto"){
@@ -465,6 +466,7 @@ $("generateBtn").addEventListener("click",()=>{
     $("saveBtn").disabled=false;
     $("pvBtn").disabled=false;
     $("exportBar").style.display="block";
+    setExtournesAccess(false);
     renderPrint();
   }catch(e){
     alert(e.message);
@@ -510,8 +512,10 @@ currentClosure.affectationResult = data;
 $("saveBtn").disabled = true;
 $("saveBtn").textContent = "Affectation enregistrée";
 
-$("modalExtournesBtn").href =
-  `extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
+$("extournesExportBtn").href = extournesUrl();
+$("modalExtournesBtn").href = extournesUrl();
+
+setExtournesAccess(true);
 
 $("saveAffectationModal").style.display = "flex";
 }
@@ -588,7 +592,7 @@ async function loadClosure(user){
   currentOwnerUid=ownerParam||user.uid;
 
   $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
-  $("extournesExportBtn").href=`extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
+  setExtournesAccess(false);
 
   const snap=await getDoc(closureRef());
   if(!snap.exists()){
@@ -624,7 +628,8 @@ async function loadClosure(user){
     set("carryForwardAmount",saved.carryForwardAmount||0);
     set("dividendAmount",saved.dividendAmount||0);
     set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
-
+    setExtournesAccess(true);
+    
     updateSummary();
     renderAllocationJustification();
 
