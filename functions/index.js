@@ -53,11 +53,16 @@ exports.createCheckoutSession = onRequest(
 
       const mode = plan === "solo" ? "payment" : "subscription";
 
+      const userSnap = await admin.firestore().collection("users").doc(uid).get();
+      const userData = userSnap.exists ? userSnap.data() || {} : {};
+      const existingCustomerId = userData.stripeCustomerId || null;
+
       const session = await stripe.checkout.sessions.create({
         mode,
         payment_method_types: ["card"],
-        customer_email: email,
-        customer_creation: plan === "solo" ? "always" : undefined,
+        customer: existingCustomerId || undefined,
+        customer_email: existingCustomerId ? undefined : email,
+        customer_creation: !existingCustomerId && plan === "solo" ? "always" : undefined,
         line_items: [{ price: priceMap[plan], quantity: 1 }],
         success_url: `${ALLOWED_ORIGIN}/merci.html`,
         cancel_url:
@@ -248,8 +253,6 @@ async function findUserBySubscription(subscriptionId) {
   const userData = userDoc.data() || {};
 
   const updatePayload = {
-    active: isActive,
-    subscriptionActive: isActive,
     paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
     cancelAtPeriodEnd,
     subscriptionEndsAt,
@@ -264,6 +267,8 @@ async function findUserBySubscription(subscriptionId) {
     updatePayload.cabinetExtraLicensesPaid = isActive;
     updatePayload.lastExtraCollabSubscriptionId = subscription.id;
   } else {
+    updatePayload.active = isActive;
+    updatePayload.subscriptionActive = isActive;
     updatePayload.plan = plan || userData.plan || "";
     updatePayload.cabinetOwner = (plan || userData.plan) === "cabinet" ? true : userData.cabinetOwner || false;
     updatePayload.stripeSubscriptionId = subscription.id;
