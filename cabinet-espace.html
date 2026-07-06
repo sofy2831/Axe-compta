@@ -226,6 +226,53 @@ async function loadReceivedClosures(user){
   return [...byKey.values()].sort((a,b)=>(b.updatedAt?.seconds||b.createdAt?.seconds||0)-(a.updatedAt?.seconds||a.createdAt?.seconds||0));
 }
 
+function makeInviteId(email){
+  return normEmail(email).replace(/[^\w.-]+/g,"_");
+}
+
+async function activatePendingInvitationsIfQuotaAvailable(){
+  const max = includedCount() + extraCount();
+
+  if(activeCount() >= max) return;
+
+  const pendingSnap = await getDocs(query(
+    collection(db,"users",currentUser.uid,"pendingCabinetInvitations"),
+    orderBy("createdAt","asc"),
+    limit(10)
+  ));
+
+  for(const d of pendingSnap.docs){
+    if(activeCount() >= max) break;
+
+    const p = d.data() || {};
+    const email = normEmail(p.email);
+    if(!email) continue;
+
+    const inviteId = makeInviteId(email);
+
+    const inviteLink = `https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&collabId=${encodeURIComponent(inviteId)}&email=${encodeURIComponent(email)}`;
+
+    const data = {
+      email,
+      name: p.name || "",
+      role: "collaborator",
+      defaultAccess: "by_closure",
+      note: p.note || "",
+      status: "invited",
+      cabinetOwnerUid: currentUser.uid,
+      cabinetName: currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || currentUserData.cabinetName || "",
+      inviteLink,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
+
+    await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId), data, { merge:true });
+    await deleteDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",d.id));
+
+    collaborators.push({ id: inviteId, ...data });
+  }
+}
+  
 async function loadCabinetPage(user){
   const userSnap=await getDoc(doc(db,"users",user.uid));
   if(!userSnap.exists()){location.href="tableau-de-bord.html";return;}
