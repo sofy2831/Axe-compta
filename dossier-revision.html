@@ -118,10 +118,10 @@ function renderRows(){
       <label>Commentaire de révision</label><textarea data-comment="${i}">${sanitize(r.comment)}</textarea>
     </div>`).join(""):`<div class="notice warnNotice">Aucune écriture à documenter.</div>`;
   document.querySelectorAll("[data-status]").forEach(el=>el.addEventListener("change",()=>{reviewItems[Number(el.dataset.status)].status=el.value;updateAffectationAccess();scheduleRenderPrint();}));
-  document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.why)].why=el.value;renderPrint();}));
-  document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.calc)].calculation=el.value;renderPrint();}));
-  document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.doc)].document=el.value;renderPrint();}));
-  document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.comment)].comment=el.value;renderPrint();}));
+  document.querySelectorAll("[data-why]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.why)].why=el.value;scheduleRenderPrint();}));
+  document.querySelectorAll("[data-calc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.calc)].calculation=el.value;scheduleRenderPrint();}));
+  document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.doc)].document=el.value;scheduleRenderPrint();}));
+  document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.comment)].comment=el.value;scheduleRenderPrint();}));
   updateAffectationAccess();
   renderPrint();
 }
@@ -156,9 +156,15 @@ function docHtml(){
   <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 function renderPrint(){$("printArea").innerHTML=docHtml();}
+
+let printTimer=null;
+function scheduleRenderPrint(){
+  clearTimeout(printTimer);
+  printTimer=setTimeout(renderPrint,300);
+}
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
 $("saveBtn").addEventListener("click",()=>saveReview().catch(e=>{console.error(e);alert("Erreur enregistrement dossier de révision.");}));
-$("printBtn").addEventListener("click",()=>{scheduleRenderPrint();window.print();});
+$("printBtn").addEventListener("click",()=>{renderPrint();window.print();});
 $("excelBtn").addEventListener("click",()=>download(
   "dossier-revision.xls",
   `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>${docHtml()}</body></html>`,
