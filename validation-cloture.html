@@ -235,7 +235,6 @@ $("validateBtn").textContent = "Valider définitivement";
   $("validateBtn").textContent = "Validation enregistrée";
 }
  updateValidateAccess();
- updateValidateAccess();
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
 </script>
