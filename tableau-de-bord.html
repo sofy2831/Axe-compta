@@ -108,7 +108,17 @@ function stepClass(c,paid,step){if(!paid)return"locked";if(step==="result")retur
 function linkFor(page,id,ownerUid){const ownerParam=ownerUid&&currentUser&&ownerUid!==currentUser.uid?`&owner=${encodeURIComponent(ownerUid)}`:"";return `${page}?id=${encodeURIComponent(id)}${ownerParam}`;}
 function stepLink(label,page,id,ownerUid,c,paid,step){if(!paid)return`<span class="btn small stepBtn locked" title="Disponible après paiement">${label}</span>`;return`<a class="btn small stepBtn ${stepClass(c,paid,step)}" href="${linkFor(page,id,ownerUid)}">${label}</a>`;}
 
-async function syncStripeBeforeDashboard(user){try{await fetch(SYNC_STRIPE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid})});}catch(e){console.warn("Sync Stripe non bloquante :",e);}}
+async function syncStripeBeforeDashboard(user){
+  try{
+    const key=`stripeSync:${user.uid}`;
+    const last=Number(sessionStorage.getItem(key)||0);
+    const now=Date.now();
+    const force=new URLSearchParams(location.search).has("stripe_sync");
+    if(!force && now-last<5*60*1000)return;
+    sessionStorage.setItem(key,String(now));
+    await fetch(SYNC_STRIPE_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid})});
+  }catch(e){console.warn("Sync Stripe non bloquante :",e);}
+}
 
 async function loadCabinetMemberships(user){
   const email=normEmail(user.email);
@@ -342,51 +352,62 @@ async function collectSharedClosuresFallback(user){
 
 async function loadDashboard(user){
   userEmailEl.textContent=user.email||"";
-  currentMemberships=await loadCabinetMemberships(user);
 
   const userSnap=await getDoc(doc(db,"users",user.uid));
   currentUserData=userSnap.exists()?(userSnap.data()||{}):{};
 
   try{showAdminFeedbackIfAllowed(user,currentUserData);}catch(e){console.warn("admin access non bloquant",e);}
-  currentCabinetCollaborators=isCabinetOwner(currentUserData)?await loadOwnCabinetCollaborators(user):[];
+
+  const needsMembershipLookup =
+    currentUserData.cabinetMember===true ||
+    !!currentUserData.cabinetOwnerUid ||
+    currentUserData.plan==="extra-collab";
+
+  currentMemberships = needsMembershipLookup ? await loadCabinetMemberships(user) : [];
 
   if(currentUserData.cabinetMember===true&&currentUserData.cabinetOwnerUid&&!currentMemberships.some(m=>m.cabinetOwnerUid===currentUserData.cabinetOwnerUid)){
     currentMemberships.push({id:"userDocMembership",email:user.email,status:"active",cabinetOwnerUid:currentUserData.cabinetOwnerUid,cabinetName:currentUserData.cabinetName||"Cabinet"});
   }
 
-  const active=currentUserData.active!==false||isSubscriptionActive(currentUserData)||isCabinetMember();
+  const cabinetOwner=isCabinetOwner(currentUserData);
+  const cabinetMember=isCabinetMember();
+
+  currentCabinetCollaborators=cabinetOwner?await loadOwnCabinetCollaborators(user):[];
+
+  const active=currentUserData.active!==false||isSubscriptionActive(currentUserData)||cabinetMember;
   currentPlanLabel=dashboardPlanLabel(currentUserData);
   refreshCabinetAccess();
   planLabelEl.textContent=currentPlanLabel;
   accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);
   const subscriptionOk=hasPaidAccess();
 
+  const showSharedBox = cabinetOwner || cabinetMember;
+  document.getElementById("sharedBox").classList.toggle("hidden", !showSharedBox);
+
   let own=[],shared=[],ownError=null,sharedError=null;
   try{own=await collectOwnClosures(user);}catch(e){ownError=e;console.error("Clôtures propres non chargées :",e);}
-  try{shared=await collectSharedClosures(user);}catch(e){sharedError=e;console.error("Clôtures partagées non chargées :",e);}
 
-  if(!shared.length && currentMemberships.length){
-    const fallbackShared=await collectSharedClosuresFallback(user);
-    if(fallbackShared.length){
-      shared=fallbackShared;
-      sharedError=null;
+  if(showSharedBox){
+    try{shared=await collectSharedClosures(user);}catch(e){sharedError=e;console.error("Clôtures partagées non chargées :",e);}
+
+    if(!shared.length && currentMemberships.length){
+      const fallbackShared=await collectSharedClosuresFallback(user);
+      if(fallbackShared.length){
+        shared=fallbackShared;
+        sharedError=null;
+      }
     }
-  }
 
-  if(!shared.length && isCabinetOwner(currentUserData)){
-    const receivedFromCollaborators=await collectCabinetReceivedClosures(user);
-    if(receivedFromCollaborators.length){
-      shared=receivedFromCollaborators;
-      sharedError=null;
+    if(!shared.length && cabinetOwner){
+      const receivedFromCollaborators=await collectCabinetReceivedClosures(user);
+      if(receivedFromCollaborators.length){
+        shared=receivedFromCollaborators;
+        sharedError=null;
+      }
     }
+
+    renderSharedRows(shared);
   }
-  const showSharedBox = isCabinetOwner(currentUserData) || isCabinetMember();
-
-document.getElementById("sharedBox").classList.toggle("hidden", !showSharedBox);
-
-if (showSharedBox) {
-  renderSharedRows(shared);
-}
 
   const seen=new Set();
   const all=[...own].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
@@ -416,9 +437,9 @@ if (showSharedBox) {
       const status=item.shared?`${statusLabel(c.status)} <span class="pill dev">Partagée</span>`:(archived?"Archivée":statusLabel(c.status));
       const payment=paid?'<span class="pill">Activée</span>':'<span class="pill warn">À débloquer</span>';
 
-      const shareButton=isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
+      const shareButton=cabinetOwner&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";
-      const shareToCabinetButton=isCabinetMember()&&!isCabinetOwner(currentUserData)&&!item.shared&&paid&&!archived
+      const shareToCabinetButton=cabinetMember&&!cabinetOwner&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
