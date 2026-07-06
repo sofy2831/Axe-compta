@@ -280,25 +280,29 @@ async function loadCabinetPage(user){
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs, dossiers envoyés et dossiers reçus.`;
 
   try{
-    const collabSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc")));
-    collaborators=collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-    await activatePendingInvitationsIfQuotaAvailable();
-  }catch(e){
-    console.error("Collaborateurs non chargés :",e);
-    collaborators=[];
-    $("collabRows").innerHTML=`<tr><td colspan="7" class="errText">Collaborateurs non chargés : ${safe(e.message||"permission refusée")}</td></tr>`;
-  }
+  const [collabSnap, sentSnap, received] = await Promise.all([
+    getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc"))),
+    getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc"))),
+    loadReceivedClosures(user)
+  ]);
 
-  try{
-    const sentSnap=await getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc")));
-    sentClosures=sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-  }catch(e){
-    console.error("Dossiers envoyés non chargés :",e);
-    sentClosures=[];
-    $("rightsRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers envoyés non chargés : ${safe(e.message||"permission refusée")}</td></tr>`;
-  }
+  collaborators = collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  sentClosures = sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+  receivedClosures = received;
 
-  receivedClosures=await loadReceivedClosures(user);
+  await activatePendingInvitationsIfQuotaAvailable();
+
+}catch(e){
+  console.error("Chargement espace cabinet impossible :",e);
+
+  collaborators = [];
+  sentClosures = [];
+  receivedClosures = [];
+
+  $("collabRows").innerHTML=`<tr><td colspan="7" class="errText">Chargement impossible : ${safe(e.message||"permission refusée")}</td></tr>`;
+  $("rightsRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers envoyés non chargés.</td></tr>`;
+  $("receivedRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers reçus non chargés.</td></tr>`;
+}
   renderCollaborators();
   renderSentRights();
   renderReceivedRights();
