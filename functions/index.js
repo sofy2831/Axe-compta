@@ -111,17 +111,19 @@ exports.stripeWebhook = onRequest(
       return "";
     }
 
-    async function findUserBySubscription(subscriptionId) {
+async function findUserBySubscription(subscriptionId) {
   if (!subscriptionId) return null;
 
-  let snap = await db.collection("users")
+  let snap = await db
+    .collection("users")
     .where("stripeSubscriptionId", "==", subscriptionId)
     .limit(1)
     .get();
 
   if (!snap.empty) return snap.docs[0];
 
-  snap = await db.collection("users")
+  snap = await db
+    .collection("users")
     .where("lastExtraCollabSubscriptionId", "==", subscriptionId)
     .limit(1)
     .get();
