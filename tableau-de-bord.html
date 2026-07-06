@@ -380,13 +380,13 @@ async function loadDashboard(user){
       sharedError=null;
     }
   }
-  if(!shared.length && sharedRows){
-    const owners=currentMemberships.map(m=>m.cabinetOwnerUid).filter(Boolean).join(", ")||"aucun cabinetOwnerUid";
-    const mode=isCabinetOwner(currentUserData)?"cabinet owner":"collaborateur";
-    sharedRows.innerHTML=`<tr><td colspan="${isCabinetOwner(currentUserData)?6:5}" class="muted">Aucune clôture partagée reçue. Debug : mode=${safe(mode)} / email=${safe(user.email||"")} / uid=${safe(user.uid)} / cabinets=${safe(owners)}</td></tr>`;
-  }else{
-    renderSharedRows(shared);
-  }
+  const showSharedBox = isCabinetOwner(currentUserData) || isCabinetMember();
+
+document.getElementById("sharedBox").classList.toggle("hidden", !showSharedBox);
+
+if (showSharedBox) {
+  renderSharedRows(shared);
+}
 
   const seen=new Set();
   const all=[...own].filter(x=>{const key=`${x.ownerUid}/${x.id}`;if(seen.has(key))return false;seen.add(key);return true;});
