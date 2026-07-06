@@ -76,7 +76,7 @@ import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"; 
 const params=new URLSearchParams(location.search), closureId=params.get("id"), owner=params.get("owner")||"";
-let currentUser=null,currentOwnerUid="",currentClosure=null,reviewItems=[];
+let currentUser=null,currentOwnerUid="",currentClosure=null,reviewItems=[],revisionSaved=false;
 const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
@@ -99,11 +99,13 @@ function makeReviewItem(e,i){
   };
 }
 function updateAffectationAccess(){
-  const completed = reviewItems.length && reviewItems.every(x => x.status === "Validé");
+  const completed = revisionSaved === true;
+
   [$("affectationBtn"), $("affectationTopBtn"), $("modalAffectationBtn")].forEach(btn=>{
     if(!btn)return;
     btn.style.pointerEvents = completed ? "auto" : "none";
     btn.style.opacity = completed ? "1" : ".45";
+    btn.setAttribute("aria-disabled", completed ? "false" : "true");
   });
 }
 function renderRows(){
@@ -139,6 +141,7 @@ async function saveReview(){
   },{merge:true});
 
   currentClosure={...(currentClosure||{}),dossierRevision:payload};
+revisionSaved=true;
   $("statusLine").innerHTML='<span class="okText">Dossier de révision enregistré.</span>';
   $("saveBtn").disabled=true;
   $("saveBtn").textContent="Dossier enregistré";
