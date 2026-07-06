@@ -332,7 +332,7 @@ async function createInvitation(){
   await addExtraLicense();
   return;
 }
-  const inviteId=email.replace(/[^\w.-]+/g,"_");
+  const inviteId=makeInviteId(email);
   const inviteLink=`https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&collabId=${encodeURIComponent(inviteId)}&email=${encodeURIComponent(email)}`;
   const data={email,name,role:"collaborator",defaultAccess:"by_closure",note:$("inviteNote").value.trim(),status:"invited",cabinetOwnerUid:currentUser.uid,cabinetName:currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||currentUserData.cabinetName||"",inviteLink,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
   await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
