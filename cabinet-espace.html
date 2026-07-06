@@ -73,7 +73,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 import { auth, db } from "./firebase-config.js";
 import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, setDoc, updateDoc, collection, collectionGroup, getDocs, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, collectionGroup, getDocs, query, where, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 const $=id=>document.getElementById(id);
