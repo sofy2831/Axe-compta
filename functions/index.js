@@ -233,38 +233,46 @@ async function findUserBySubscription(subscriptionId) {
         }
 
         case "customer.subscription.updated": {
-          const subscription = event.data.object;
-          const userDoc = await findUserBySubscription(subscription.id);
+  const subscription = event.data.object;
+  const userDoc = await findUserBySubscription(subscription.id);
 
-          if (!userDoc) {
-            console.warn("No user found for subscription:", subscription.id);
-            break;
-          }
+  if (!userDoc) {
+    console.warn("No user found for subscription:", subscription.id);
+    break;
+  }
 
-          const plan = planFromSubscription(subscription);
-          const isActive = ["active", "trialing"].includes(subscription.status);
-          const cancelAtPeriodEnd = subscription.cancel_at_period_end === true || !!subscription.cancel_at;
-          const subscriptionEndsAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
-          const userData = userDoc.data() || {};
+  const plan = planFromSubscription(subscription);
+  const isActive = ["active", "trialing"].includes(subscription.status);
+  const cancelAtPeriodEnd = subscription.cancel_at_period_end === true || !!subscription.cancel_at;
+  const subscriptionEndsAt = subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
+  const userData = userDoc.data() || {};
 
-          await userDoc.ref.set(
-            {
-              plan: plan === "extra-collab" ? "cabinet" : (plan || userData.plan || ""),
-              active: isActive,
-              subscriptionActive: isActive,
-              paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
-              cancelAtPeriodEnd,
-              subscriptionEndsAt,
-              cabinetOwner: (plan || userData.plan) === "cabinet" ? true : userData.cabinetOwner || false,
-              stripeCustomerId: subscription.customer || userData.stripeCustomerId || null,
-              stripeSubscriptionId: subscription.id,
-              subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
+  const updatePayload = {
+    active: isActive,
+    subscriptionActive: isActive,
+    paymentStatus: cancelAtPeriodEnd ? "cancel_at_period_end" : subscription.status,
+    cancelAtPeriodEnd,
+    subscriptionEndsAt,
+    stripeCustomerId: subscription.customer || userData.stripeCustomerId || null,
+    subscriptionUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
 
-          break;
-        }
+  if (plan === "extra-collab") {
+    updatePayload.plan = "cabinet";
+    updatePayload.cabinetOwner = true;
+    updatePayload.extraCollabSubscriptionActive = isActive;
+    updatePayload.cabinetExtraLicensesPaid = isActive;
+    updatePayload.lastExtraCollabSubscriptionId = subscription.id;
+  } else {
+    updatePayload.plan = plan || userData.plan || "";
+    updatePayload.cabinetOwner = (plan || userData.plan) === "cabinet" ? true : userData.cabinetOwner || false;
+    updatePayload.stripeSubscriptionId = subscription.id;
+  }
+
+  await userDoc.ref.set(updatePayload, { merge: true });
+
+  break;
+}
 
         case "customer.subscription.deleted": {
           const subscription = event.data.object;
@@ -278,16 +286,18 @@ async function findUserBySubscription(subscriptionId) {
           const userData = userDoc.data() || {};
           const deletedPlan = planFromSubscription(subscription);
 
-          if (deletedPlan === "extra-collab") {
-            await userDoc.ref.set(
-              {
-                cabinetExtraLicenses: admin.firestore.FieldValue.increment(-1),
-                lastExtraCollabCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
-            break;
-          }
+         if (deletedPlan === "extra-collab") {
+  await userDoc.ref.set(
+    {
+      cabinetExtraLicenses: admin.firestore.FieldValue.increment(-1),
+      extraCollabSubscriptionActive: false,
+      cabinetExtraLicensesPaid: false,
+      lastExtraCollabCanceledAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  break;
+}
 
           const fallbackPlan = userData.hasSoloPurchase === true ? "solo" : "";
 
