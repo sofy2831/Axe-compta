@@ -70,8 +70,29 @@ function entryJournal(e){return e.journal||"OD"}
 function entryStatus(e){return e.status||"À valider"}
 function isAnalysisEntry(e){return entryJournal(e).toUpperCase()==="ANALYSE"}
 function hasDetails(e){return Array.isArray(e.details)&&e.details.length>0}
-function amountNumber(v){const n=Number(String(v??"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,""));return Number.isNaN(n)?0:n}
-function formatAmount(v){return typeof v==="number"?v.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €":safe(v||"—")}
+function amountNumber(v){
+  const n = Number(String(v ?? "")
+    .replace(/\s/g,"")
+    .replace(",",".")
+    .replace(/[^0-9.\-]/g,""));
+  return Number.isNaN(n) ? 0 : Math.round(n * 100) / 100;
+}
+
+function formatAmount(v){
+  const n = amountNumber(v);
+  if(!Number.isFinite(n)) return "—";
+  return new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(n) + " €";
+}
+
+function formatCellAmount(v){
+  if(v === "—" || v === "" || v == null) return "—";
+  const s = String(v).toLowerCase();
+  if(s.includes("à contrôler")) return "À contrôler";
+  return formatAmount(v);
+}
 function cleanDisplayLabel(label){const s=String(label||"");const p=s.split(" - ");return p.length===2&&p[0].trim().toLowerCase()===p[1].trim().toLowerCase()?p[0].trim():s}
 function stripUserContext(t){return String(t||"").split("Informations fournies par l'utilisateur")[0].trim()}
 function compactJustification(e){const text=stripUserContext(e.justification||"");if(isAnalysisEntry(e))return `<span class="analysisHint">Analyse détaillée disponible.</span><br><span class="muted">Cliquer sur « Voir » pour afficher le détail.</span>`;return text.length<=160?safe(text):`${safe(text.slice(0,160))}...<br><span class="muted">Cliquer sur « Voir » pour lire la suite.</span>`}
@@ -189,7 +210,7 @@ function removeDuplicateFnpCreditBail(entries){
   });
 }
 function normalizeEntries(c,entries){return removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries));}
-function rowHtml(e,i){const s=entryStatus(e),done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td class="justificationShort">${compactJustification(e)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td></tr>`}
+function rowHtml(e,i){const s=entryStatus(e),done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatCellAmount(e.debit))}</td><td>${safe(formatCellAmount(e.credit))}</td><td>${safe(formatCellAmount(e.amount))}</td><td class="justificationShort">${compactJustification(e)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td></tr>`}
 function renderEntries(){
   $("entriesRows").innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
   document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
