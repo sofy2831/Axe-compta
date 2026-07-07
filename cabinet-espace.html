@@ -225,6 +225,61 @@ function makeInviteId(email){
   return normEmail(email).replace(/[^\w.-]+/g,"_");
 }
 
+function randToken(len=24){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz";
+  let out="";
+  const arr=new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  for(let i=0;i<len;i++) out+=chars[arr[i]%chars.length];
+  return out;
+}
+
+function cabinetName(){
+  return currentUserData.cabinetSetup?.cabinetName
+    || currentUserData.companyName
+    || currentUserData.cabinetName
+    || "Votre cabinet";
+}
+
+function buildInviteMailBody({name,email,inviteLink,note=""}){
+  return `${note ? note + "\n\n" : ""}Bonjour${name ? " " + name : ""},
+
+Votre cabinet vous invite à rejoindre son espace collaborateur Axe Compta IA.
+
+Voici votre lien pour créer ou rattacher votre accès collaborateur :
+${inviteLink}
+
+Important : utilisez cet email (${email}) pour accepter l’invitation.
+
+Cordialement,
+${cabinetName()}`;
+}
+
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    showMsg(`<b class="okText">Lien copié.</b>`, false);
+  }catch(e){
+    showMsg(`Copie impossible. Lien :<br><span class="mono">${safe(text)}</span>`, true);
+  }
+}
+
+async function shareInvite(inviteLink, bodyText){
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"Invitation Axe Compta IA",
+        text:bodyText,
+        url:inviteLink
+      });
+    }else{
+      await copyText(inviteLink);
+    }
+  }catch(e){
+    await copyText(inviteLink);
+  }
+}
+  
 async function activatePendingInvitationsIfQuotaAvailable(){
   const max = includedCount() + extraCount();
 
@@ -332,10 +387,56 @@ async function createInvitation(){
   return;
 }
   const inviteId=makeInviteId(email);
-  const inviteLink=`https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&collabId=${encodeURIComponent(inviteId)}&email=${encodeURIComponent(email)}`;
-  const data={email,name,role:"collaborator",defaultAccess:"by_closure",note:$("inviteNote").value.trim(),status:"invited",cabinetOwnerUid:currentUser.uid,cabinetName:currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||currentUserData.cabinetName||"",inviteLink,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
-  await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
-  showMsg(`<b class="okText">Invitation créée.</b><br><span>Le lien est prêt. Cliquez ci-dessous pour envoyer l’invitation par mail.</span><br><br><a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((data.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+inviteLink)}">Envoyer par mail</a>`);
+const token=randToken(24);
+const inviteLink=`https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
+const note=$("inviteNote").value.trim();
+
+const data={
+  email,
+  name,
+  role:"collaborator",
+  defaultAccess:"by_closure",
+  note,
+  status:"invited",
+  cabinetOwnerUid:currentUser.uid,
+  cabinetName:cabinetName(),
+  inviteToken:token,
+  inviteLink,
+  createdAt:serverTimestamp(),
+  updatedAt:serverTimestamp()
+};
+
+await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
+
+await setDoc(doc(db,"cabinetInvites",token),{
+  token,
+  cabinetOwnerUid:currentUser.uid,
+  cabinetName:cabinetName(),
+  collabId:inviteId,
+  email,
+  name,
+  note,
+  status:"pending",
+  createdAt:serverTimestamp(),
+  updatedAt:serverTimestamp()
+},{merge:true});
+
+const bodyText=buildInviteMailBody({name,email,inviteLink,note});
+
+showMsg(`
+  <b class="okText">Invitation créée.</b><br>
+  <span>Lien court généré. Il devrait mieux passer en messagerie.</span><br><br>
+  <span class="mono">${safe(inviteLink)}</span><br><br>
+  <button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button>
+  <button class="btn small" type="button" id="shareInviteBtn">Partager</button>
+  <a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation – Accès collaborateur Axe Compta IA')}&body=${encodeURIComponent(bodyText)}">Envoyer par mail</a>
+`);
+
+setTimeout(()=>{
+  $("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));
+  $("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));
+},0);
+  
   $("inviteEmail").value="";$("inviteName").value="";$("inviteNote").value="";
   await loadCabinetPage(currentUser);
 }
