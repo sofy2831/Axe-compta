@@ -1597,18 +1597,6 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   throw new Error("Format non pris en charge : " + ext);
 } 
 
-  if (["txt", "fec"].includes(ext)) {
-    const content = buffer.toString("utf8");
-    return parseFecText(content).slice(0, 2000);
-  }
-
-  if (ext === "pdf") {
-    throw new Error("PDF non exploitable automatiquement pour l'instant. Merci de fournir Excel, CSV ou FEC.");
-  }
-
-  throw new Error("Format non pris en charge : " + ext);
-}
-
     const balanceRows = await parseFile(balancePath);
     const grandLivreRows = await parseFile(grandLivrePath);
     const amortissementRows = await parseFile(amortissementsPath);
