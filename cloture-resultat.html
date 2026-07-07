@@ -25,7 +25,7 @@
 <main><div class="wrap">
   <div class="top"><div><h1>Résultat de clôture</h1><p class="muted" id="closureInfo">Chargement du dossier...</p></div><a class="btn" id="backLink" href="cloture-analyse.html">Modifier les réponses</a></div>
   <div class="stepper" id="workflowSteps"></div>
-  <div class="box" id="filesBlock"><h2>Corrections utilisateur / nouvelle analyse</h2><p class="muted" id="filesIntro">Remplacez uniquement les fichiers corrigés, puis relancez l'analyse. Les OD seront recalculées. L'affectation, les extournes et le score final seront remis à zéro si le dossier avait déjà avancé.</p><div class="fileGrid"><div class="fileBox"><label>Balance générale</label><input id="balanceFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentBalance">Fichier actuel : —</span></div><div class="fileBox"><label>Grand livre</label><input id="grandLivreFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentGrandLivre">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau amortissements</label><input id="amortissementsFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentAmortissements">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau emprunt</label><input id="empruntFile" type="file" accept=".csv,.xlsx,.xls"><span id="currentEmprunt">Fichier actuel : —</span></div></div><div class="actions fileActionsDetached"><button class="btn primary" type="button" id="reparseBtn">Recharger et recalculer</button></div><div class="notice" id="fileMsg" style="display:none"></div></div>
+  <div class="box" id="filesBlock"><h2>Corrections utilisateur / nouvelle analyse</h2><p class="muted" id="filesIntro">Remplacez uniquement les fichiers corrigés, puis relancez l'analyse. Les OD seront recalculées. L'affectation, les extournes et le score final seront remis à zéro si le dossier avait déjà avancé.</p><div class="fileGrid"><div class="fileBox"><label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentBalance">Fichier actuel : —</span></div><div class="fileBox"><label>Grand livre</label><input id="grandLivreFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentGrandLivre">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau amortissements</label><input id="amortissementsFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentAmortissements">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau emprunt</label><input id="empruntFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentEmprunt">Fichier actuel : —</span></div></div><div class="actions fileActionsDetached"><button class="btn primary" type="button" id="reparseBtn">Recharger et recalculer</button></div><div class="notice" id="fileMsg" style="display:none"></div></div>
   <div class="box"><h2>OD de clôture proposées</h2><div class="summaryGrid"><div class="metric"><b id="cyclesCount">0</b><span>cycles contrôlés</span></div><div class="metric"><b id="entriesCount">0</b><span>écritures possibles</span></div><div class="metric"><b id="docsCount">0</b><span>points à documenter</span></div><div class="metric"><b id="accessStatus">Verrouillé</b><span>accès</span></div></div>
     <div id="paymentBlock" class="paywall" style="display:none"><h3>Débloquer les écritures détaillées</h3><p class="muted">Votre analyse est prête. Pour accéder aux comptes débit/crédit, aux justifications et aux exports, activez ce dossier ou choisissez une formule mensuelle.</p><div class="payGrid"><button class="btn primary" type="button" id="payOneShotBtn">Solo - 99 €</button><button class="btn" type="button" id="payExpertBtn">Expert - 149 €/mois</button><button class="btn" type="button" id="payCabinetBtn">Cabinet - 399 €/mois</button><button class="btn" type="button" id="payExtraCollabBtn" style="display:none">Collaborateur — 129 €/mois</button></div><div class="notice">Après paiement, votre dossier sera activé automatiquement.</div></div>
     <div id="entriesWrapper"><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="7" class="muted">Chargement...</td></tr></tbody></table><div class="notice" id="accessNotice">Avant comptabilisation définitive, chaque OD doit être justifiée. Le dossier de révision récupérera ensuite le justificatif, le commentaire et le calcul.</div><div class="notice" id="confidenceNotice"></div><div class="actions actionsDetached"><button class="btn primary" type="button" id="exportPdfBtn">Imprimer / PDF</button><button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button><button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button><button class="btn warn" type="button" id="saveEntriesBtn">Enregistrer le projet</button><button class="btn primary" type="button" id="finalizeEntriesBtn">Valider les OD définitives</button><a class="btn primary" id="revisionBtn" href="dossier-revision.html">Dossier de révision</a></div><div class="notice warn" id="finalizeNotice" style="display:none"></div></div>
@@ -71,7 +71,8 @@ function entryStatus(e){return e.status||"À valider"}
 function isAnalysisEntry(e){return entryJournal(e).toUpperCase()==="ANALYSE"}
 function hasDetails(e){return Array.isArray(e.details)&&e.details.length>0}
 function amountNumber(v){
-  const n = Number(String(v ?? "")
+  if(v === "—" || v === "" || v == null) return 0;
+  const n = Number(String(v)
     .replace(/\s/g,"")
     .replace(",",".")
     .replace(/[^0-9.\-]/g,""));
@@ -79,8 +80,10 @@ function amountNumber(v){
 }
 
 function formatAmount(v){
+  if(v === "—" || v === "" || v == null) return "—";
+  const s = String(v).toLowerCase();
+  if(s.includes("à contrôler")) return "À contrôler";
   const n = amountNumber(v);
-  if(!Number.isFinite(n)) return "—";
   return new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -210,7 +213,18 @@ function removeDuplicateFnpCreditBail(entries){
   });
 }
 function normalizeEntries(c,entries){return removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries));}
-function rowHtml(e,i){const s=entryStatus(e),done=s==="Validée";return `<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatCellAmount(e.debit))}</td><td>${safe(formatCellAmount(e.credit))}</td><td>${safe(formatCellAmount(e.amount))}</td><td class="justificationShort">${compactJustification(e)}</td><td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td></tr>`}
+function rowHtml(e,i){
+  const s=entryStatus(e),done=s==="Validée";
+  return `<tr>
+    <td>${safe(entryJournal(e))}</td>
+    <td>${safe(cleanDisplayLabel(e.label))}</td>
+    <td>${safe(formatAmount(e.debit))}</td>
+    <td>${safe(formatAmount(e.credit))}</td>
+    <td>${safe(formatAmount(e.amount))}</td>
+    <td class="justificationShort">${compactJustification(e)}</td>
+    <td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td>
+  </tr>`;
+}
 function renderEntries(){
   $("entriesRows").innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
   document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
@@ -226,9 +240,9 @@ function unlockResult(label="Actif"){$("paymentBlock").style.display="none";$("e
 function fileBaseName(){return `axe-compta-${(currentClosure?.companyName||"cloture").replace(/[^\w\-]+/g,"_")}-${(currentClosure?.endDate||"resultat").replaceAll("-","")}`}
 function downloadBlob(c,m,f){const b=new Blob([c],{type:m}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=f;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u)}
 function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`}
-function exportCsv(){const h=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];downloadBlob("\ufeff"+[h.map(csvEscape).join(";"),...currentEntries.map(e=>[entryJournal(e),cleanDisplayLabel(e.label),e.debit,e.credit,e.amount,e.justification,entryStatus(e)].map(csvEscape).join(";"))].join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv")}
-function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(e.debit)}</td><td>${safe(e.credit)}</td><td>${safe(e.amount)}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");downloadBlob(`<html><meta charset="UTF-8"><body><table border="1">${body}</table></body></html>`,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls")}
-function pdfRowsHtml(){return currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(e.debit||"—")}</td><td>${safe(e.credit||"—")}</td><td class="num">${formatAmount(e.amount)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("")}
+function exportCsv(){const h=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];downloadBlob("\ufeff"+[h.map(csvEscape).join(";"),...currentEntries.map(e=>[entryJournal(e),cleanDisplayLabel(e.label),formatAmount(e.debit),formatAmount(e.credit),formatAmount(e.amount),e.justification,entryStatus(e)].map(csvEscape).join(";"))].join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv")}
+function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAmount(e.debit))}</td><td>${safe(formatAmount(e.credit))}</td><td>${safe(formatAmount(e.amount))}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");downloadBlob(`<html><meta charset="UTF-8"><body><table border="1">${body}</table></body></html>`,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls")}
+function pdfRowsHtml(){return currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAmount(e.debit))}</td><td>${safe(formatAmount(e.credit))}</td><td class="num">${formatAmount(e.amount)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("")}
 function docHtml(){const company=safe(currentClosure?.companyName||"Société sans nom");const period=safe(`${currentClosure?.startDate||"—"} → ${currentClosure?.endDate||"—"}`);const total=currentEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">OD de clôture</div><div class="docSub">Écritures proposées et contrôles à valider</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${period}</td></tr><tr><td>Écritures possibles</td><td>${currentEntries.length}</td></tr><tr><td>Statut OD</td><td>${odFinalized(currentClosure)?"Définitives":"À valider"}</td></tr></table><div class="docOk">Total indicatif des écritures chiffrées : ${formatAmount(total)}</div><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th><th>Statut</th></tr></thead><tbody>${pdfRowsHtml()}</tbody></table><p class="docNote">Ces OD doivent être rapprochées des factures, contrats, tableaux et justificatifs avant comptabilisation définitive. Le dossier de révision centralise ensuite les justificatifs, commentaires et calculs.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderPrint(){if(!currentEntries.length)return;$("printArea").innerHTML=docHtml()}
 function exportPdf(){renderPrint();window.print()}
