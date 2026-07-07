@@ -281,7 +281,7 @@ async function createInvitation(){
   await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
   await createCabinetInviteDoc({token,inviteId,email,name,note});
   const bodyText=buildInviteMailBody({name,email,inviteLink,note});
-  showMsg(`<b class="okText">Invitation créée.</b><br><span>Lien court généré. Il devrait mieux passer en messagerie.</span><br><br><span class="mono">${safe(inviteLink)}</span><br><br><button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button><button class="btn small" type="button" id="shareInviteBtn">Partager</button><a class="btn small" href="${mailtoInvite(email,name,inviteLink,note)}">Envoyer par mail</a>`);
+  showMsg(`<b class="okText">Invitation créée.</b><br><button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button><button class="btn small" type="button" id="shareInviteBtn">Partager</button><a class="btn small" href="${mailtoInvite(email,name,inviteLink,note)}">Envoyer par mail</a>`);
   setTimeout(()=>{$("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));$("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));},0);
   $("inviteEmail").value="";$("inviteName").value="";$("inviteNote").value="";
   await loadCabinetPage(currentUser);
