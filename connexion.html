@@ -246,4 +246,25 @@ resetPasswordLink.addEventListener("click",async e=>{e.preventDefault();const em
 
 onAuthStateChanged(auth,user=>{if(user)afterAuth(user);});
 showRequestedPlan();
+ async function preloadCabinetInviteEmail(){
+  if(!cabinetInviteToken) return;
+
+  try{
+    const invite = await findCabinetInviteByToken(cabinetInviteToken);
+    if(!invite) return;
+
+    const email = String(invite.data.email || "").trim().toLowerCase();
+
+    if(email){
+      document.getElementById("loginEmail").value = email;
+      document.getElementById("registerEmail").value = email;
+      planBox.style.display = "block";
+      planBox.innerHTML = `<b>Invitation Cabinet :</b> utilisez l’email invité <b>${email}</b> pour créer ou connecter votre compte.`;
+    }
+  }catch(e){
+    showMessage(e.message || "Invitation cabinet introuvable.", true);
+  }
+}
+
+preloadCabinetInviteEmail(); 
 </script></body></html>
