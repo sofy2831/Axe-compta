@@ -114,13 +114,8 @@ service cloud.firestore {
         );
     }
 
-  match /cabinetInvites/{token} {
-  allow read: if isSignedIn()
-    && (
-      isAdmin()
-      || resource.data.cabinetOwnerUid == request.auth.uid
-      || resource.data.email == userEmail()
-    );
+match /cabinetInvites/{token} {
+  allow read: if true;
 
   allow create: if isSignedIn()
     && request.resource.data.cabinetOwnerUid == request.auth.uid;
@@ -138,7 +133,6 @@ service cloud.firestore {
       && resource.data.cabinetOwnerUid == request.auth.uid
     );
 }
-
     match /users/{userId} {
 
       allow read: if isOwner(userId)
