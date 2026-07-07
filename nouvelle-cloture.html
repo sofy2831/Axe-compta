@@ -72,7 +72,12 @@ function isAllowedFile(file){
   const name = file.name.toLowerCase();
   return [".xlsx",".xls",".csv",".txt",".fec",".pdf"].some(ext => name.endsWith(ext));
 }
-
+function isAllowedSize(file){
+  if(!file) return true;
+  const maxSize = 12 * 1024 * 1024; // 12 Mo
+  return file.size <= maxSize;
+}
+ 
 startDateEl.addEventListener("change",updatePeriod);
 endDateEl.addEventListener("change",updatePeriod);
 updatePeriod();
