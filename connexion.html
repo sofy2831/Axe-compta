@@ -108,24 +108,79 @@ async function findInvitation(ownerUid,collabId,email){
   };
 }
 
+async function findCabinetInviteByToken(token){
+  if(!token)return null;
+
+  const ref = doc(db,"cabinetInvites",token);
+  const snap = await getDoc(ref);
+
+  if(!snap.exists())return null;
+
+  const data = snap.data() || {};
+
+  if(data.status === "accepted"){
+    throw new Error("Cette invitation a déjà été utilisée.");
+  }
+
+  if(data.status === "removed" || data.status === "canceled"){
+    throw new Error("Cette invitation n’est plus active.");
+  }
+
+  return { ref, data };
+}
+  
 async function attachCabinetMember(user){
   if(!isInviteFlow())return false;
-  const userEmail=String(user.email||"").trim().toLowerCase();
-  if(userEmail!==inviteEmail)throw new Error("Cette invitation est réservée à l'email "+inviteEmail+".");
- 
- const invitation=await findInvitation(inviteOwnerUid,inviteCollabId,userEmail);
-  if(!invitation)throw new Error("Invitation introuvable. Vérifiez l'email invité dans l'espace Cabinet.");
-  if(invitation.data.status==="removed")throw new Error("Cette invitation a été retirée du cabinet.");
-  const cabinetName=invitation.data.cabinetName||"Cabinet";
+
+  const userEmail = String(user.email || "").trim().toLowerCase();
+
+  let ownerUid = inviteOwnerUid;
+  let collabId = inviteCollabId;
+  let expectedEmail = inviteEmail;
+  let cabinetName = "Cabinet";
+  let invitationRef = null;
+  let tokenInviteRef = null;
+
+  if(cabinetInviteToken){
+    const tokenInvite = await findCabinetInviteByToken(cabinetInviteToken);
+    if(!tokenInvite)throw new Error("Invitation cabinet introuvable.");
+
+    cabinetInviteData = tokenInvite.data;
+    tokenInviteRef = tokenInvite.ref;
+
+    ownerUid = cabinetInviteData.cabinetOwnerUid || "";
+    collabId = cabinetInviteData.collabId || "";
+    expectedEmail = String(cabinetInviteData.email || "").trim().toLowerCase();
+    cabinetName = cabinetInviteData.cabinetName || "Cabinet";
+
+    if(!ownerUid || !collabId || !expectedEmail){
+      throw new Error("Invitation cabinet incomplète.");
+    }
+  }
+
+  if(userEmail !== expectedEmail){
+    throw new Error("Cette invitation est réservée à l'email " + expectedEmail + ".");
+  }
+
+  const invitation = await findInvitation(ownerUid, collabId, userEmail);
+  if(!invitation){
+    throw new Error("Invitation introuvable dans l'espace Cabinet.");
+  }
+
+  if(invitation.data.status === "removed"){
+    throw new Error("Cette invitation a été retirée du cabinet.");
+  }
+
+  cabinetName = invitation.data.cabinetName || cabinetName || "Cabinet";
 
   await setDoc(doc(db,"users",user.uid),{
-    email:user.email||userEmail,
+    email:user.email || userEmail,
     active:true,
     plan:"cabinet-collaborator",
     subscriptionActive:true,
     paymentStatus:"cabinet_included",
     cabinetMember:true,
-    cabinetOwnerUid:inviteOwnerUid,
+    cabinetOwnerUid:ownerUid,
     cabinetName,
     role:"collaborator",
     updatedAt:serverTimestamp()
@@ -140,6 +195,16 @@ async function attachCabinetMember(user){
     activatedAt:serverTimestamp(),
     updatedAt:serverTimestamp()
   },{merge:true});
+
+  if(tokenInviteRef){
+    await setDoc(tokenInviteRef,{
+      status:"accepted",
+      acceptedAt:serverTimestamp(),
+      collaboratorUid:user.uid,
+      updatedAt:serverTimestamp()
+    },{merge:true});
+  }
+
   return true;
 }
 
