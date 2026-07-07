@@ -95,23 +95,54 @@ function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportClotur
 function stepClass(c,step){if(step==="result")return hasFinalEntries(c)?"done":"current";if(step==="revision")return hasRevision(c)?"done":hasFinalEntries(c)?"current":"todo";if(step==="affectation")return hasAffectation(c)?"done":hasRevision(c)?"current":"todo";if(step==="extournes")return hasExtournes(c)?"done":hasAffectation(c)?"current":"todo";if(step==="score")return hasScore(c)?"done":hasExtournes(c)?"current":"todo";if(step==="validation")return hasValidation(c)?"done":hasScore(c)?"current":"todo";if(step==="report")return hasReport(c)?"done":hasValidation(c)?"current":"todo";return"todo";}
 function activeCount(){return collaborators.filter(c=>c.status!=="removed").length;}
 function includedCount(){return Number(currentUserData.cabinetSetup?.includedLicenses||3);}
-function extraCount(){
-  return Math.max(0, Number(currentUserData.cabinetExtraLicenses || 0));
-}
+function extraCount(){return Math.max(0,Number(currentUserData.cabinetExtraLicenses||0));}
 function linkFor(page,id,ownerUid){return `${page}?id=${encodeURIComponent(id)}&owner=${encodeURIComponent(ownerUid)}`;}
-function actionLinks(id,ownerUid,c={}){
-  const steps=[["Résultat","cloture-resultat.html","result"],["Révision","dossier-revision.html","revision"],["Affectation","affectation-resultat.html","affectation"],["Extournes","extournes-automatiques.html","extournes"],["Score","score-qualite.html","score"],["Validation","validation-cloture.html","validation"],["Rapport","rapport-cloture.html","report"]];
-  return steps.map(([label,page,step])=>`<a class="btn small stepBtn ${stepClass(c,step)}" href="${linkFor(page,id,ownerUid)}">${label}</a>`).join(" ");
-}
 function sentCountForEmail(email){const needle=normEmail(email);let n=0;sentClosures.forEach(c=>{if((c.sharedWithEmails||[]).map(normEmail).includes(needle))n++;});return n;}
 function receivedCountForEmail(email){const needle=normEmail(email);let n=0;receivedClosures.forEach(c=>{const byEmail=normEmail(c.sharedByEmail||c.ownerEmail||"");if(byEmail===needle)n++;});return n;}
 function updateMetrics(){const included=includedCount(),extra=extraCount(),used=activeCount();$("includedLicenses").textContent=included;$("extraLicenses").textContent=extra;$("activeCollaborators").textContent=used;$("availableLicenses").textContent=Math.max(0,included+extra-used);}
+function makeInviteId(email){return normEmail(email).replace(/[^\w.-]+/g,"_");}
+function randToken(len=24){const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz";let out="";const arr=new Uint32Array(len);crypto.getRandomValues(arr);for(let i=0;i<len;i++)out+=chars[arr[i]%chars.length];return out;}
+function cabinetName(){return currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||currentUserData.cabinetName||"Votre cabinet";}
+function buildInviteMailBody({name,email,inviteLink,note=""}){return `${note?note+"\n\n":""}Bonjour${name?" "+name:""},
+
+Votre cabinet vous invite à rejoindre son espace collaborateur Axe Compta IA.
+
+Voici votre lien pour créer ou rattacher votre accès collaborateur :
+${inviteLink}
+
+Important : utilisez cet email (${email}) pour accepter l’invitation.
+
+Cordialement,
+${cabinetName()}`;}
+async function copyText(text){try{await navigator.clipboard.writeText(text);showMsg(`<b class="okText">Lien copié.</b>`,false);}catch(e){showMsg(`Copie impossible. Lien :<br><span class="mono">${safe(text)}</span>`,true);}}
+async function shareInvite(inviteLink,bodyText){try{if(navigator.share){await navigator.share({title:"Invitation Axe Compta IA",text:bodyText,url:inviteLink});}else{await copyText(inviteLink);}}catch(e){await copyText(inviteLink);}}
+
+function mailtoInvite(email,name,inviteLink,note=""){
+  const bodyText=buildInviteMailBody({name,email,inviteLink,note});
+  return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent("Invitation – Accès collaborateur Axe Compta IA")}&body=${encodeURIComponent(bodyText)}`;
+}
+
+async function createCabinetInviteDoc({token,inviteId,email,name,note}){
+  await setDoc(doc(db,"cabinetInvites",token),{
+    token,
+    cabinetOwnerUid:currentUser.uid,
+    cabinetName:cabinetName(),
+    collabId:inviteId,
+    email,
+    name:name||"",
+    note:note||"",
+    status:"pending",
+    createdAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+  },{merge:true});
+}
 
 function renderCollaborators(){
   if(!collaborators.length){$("collabRows").innerHTML=`<tr><td colspan="7" class="muted">Aucun collaborateur invité pour le moment.</td></tr>`;updateMetrics();return;}
   $("collabRows").innerHTML=collaborators.map(c=>{
     const sent=sentCountForEmail(c.email);
     const received=receivedCountForEmail(c.email);
+    const mailLink=c.inviteLink?mailtoInvite(c.email,c.name||"",c.inviteLink,c.note||""):"";
     return `<tr>
       <td>${safe(c.name||"—")}</td>
       <td>${safe(c.email)}</td>
@@ -119,11 +150,16 @@ function renderCollaborators(){
       <td>${statusLabel(c.status)}</td>
       <td>${sent?`${sent} dossier(s)`:"—"}</td>
       <td>${received?`${received} dossier(s)`:"—"}</td>
-      <td><div class="actions inlineActions"><button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button><button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>${c.inviteLink?`<a class="btn small" href="mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent('Invitation Axe Compta Cabinet')}&body=${encodeURIComponent((c.note||'Bonjour, voici votre invitation Axe Compta Cabinet :')+'\n\n'+c.inviteLink)}">Envoyer par mail</a>`:""}</div></td>
+      <td><div class="actions inlineActions">
+        <button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button>
+        <button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>
+        ${c.inviteLink?`<button class="btn small" type="button" data-copy-invite="${safe(c.inviteLink)}">Copier</button><a class="btn small" href="${mailLink}">Envoyer par mail</a>`:""}
+      </div></td>
     </tr>`;
   }).join("");
   document.querySelectorAll("[data-suspend]").forEach(btn=>btn.addEventListener("click",()=>suspendCollaborator(btn.dataset.suspend)));
   document.querySelectorAll("[data-remove]").forEach(btn=>btn.addEventListener("click",()=>removeCollaborator(btn.dataset.remove)));
+  document.querySelectorAll("[data-copy-invite]").forEach(btn=>btn.addEventListener("click",()=>copyText(btn.dataset.copyInvite)));
   updateMetrics();
 }
 
@@ -133,20 +169,8 @@ function renderSentRights(){
     const emails=Array.isArray(c.sharedWithEmails)?c.sharedWithEmails:[];
     emails.forEach(email=>lines.push({companyName:c.companyName||"Société sans nom",period:`${c.startDate||"—"} → ${c.endDate||"—"}`,email}));
   });
-
-  if(!lines.length){
-    $("rightsRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier partagé pour le moment. Utilisez le bouton “Partager” dans Mes clôtures.</td></tr>`;
-    return;
-  }
-
-  $("rightsRows").innerHTML=lines.map(x=>`
-    <tr>
-      <td>${safe(x.companyName)}</td>
-      <td>${safe(x.period)}</td>
-      <td>${safe(x.email)}</td>
-      <td><span class="pill">Accès au dossier</span></td>
-    </tr>
-  `).join("");
+  if(!lines.length){$("rightsRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier partagé pour le moment. Utilisez le bouton “Partager” dans Mes clôtures.</td></tr>`;return;}
+  $("rightsRows").innerHTML=lines.map(x=>`<tr><td>${safe(x.companyName)}</td><td>${safe(x.period)}</td><td>${safe(x.email)}</td><td><span class="pill">Accès au dossier</span></td></tr>`).join("");
 }
 
 async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="partage"){
@@ -162,297 +186,89 @@ async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="par
 
 function renderReceivedRights(){
   if(!receivedClosures.length){$("receivedRows").innerHTML=`<tr><td colspan="4" class="muted">Aucun dossier reçu pour le moment.</td></tr>`;return;}
-  $("receivedRows").innerHTML=receivedClosures.map(x=>`
-    <tr>
-      <td>${safe(x.companyName||"Société sans nom")}</td>
-      <td>${safe(x.startDate||"—")} → ${safe(x.endDate||"—")}</td>
-      <td>${safe(x.sharedByEmail||x.ownerEmail||x.ownerUid||"Collaborateur")}<br><span class="muted">${safe(x._source||"partage")}</span></td>
-      <td><span class="pill dev">${safe(closureStatusLabel(x.status))}</span></td>
-    </tr>
-  `).join("");
+  $("receivedRows").innerHTML=receivedClosures.map(x=>`<tr><td>${safe(x.companyName||"Société sans nom")}</td><td>${safe(x.startDate||"—")} → ${safe(x.endDate||"—")}</td><td>${safe(x.sharedByEmail||x.ownerEmail||x.ownerUid||"Collaborateur")}<br><span class="muted">${safe(x._source||"partage")}</span></td><td><span class="pill dev">${safe(closureStatusLabel(x.status))}</span></td></tr>`).join("");
 }
 
 async function loadReceivedClosures(user){
   const byKey=new Map();
-
-  async function addClosureDoc(d,sourceLabel){
-    const ownerDoc=d.ref.parent.parent;
-    if(!ownerDoc)return;
-    const ownerUid=ownerDoc.id;
-    if(ownerUid===user.uid)return;
-    const data=d.data()||{};
-    const item=await sourceClosure(ownerUid,d.id,data,sourceLabel);
-    byKey.set(`${ownerUid}/${d.id}`,item);
-  }
-
-  async function addSharedSummaryDoc(d,sourceLabel){
-    const data=d.data()||{};
-    const ownerUid=data.sharedByUid||data.ownerUid||"";
-    const closureId=data.closureId||d.id;
-    if(!ownerUid||ownerUid===user.uid)return;
-    const item=await sourceClosure(ownerUid,closureId,data,sourceLabel);
-    byKey.set(`${ownerUid}/${closureId}`,item);
-  }
-
-  try{
-    const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));
-    for(const d of uidSnap.docs) await addClosureDoc(d,"collectionGroup closures uid");
-  }catch(e){console.warn("Dossiers reçus closures/uid non chargés :",e);}
-
-  try{
-    if(user.email){
-      const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
-      for(const d of emailSnap.docs) await addClosureDoc(d,"collectionGroup closures email");
-    }
-  }catch(e){console.warn("Dossiers reçus closures/email non chargés :",e);}
-
-  try{
-    const summarySnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("cabinetOwnerUid","==",user.uid),limit(100)));
-    for(const d of summarySnap.docs) await addSharedSummaryDoc(d,"cabinetSharedClosures cabinetOwnerUid");
-  }catch(e){console.warn("Dossiers reçus cabinetSharedClosures/cabinetOwnerUid non chargés :",e);}
-
-  try{
-    if(user.email){
-      const summaryEmailSnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));
-      for(const d of summaryEmailSnap.docs) await addSharedSummaryDoc(d,"cabinetSharedClosures email");
-    }
-  }catch(e){console.warn("Dossiers reçus cabinetSharedClosures/email non chargés :",e);}
-
+  async function addClosureDoc(d,sourceLabel){const ownerDoc=d.ref.parent.parent;if(!ownerDoc)return;const ownerUid=ownerDoc.id;if(ownerUid===user.uid)return;const data=d.data()||{};const item=await sourceClosure(ownerUid,d.id,data,sourceLabel);byKey.set(`${ownerUid}/${d.id}`,item);}
+  async function addSharedSummaryDoc(d,sourceLabel){const data=d.data()||{};const ownerUid=data.sharedByUid||data.ownerUid||"";const closureId=data.closureId||d.id;if(!ownerUid||ownerUid===user.uid)return;const item=await sourceClosure(ownerUid,closureId,data,sourceLabel);byKey.set(`${ownerUid}/${closureId}`,item);}
+  try{const uidSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithUids","array-contains",user.uid),limit(100)));for(const d of uidSnap.docs)await addClosureDoc(d,"collectionGroup closures uid");}catch(e){console.warn("Dossiers reçus closures/uid non chargés :",e);}
+  try{if(user.email){const emailSnap=await getDocs(query(collectionGroup(db,"closures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));for(const d of emailSnap.docs)await addClosureDoc(d,"collectionGroup closures email");}}catch(e){console.warn("Dossiers reçus closures/email non chargés :",e);}
+  try{const summarySnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("cabinetOwnerUid","==",user.uid),limit(100)));for(const d of summarySnap.docs)await addSharedSummaryDoc(d,"cabinetSharedClosures cabinetOwnerUid");}catch(e){console.warn("Dossiers reçus cabinetSharedClosures/cabinetOwnerUid non chargés :",e);}
+  try{if(user.email){const summaryEmailSnap=await getDocs(query(collectionGroup(db,"cabinetSharedClosures"),where("sharedWithEmails","array-contains",normEmail(user.email)),limit(100)));for(const d of summaryEmailSnap.docs)await addSharedSummaryDoc(d,"cabinetSharedClosures email");}}catch(e){console.warn("Dossiers reçus cabinetSharedClosures/email non chargés :",e);}
   return [...byKey.values()].sort((a,b)=>(b.updatedAt?.seconds||b.createdAt?.seconds||0)-(a.updatedAt?.seconds||a.createdAt?.seconds||0));
 }
 
-function makeInviteId(email){
-  return normEmail(email).replace(/[^\w.-]+/g,"_");
-}
-
-function randToken(len=24){
-  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz";
-  let out="";
-  const arr=new Uint32Array(len);
-  crypto.getRandomValues(arr);
-  for(let i=0;i<len;i++) out+=chars[arr[i]%chars.length];
-  return out;
-}
-
-function cabinetName(){
-  return currentUserData.cabinetSetup?.cabinetName
-    || currentUserData.companyName
-    || currentUserData.cabinetName
-    || "Votre cabinet";
-}
-
-function buildInviteMailBody({name,email,inviteLink,note=""}){
-  return `${note ? note + "\n\n" : ""}Bonjour${name ? " " + name : ""},
-
-Votre cabinet vous invite à rejoindre son espace collaborateur Axe Compta IA.
-
-Voici votre lien pour créer ou rattacher votre accès collaborateur :
-${inviteLink}
-
-Important : utilisez cet email (${email}) pour accepter l’invitation.
-
-Cordialement,
-${cabinetName()}`;
-}
-
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    showMsg(`<b class="okText">Lien copié.</b>`, false);
-  }catch(e){
-    showMsg(`Copie impossible. Lien :<br><span class="mono">${safe(text)}</span>`, true);
-  }
-}
-
-async function shareInvite(inviteLink, bodyText){
-  try{
-    if(navigator.share){
-      await navigator.share({
-        title:"Invitation Axe Compta IA",
-        text:bodyText,
-        url:inviteLink
-      });
-    }else{
-      await copyText(inviteLink);
-    }
-  }catch(e){
-    await copyText(inviteLink);
-  }
-}
-  
 async function activatePendingInvitationsIfQuotaAvailable(){
-  const max = includedCount() + extraCount();
-
-  if(activeCount() >= max) return;
-
-  const pendingSnap = await getDocs(query(
-    collection(db,"users",currentUser.uid,"pendingCabinetInvitations"),
-    orderBy("createdAt","asc"),
-    limit(10)
-  ));
-
+  const max=includedCount()+extraCount();
+  if(activeCount()>=max)return;
+  const pendingSnap=await getDocs(query(collection(db,"users",currentUser.uid,"pendingCabinetInvitations"),orderBy("createdAt","asc"),limit(10)));
   for(const d of pendingSnap.docs){
-    if(activeCount() >= max) break;
-
-    const p = d.data() || {};
-    const email = normEmail(p.email);
-    if(!email) continue;
-
-    const inviteId = makeInviteId(email);
-
-    const token = randToken(24);
-const inviteLink = `https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
-
-    const data = {
-      email,
-      name: p.name || "",
-      role: "collaborator",
-      defaultAccess: "by_closure",
-      note: p.note || "",
-      status: "invited",
-      cabinetOwnerUid: currentUser.uid,
-      cabinetName: currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || currentUserData.cabinetName || "",
-      inviteLink,
-      inviteToken: token,
-      cabinetName: cabinetName(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId), data, { merge:true });
-    await setDoc(doc(db,"cabinetInvites",token),{
-  token,
-  cabinetOwnerUid:currentUser.uid,
-  cabinetName:cabinetName(),
-  collabId:inviteId,
-  email,
-  name:p.name || "",
-  note:p.note || "",
-  status:"pending",
-  createdAt:serverTimestamp(),
-  updatedAt:serverTimestamp()
-},{merge:true});
-    
+    if(activeCount()>=max)break;
+    const p=d.data()||{};
+    const email=normEmail(p.email);
+    if(!email)continue;
+    const inviteId=makeInviteId(email);
+    const token=randToken(24);
+    const inviteLink=`https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
+    const data={email,name:p.name||"",role:"collaborator",defaultAccess:"by_closure",note:p.note||"",status:"invited",cabinetOwnerUid:currentUser.uid,cabinetName:cabinetName(),inviteToken:token,inviteLink,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+    await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
+    await createCabinetInviteDoc({token,inviteId,email,name:p.name||"",note:p.note||""});
     await deleteDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",d.id));
-
-    collaborators.push({ id: inviteId, ...data });
+    collaborators.push({id:inviteId,...data});
   }
 }
-  
+
 async function loadCabinetPage(user){
   const userSnap=await getDoc(doc(db,"users",user.uid));
   if(!userSnap.exists()){location.href="tableau-de-bord.html";return;}
-
   currentUserData=userSnap.data()||{};
   try{showAdminFeedbackIfAllowed(user,currentUserData);}catch(e){console.warn("Admin feedback non bloquant :",e);}
   if(!canAccessCabinet(currentUserData)){location.href="tableau-de-bord.html";return;}
-
-  const name=currentUserData.cabinetSetup?.cabinetName||currentUserData.companyName||currentUserData.cabinetName||"Cabinet";
+  const name=cabinetName();
   $("cabinetLine").textContent=`${name} — gestion des collaborateurs, dossiers envoyés et dossiers reçus.`;
-
   try{
-  const [collabSnap, sentSnap, received] = await Promise.all([
-    getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc"))),
-    getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc"))),
-    loadReceivedClosures(user)
-  ]);
-
-  collaborators = collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-  sentClosures = sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
-  receivedClosures = received;
-
-  await activatePendingInvitationsIfQuotaAvailable();
-
-}catch(e){
-  console.error("Chargement espace cabinet impossible :",e);
-
-  collaborators = [];
-  sentClosures = [];
-  receivedClosures = [];
-
-  $("collabRows").innerHTML=`<tr><td colspan="7" class="errText">Chargement impossible : ${safe(e.message||"permission refusée")}</td></tr>`;
-  $("rightsRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers envoyés non chargés.</td></tr>`;
-  $("receivedRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers reçus non chargés.</td></tr>`;
-}
-  renderCollaborators();
-  renderSentRights();
-  renderReceivedRights();
+    const [collabSnap,sentSnap,received]=await Promise.all([
+      getDocs(query(collection(db,"users",user.uid,"cabinetCollaborators"),orderBy("createdAt","desc"))),
+      getDocs(query(collection(db,"users",user.uid,"cabinetSharedClosures"),orderBy("updatedAt","desc"))),
+      loadReceivedClosures(user)
+    ]);
+    collaborators=collabSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+    sentClosures=sentSnap.docs.map(d=>({id:d.id,...(d.data()||{})}));
+    receivedClosures=received;
+    await activatePendingInvitationsIfQuotaAvailable();
+  }catch(e){
+    console.error("Chargement espace cabinet impossible :",e);
+    collaborators=[];sentClosures=[];receivedClosures=[];
+    $("collabRows").innerHTML=`<tr><td colspan="7" class="errText">Chargement impossible : ${safe(e.message||"permission refusée")}</td></tr>`;
+    $("rightsRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers envoyés non chargés.</td></tr>`;
+    $("receivedRows").innerHTML=`<tr><td colspan="4" class="errText">Dossiers reçus non chargés.</td></tr>`;
+  }
+  renderCollaborators();renderSentRights();renderReceivedRights();
 }
 
 async function createInvitation(){
   const email=normEmail($("inviteEmail").value);
   const name=$("inviteName").value.trim();
+  const note=$("inviteNote").value.trim();
   if(!email){showMsg("Email obligatoire.",true);return;}
- if(activeCount() >= includedCount() + extraCount()){
-  const inviteId = makeInviteId(email);
-
-  await setDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",inviteId), {
-    email,
-    name,
-    note: $("inviteNote").value.trim(),
-    status: "pending_payment",
-    plan: "extra-collab",
-    cabinetOwnerUid: currentUser.uid,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  }, { merge:true });
-
-  showMsg("Quota atteint : l’invitation est mise en attente. Redirection vers Stripe pour ajouter une licence collaborateur.", true);
-
-  await addExtraLicense();
-  return;
-}
+  if(activeCount()>=includedCount()+extraCount()){
+    const inviteId=makeInviteId(email);
+    await setDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",inviteId),{email,name,note,status:"pending_payment",plan:"extra-collab",cabinetOwnerUid:currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()},{merge:true});
+    showMsg("Quota atteint : l’invitation est mise en attente. Redirection vers Stripe pour ajouter une licence collaborateur.",true);
+    await addExtraLicense();
+    return;
+  }
   const inviteId=makeInviteId(email);
-const token=randToken(24);
-const inviteLink=`https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
-const note=$("inviteNote").value.trim();
-
-const data={
-  email,
-  name,
-  role:"collaborator",
-  defaultAccess:"by_closure",
-  note,
-  status:"invited",
-  cabinetOwnerUid:currentUser.uid,
-  cabinetName:cabinetName(),
-  inviteToken:token,
-  inviteLink,
-  createdAt:serverTimestamp(),
-  updatedAt:serverTimestamp()
-};
-
-await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
-
-await setDoc(doc(db,"cabinetInvites",token),{
-  token,
-  cabinetOwnerUid:currentUser.uid,
-  cabinetName:cabinetName(),
-  collabId:inviteId,
-  email,
-  name,
-  note,
-  status:"pending",
-  createdAt:serverTimestamp(),
-  updatedAt:serverTimestamp()
-},{merge:true});
-
-const bodyText=buildInviteMailBody({name,email,inviteLink,note});
-
-showMsg(`
-  <b class="okText">Invitation créée.</b><br>
-  <span>Lien court généré. Il devrait mieux passer en messagerie.</span><br><br>
-  <span class="mono">${safe(inviteLink)}</span><br><br>
-  <button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button>
-  <button class="btn small" type="button" id="shareInviteBtn">Partager</button>
-  <a class="btn small" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Invitation – Accès collaborateur Axe Compta IA')}&body=${encodeURIComponent(bodyText)}">Envoyer par mail</a>
-`);
-
-setTimeout(()=>{
-  $("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));
-  $("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));
-},0);
-  
+  const token=randToken(24);
+  const inviteLink=`https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
+  const data={email,name,role:"collaborator",defaultAccess:"by_closure",note,status:"invited",cabinetOwnerUid:currentUser.uid,cabinetName:cabinetName(),inviteToken:token,inviteLink,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+  await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
+  await createCabinetInviteDoc({token,inviteId,email,name,note});
+  const bodyText=buildInviteMailBody({name,email,inviteLink,note});
+  showMsg(`<b class="okText">Invitation créée.</b><br><span>Lien court généré. Il devrait mieux passer en messagerie.</span><br><br><span class="mono">${safe(inviteLink)}</span><br><br><button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button><button class="btn small" type="button" id="shareInviteBtn">Partager</button><a class="btn small" href="${mailtoInvite(email,name,inviteLink,note)}">Envoyer par mail</a>`);
+  setTimeout(()=>{$("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));$("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));},0);
   $("inviteEmail").value="";$("inviteName").value="";$("inviteNote").value="";
   await loadCabinetPage(currentUser);
 }
@@ -471,6 +287,7 @@ async function addExtraLicense(){
     $("extraBtn").disabled=false;$("extraBtn").textContent="Ajouter une licence 129 €/mois";
   }
 }
+
 $("inviteBtn").addEventListener("click",()=>createInvitation().catch(e=>{console.error(e);showMsg(e.message||"Erreur lors de l’invitation.",true)}));
 $("extraBtn").addEventListener("click",addExtraLicense);
 $("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
