@@ -114,7 +114,21 @@ Important : utilisez cet email (${email}) pour accepter l’invitation.
 
 Cordialement,
 ${cabinetName()}`;}
-async function copyText(text){try{await navigator.clipboard.writeText(text);showMsg(`<b class="okText">Lien copié.</b>`,false);}catch(e){showMsg(`Copie impossible. Lien :<br><span class="mono">${safe(text)}</span>`,true);}}
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+
+    const old = $("copyInviteBtn")?.textContent;
+    if($("copyInviteBtn")){
+      $("copyInviteBtn").textContent = "Lien copié ✓";
+      setTimeout(() => {
+        if($("copyInviteBtn")) $("copyInviteBtn").textContent = old || "Copier le lien";
+      }, 1800);
+    }
+  }catch(e){
+    alert("Copie impossible. Copiez le lien manuellement :\n\n" + text);
+  }
+}
 async function shareInvite(inviteLink,bodyText){try{if(navigator.share){await navigator.share({title:"Invitation Axe Compta IA",text:bodyText,url:inviteLink});}else{await copyText(inviteLink);}}catch(e){await copyText(inviteLink);}}
 
 function mailtoInvite(email,name,inviteLink,note=""){
