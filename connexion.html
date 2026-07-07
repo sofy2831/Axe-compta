@@ -36,7 +36,17 @@ let redirecting = false;
 const planLabels = {solo:"Axe Compta Solo — 99 € par clôture",expert:"Axe Compta Expert — 149 € / mois",cabinet:"Axe Compta Cabinet — 399 € / mois","extra-collab":"Collaborateur supplémentaire — 129 € / mois"};
 
 function showMessage(text,isError=false){msg.textContent=text;msg.classList.toggle("error",isError);msg.style.display="block";}
-function readableFirebaseError(error){const code=error?.code||"";if(code.includes("invalid-email"))return"Adresse email invalide.";if(code.includes("user-not-found")||code.includes("wrong-password")||code.includes("invalid-credential"))return"Email ou mot de passe incorrect.";if(code.includes("email-already-in-use"))return"Un compte existe déjà avec cet email.";if(code.includes("weak-password"))return"Le mot de passe doit contenir au moins 6 caractères.";return"Erreur : "+(error?.message||"impossible de continuer.");}
+function switchTab(target){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".form").forEach(f=>f.classList.remove("active"));
+
+  document.querySelector(`[data-tab="${target}"]`)?.classList.add("active");
+  document.getElementById(target+"Form")?.classList.add("active");
+
+  msg.style.display="none";
+}
+  function readableFirebaseError(error){const code=error?.code||"";if(code.includes("invalid-email"))return"Adresse email invalide.";if(code.includes("user-not-found")||code.includes("wrong-password")||code.includes("invalid-credential"))return"Email ou mot de passe incorrect.";if(code.includes("email-already-in-use"))return"Un compte existe déjà avec cet email.";if(code.includes("weak-password"))return"Le mot de passe doit contenir au moins 6 caractères.";return"Erreur : "+(error?.message||"impossible de continuer.");}
+
   async function startCheckout(plan,user){
     
   const r=await fetch(CREATE_CHECKOUT_URL,{
