@@ -1573,7 +1573,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     const amortissementsPath = closure.files?.amortissements?.storagePath;
     const empruntPath = closure.files?.emprunt?.storagePath;
 
-    async function parseFile(storagePath) {
+   async function parseFile(storagePath) {
   if (!storagePath) return [];
 
   const [buffer] = await bucket.file(storagePath).download();
@@ -1582,9 +1582,20 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   if (["xlsx", "xls", "csv"].includes(ext)) {
     const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-    return rows.slice(0, 2000);
+    return XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 2000);
   }
+
+  if (["txt", "fec"].includes(ext)) {
+    const content = buffer.toString("utf8");
+    return parseFecText(content).slice(0, 2000);
+  }
+
+  if (ext === "pdf") {
+    throw new Error("PDF non exploitable automatiquement pour l'instant. Merci de fournir Excel, CSV ou FEC.");
+  }
+
+  throw new Error("Format non pris en charge : " + ext);
+} 
 
   if (["txt", "fec"].includes(ext)) {
     const content = buffer.toString("utf8");
