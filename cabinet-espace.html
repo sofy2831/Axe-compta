@@ -300,7 +300,8 @@ async function activatePendingInvitationsIfQuotaAvailable(){
 
     const inviteId = makeInviteId(email);
 
-    const inviteLink = `https://compta.axe-dossier.fr/connexion.html?invite=${encodeURIComponent(currentUser.uid)}&collabId=${encodeURIComponent(inviteId)}&email=${encodeURIComponent(email)}`;
+    const token = randToken(24);
+const inviteLink = `https://compta.axe-dossier.fr/connexion.html?cabinetInvite=${encodeURIComponent(token)}`;
 
     const data = {
       email,
@@ -312,11 +313,26 @@ async function activatePendingInvitationsIfQuotaAvailable(){
       cabinetOwnerUid: currentUser.uid,
       cabinetName: currentUserData.cabinetSetup?.cabinetName || currentUserData.companyName || currentUserData.cabinetName || "",
       inviteLink,
+      inviteToken: token,
+      cabinetName: cabinetName(),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
 
     await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId), data, { merge:true });
+    await setDoc(doc(db,"cabinetInvites",token),{
+  token,
+  cabinetOwnerUid:currentUser.uid,
+  cabinetName:cabinetName(),
+  collabId:inviteId,
+  email,
+  name:p.name || "",
+  note:p.note || "",
+  status:"pending",
+  createdAt:serverTimestamp(),
+  updatedAt:serverTimestamp()
+},{merge:true});
+    
     await deleteDoc(doc(db,"users",currentUser.uid,"pendingCabinetInvitations",d.id));
 
     collaborators.push({ id: inviteId, ...data });
