@@ -256,7 +256,7 @@ resetPasswordLink.addEventListener("click",async e=>{e.preventDefault();const em
 
 onAuthStateChanged(auth,user=>{if(user)afterAuth(user);});
 showRequestedPlan();
- async function preloadCabinetInviteEmail(){
+async function preloadCabinetInviteEmail(){
   if(!cabinetInviteToken) return;
 
   try{
@@ -268,8 +268,11 @@ showRequestedPlan();
     if(email){
       document.getElementById("loginEmail").value = email;
       document.getElementById("registerEmail").value = email;
+
+      switchTab("register");
+
       planBox.style.display = "block";
-      planBox.innerHTML = `<b>Invitation Cabinet :</b> utilisez l’email invité <b>${email}</b> pour créer ou connecter votre compte.`;
+      planBox.innerHTML = `<b>Invitation Cabinet :</b> créez votre compte avec l’email invité <b>${email}</b>, puis vous serez rattaché automatiquement au cabinet.`;
     }
   }catch(e){
     showMessage(e.message || "Invitation cabinet introuvable.", true);
