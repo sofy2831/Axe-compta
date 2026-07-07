@@ -125,7 +125,11 @@ saveBtnEl.addEventListener("click",async()=>{
   isSavingClosure=false;
   return;
 }
-
+if(!isAllowedSize(balance)||!isAllowedSize(ledger)||!isAllowedSize(amort)||!isAllowedSize(loan)){
+  saveMsgEl.textContent="Fichier trop lourd. Limite maximale : 12 Mo par fichier.";
+  isSavingClosure=false;
+  return;
+}
   saveBtnEl.disabled=true;
   saveBtnEl.textContent="Enregistrement...";
 
