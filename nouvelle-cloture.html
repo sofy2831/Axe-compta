@@ -29,10 +29,10 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <main><div class="wrap"><h1>Créer une clôture</h1><p class="muted">Renseignez l’exercice, importez les fichiers comptables puis lancez les questions de contrôle.</p>
 <div class="layout"><div class="box"><h2>1. Informations du dossier</h2><label>Nom de l’entreprise</label><input id="companyName" type="text" placeholder="Ex : SARL Exemple" required><div class="inline"><div><label>Date début exercice</label><input id="startDate" type="date" value="2022-01-01"></div><div><label>Date clôture</label><input id="endDate" type="date" value="2022-12-31"></div></div><label>Activité</label><select id="activity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select><label>Régime TVA</label><select id="vat"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non renseigné</option></select>
 <h2 style="margin-top:24px">2. Fichiers comptables</h2>
-<label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Formats acceptés : Excel .xlsx, .xls ou CSV.</div>
-<label>Grand livre</label><input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Le grand livre doit être fourni en Excel ou CSV pour permettre l’analyse automatique.</div>
-<label>Tableau des immobilisations / amortissements</label><input id="amortFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
-<label>Tableau d’amortissement de l’emprunt</label><input id="loanFile" type="file" accept=".xlsx,.xls,.csv"><div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
+<label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Formats acceptés : Excel .xlsx, .xls, CSV, FEC .txt/.fec ou PDF.</div>
+<label>Grand livre</label><input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Le grand livre doit être fourni en Excel ou CSV pour permettre l’analyse automatique.</div>
+<label>Tableau des immobilisations / amortissements</label><input id="amortFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
+<label>Tableau d’amortissement de l’emprunt</label><input id="loanFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
 <label>Informations utiles</label><textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
 <div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="notice" id="saveMsg" style="display:none"></div></div>
 <aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import balance + grand livre</b><span>Les fichiers sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div></aside></div>
@@ -67,7 +67,11 @@ function formatDateFr(v){if(!v)return"";const [y,m,d]=v.split("-");return `${d}/
 function updatePeriod(){periodLabelEl.textContent=`Exercice analysé : ${formatDateFr(startDateEl.value)} → ${formatDateFr(endDateEl.value)}`;}
 function cleanFileName(name){return String(name||"fichier").replace(/[^\w.\-]+/g,"_");}
 function fileInfo(file,path){if(!file)return null;return {name:file.name,size:file.size,type:file.type||"",storagePath:path,uploadedAt:new Date().toISOString()};}
-function isAllowedFile(file){if(!file)return true;const name=file.name.toLowerCase();return name.endsWith(".xlsx")||name.endsWith(".xls")||name.endsWith(".csv");}
+function isAllowedFile(file){
+  if(!file) return true;
+  const name = file.name.toLowerCase();
+  return [".xlsx",".xls",".csv",".txt",".fec",".pdf"].some(ext => name.endsWith(ext));
+}
 
 startDateEl.addEventListener("change",updatePeriod);
 endDateEl.addEventListener("change",updatePeriod);
@@ -112,7 +116,7 @@ saveBtnEl.addEventListener("click",async()=>{
   const loan=loanFileEl.files[0]||null;
 
   if(!isAllowedFile(balance)||!isAllowedFile(ledger)||!isAllowedFile(amort)||!isAllowedFile(loan)){
-  saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS ou CSV.";
+  saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS, CSV, TXT/FEC ou PDF.";
   isSavingClosure=false;
   return;
 }
