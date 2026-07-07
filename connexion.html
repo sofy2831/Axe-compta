@@ -16,9 +16,11 @@ import { doc, setDoc, getDoc, serverTimestamp, collection, getDocs, query, where
 const params = new URLSearchParams(window.location.search);
 const requestedPlan = params.get("plan") || "";
 const next = params.get("next") || "";
+const cabinetInviteToken = params.get("cabinetInvite") || "";
 const inviteOwnerUid = params.get("invite") || "";
 const inviteCollabId = params.get("collabId") || "";
 const inviteEmail = (params.get("email") || "").trim().toLowerCase();
+let cabinetInviteData = null;
 const allowedPlans = ["solo", "expert", "cabinet", "extra-collab"];
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
 
@@ -57,7 +59,7 @@ function readableFirebaseError(error){const code=error?.code||"";if(code.include
 }
 function hasPlan(){return allowedPlans.includes(requestedPlan);}
 function isInviteFlow(){
-  return !!inviteOwnerUid && !!inviteCollabId && !!inviteEmail;
+  return !!cabinetInviteToken || (!!inviteOwnerUid && !!inviteCollabId && !!inviteEmail);
 }
 
 function showRequestedPlan(){
