@@ -1518,6 +1518,38 @@ Aucune écriture automatique n'est proposée.
   return { entries: dedupeEntries(entries), controls, anomalies };
 }
 
+function parseFecText(content) {
+  const lines = String(content || "")
+    .split(/\r?\n/)
+    .filter(line => line.trim());
+
+  if (lines.length < 2) return [];
+
+  const separator = lines[0].includes("|") ? "|" : "\t";
+  const headers = lines[0].split(separator).map(h => h.trim());
+
+  return lines.slice(1).map(line => {
+    const values = line.split(separator);
+    const row = {};
+
+    headers.forEach((header, i) => {
+      row[header] = values[i] || "";
+    });
+
+    return {
+      ...row,
+      Compte: row.CompteNum || row.compte || row.Compte || "",
+      Libellé: row.EcritureLib || row.Libellé || row.Libelle || "",
+      Débit: row.Debit || row.Débit || "",
+      Crédit: row.Credit || row.Crédit || "",
+      Montant: row.Montant || "",
+      Date: row.EcritureDate || row.Date || "",
+      Journal: row.JournalCode || row.Journal || "",
+      Pièce: row.PieceRef || row.Pièce || ""
+    };
+  });
+}
+
 exports.parseClosureFiles = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
@@ -1542,13 +1574,29 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     const empruntPath = closure.files?.emprunt?.storagePath;
 
     async function parseFile(storagePath) {
-      if (!storagePath) return [];
-      const [buffer] = await bucket.file(storagePath).download();
-      const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-      return rows.slice(0, 2000);
-    }
+  if (!storagePath) return [];
+
+  const [buffer] = await bucket.file(storagePath).download();
+  const ext = String(storagePath).split(".").pop().toLowerCase();
+
+  if (["xlsx", "xls", "csv"].includes(ext)) {
+    const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    return rows.slice(0, 2000);
+  }
+
+  if (["txt", "fec"].includes(ext)) {
+    const content = buffer.toString("utf8");
+    return parseFecText(content).slice(0, 2000);
+  }
+
+  if (ext === "pdf") {
+    throw new Error("PDF non exploitable automatiquement pour l'instant. Merci de fournir Excel, CSV ou FEC.");
+  }
+
+  throw new Error("Format non pris en charge : " + ext);
+}
 
     const balanceRows = await parseFile(balancePath);
     const grandLivreRows = await parseFile(grandLivrePath);
