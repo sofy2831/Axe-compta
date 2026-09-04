@@ -95,7 +95,16 @@ function formatAccount(v){
 
   let s = String(v).trim().replace(/\u00a0/g, " ");
 
-  // Les libellés métier ("Compte à déterminer", etc.) restent lisibles.
+  // Compatibilité avec les anciennes analyses déjà enregistrées dans Firestore
+  // avant la correction du backend.
+  const compact = s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "");
+  if(compact === "compteadeterminer") return "Compte à déterminer";
+
+  // Les autres libellés métier restent lisibles tels quels.
   if(!/^['\s]*\d+[.,]?\d*\s*$/.test(s)) return s;
 
   s = s.replace(/\s+/g, "").replace(/^'+/, "");
