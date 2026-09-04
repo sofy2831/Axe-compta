@@ -557,9 +557,9 @@ function makeAnalysisEntry(config) {
   const entry = {
     journal: "ANALYSE",
     label: config.label,
-    debit: "—",
-    credit: "—",
-    amount: config.amount || "À contrôler",
+    debit: config.debit !== undefined ? normalizeAccountCode(config.debit) : "À vérifier",
+    credit: config.credit !== undefined ? normalizeAccountCode(config.credit) : "—",
+    amount: config.amount !== undefined ? config.amount : "À contrôler",
     justification: config.justification,
     confidence: config.confidence || 0.75,
     source: config.source || "analyse",
@@ -1098,9 +1098,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   if (hasAcc(["706", "707"])) controls.push({ type: "revenue_detected", label: "Chiffre d'affaires détecté", level: "info" });
 
   // CUT-OFF : FNP / CCA / PCA / FAE / PAR / CAP
-  // Règle de sécurité : la présence d’un compte de régularisation déclenche une analyse.
-  // Une OD n’est générée que si le compte de contrepartie est explicitement identifiable
-  // dans le grand livre. On n’invente jamais 607, 616, 706, 628, etc.
+  // Toujours informer le client sur les 6 cycles de cut-off.
+  // Une OD n'est proposée que si la contrepartie est identifiée de façon univoque.
+  // Aucun compte de charge/produit n'est inventé.
   const cutoffConfigs = [
     { key: "FNP", reg: ["408"], counterpart: ["6"], debitReg: false, label: "Factures non parvenues" },
     { key: "CCA", reg: ["486"], counterpart: ["6"], debitReg: true, label: "Charges constatées d'avance" },
@@ -1126,6 +1126,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   const findExplicitCounterpart = (regRow, prefixes) => {
     const amount = getAmount(regRow);
     if (!amount) return null;
+
     const candidates = grandLivreRows.filter(r => {
       if (r === regRow) return false;
       const c = getCompte(r);
@@ -1133,21 +1134,43 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       if (Math.abs((getAmount(r) || 0) - amount) > 0.01) return false;
       return sameOperation(regRow, r);
     });
+
     return candidates.length === 1 ? candidates[0] : null;
   };
 
+  const sumRows = rows => rows.reduce((sum, row) => sum + (getAmount(row) || 0), 0);
+
   cutoffConfigs.forEach(cfg => {
-    const regRows = grandLivreRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
-    const balanceRegRows = balanceRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
-    if (!regRows.length && !balanceRegRows.length) return;
+    let regRows = grandLivreRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
+    let balanceRegRows = balanceRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
+
+    if (cfg.key === "FNP") {
+      regRows = regRows.filter(row => !isLeasingRow(row));
+    }
+
+    if (cfg.key === "CAP") {
+      regRows = regRows.filter(row => {
+        const c = getCompte(row);
+        return !c.startsWith("428") && !c.startsWith("438");
+      });
+      balanceRegRows = balanceRegRows.filter(row => {
+        const c = getCompte(row);
+        return !c.startsWith("428") && !c.startsWith("438");
+      });
+    }
+
+    const detected = regRows.length > 0 || balanceRegRows.length > 0;
+
+    // Le montant de clôture provient en priorité de la balance.
+    // Cela évite de cumuler tous les mouvements historiques du grand livre.
+    const balanceAmount = sumRows(balanceRegRows);
+    const ledgerAmount = sumRows(uniqueRows(regRows));
+    const detectedAmount = balanceAmount || ledgerAmount || 0;
 
     const detailsRows = [];
     let proposed = 0;
 
     regRows.forEach(regRow => {
-      if (cfg.key === "FNP" && isLeasingRow(regRow)) return;
-      if (cfg.key === "CAP" && (getCompte(regRow).startsWith("428") || getCompte(regRow).startsWith("438"))) return;
-
       const counterpart = findExplicitCounterpart(regRow, cfg.counterpart);
       const regAccount = getCompte(regRow);
       const amount = getAmount(regRow) || "À contrôler";
@@ -1156,6 +1179,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         const counterpartAccount = getCompte(counterpart);
         const debit = cfg.debitReg ? regAccount : counterpartAccount;
         const credit = cfg.debitReg ? counterpartAccount : regAccount;
+
         entries.push({
           journal: "OD",
           label: cfg.key,
@@ -1167,6 +1191,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
           source: "grandLivre",
           status: "Proposée",
         });
+
         proposed += 1;
       }
 
@@ -1174,27 +1199,80 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         compte: regAccount,
         libelle: getLibelle(regRow),
         amount,
-        contrepartie: counterpart ? getCompte(counterpart) : "Non déterminée",
+        contrepartie: counterpart ? getCompte(counterpart) : "À vérifier",
       });
     });
 
-    // Si le compte n'est visible que dans la balance, on le signale sans fabriquer d'OD.
-    if (!regRows.length) {
+    if (!regRows.length && balanceRegRows.length) {
       balanceRegRows.forEach(row => detailsRows.push({
-        compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || "À contrôler", contrepartie: "Non déterminée"
+        compte: getCompte(row),
+        libelle: getLibelle(row),
+        amount: getAmount(row) || "À contrôler",
+        contrepartie: "À vérifier",
       }));
+    }
+
+    if (!detected) {
+      entries.push(makeAnalysisEntry({
+        label: `Analyse ${cfg.key}`,
+        debit: "À vérifier",
+        credit: "—",
+        amount: 0,
+        justification: `Aucune ${cfg.label.toLowerCase()} détectée dans la balance ou le grand livre pour cet exercice.`,
+        confidence: 0.9,
+        source: "balance/grandLivre",
+        status: "À examiner",
+        details: [],
+      }));
+
+      controls.push({
+        type: `${cfg.key.toLowerCase()}_not_detected`,
+        label: `${cfg.label} : aucune détectée`,
+        level: "info",
+      });
+
+      return;
+    }
+
+    const regAccounts = [...new Set(
+      [...regRows, ...balanceRegRows].map(getCompte).filter(Boolean)
+    )];
+
+    let analysisDebit = "À vérifier";
+    let analysisCredit = "—";
+
+    if (regAccounts.length === 1) {
+      if (cfg.debitReg) {
+        analysisDebit = regAccounts[0];
+        analysisCredit = "À vérifier";
+      } else {
+        analysisDebit = "À vérifier";
+        analysisCredit = regAccounts[0];
+      }
     }
 
     entries.push(makeAnalysisEntry({
       label: `Analyse ${cfg.key}`,
-      amount: detailsRows.reduce((sum, d) => sum + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
-      justification: `${cfg.label} détectée(s). ${proposed ? `${proposed} OD proposée(s) car la contrepartie a été identifiée de façon univoque dans le grand livre.` : "Aucune OD automatique : la contrepartie comptable n'est pas suffisamment établie."}\n\nContrôler le justificatif, la période de rattachement et la contrepartie avant comptabilisation définitive.`,
-      confidence: proposed ? 0.85 : 0.7,
+      debit: analysisDebit,
+      credit: analysisCredit,
+      amount: detectedAmount || "À contrôler",
+      justification:
+        `${cfg.label} détectée(s) pour ${formatEuro(detectedAmount)}. ` +
+        `${proposed
+          ? `${proposed} OD proposée(s) car la contrepartie a été identifiée de façon univoque dans le grand livre.`
+          : "Aucune OD automatique : la contrepartie comptable reste à vérifier."}` +
+        `\n\nContrôler le justificatif, la période de rattachement et le compte de contrepartie avant comptabilisation définitive.`,
+      confidence: proposed ? 0.85 : 0.75,
       source: "balance/grandLivre",
       status: "À examiner",
       details: detailsRows,
     }));
-    controls.push({ type: `${cfg.key.toLowerCase()}_detected`, label: `${cfg.label} détectée(s)`, level: proposed ? "info" : "warning" });
+
+    controls.push({
+      type: `${cfg.key.toLowerCase()}_detected`,
+      label: `${cfg.label} détectée(s)`,
+      level: proposed ? "info" : "warning",
+    });
   });
 
   // Stocks
