@@ -89,7 +89,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div id="lossInputs" style="display:none">
       <label>Report à nouveau débiteur - 119</label>
       <input id="lossCarryForwardAmount" type="number" step="0.01" value="0">
-      <div class="choice" data-strategy-card="loss" style="margin-top:12px"><b>Perte détectée</b><p>La perte est affectée automatiquement en report à nouveau débiteur.</p><button class="btn secondary small" type="button" data-strategy="loss">Choisir</button></div>
+      <div class="choice" data-strategy-card="loss" style="margin-top:12px"><b>Perte détectée</b><p>La perte est affectée automatiquement en report à nouveau débiteur. Après application de la recommandation IA, vous pouvez générer les écritures.</p></div>
     </div>
 
     <label>Date du PV d’Assemblée Générale</label>
@@ -466,7 +466,7 @@ $("aiBtn").addEventListener("click", async ()=>{
     $("autoBtn").disabled=false;
     const labels={prudent:"Prudent",report:"Report intégral",distribution:"Distribution",loss:"Report de la perte"};
     $("balanceBox").className="notice";
-    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}<br><br>La carte correspondante est mise en évidence ci-dessous. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez une autre stratégie.${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
+    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}<br><br>${resultType==="loss"?"Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter automatiquement la perte en 119, puis générez les écritures.":"La carte correspondante est mise en évidence ci-dessous. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez manuellement une autre stratégie."}${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
   }catch(e){console.error(e);alert(e.message||"Erreur lors de l'appel IA.");}
   finally{btn.disabled=false;btn.textContent="Demander l'avis de l'IA";}
 });
