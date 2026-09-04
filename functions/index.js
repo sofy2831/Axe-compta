@@ -557,7 +557,7 @@ function makeAnalysisEntry(config) {
   const entry = {
     journal: "ANALYSE",
     label: config.label,
-    debit: config.debit !== undefined ? normalizeAccountCode(config.debit) : "À vérifier",
+    debit: config.debit !== undefined ? normalizeAccountCode(config.debit) : "Compte à déterminer",
     credit: config.credit !== undefined ? normalizeAccountCode(config.credit) : "—",
     amount: config.amount !== undefined ? config.amount : "À contrôler",
     justification: config.justification,
@@ -1199,7 +1199,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         compte: regAccount,
         libelle: getLibelle(regRow),
         amount,
-        contrepartie: counterpart ? getCompte(counterpart) : "À vérifier",
+        contrepartie: counterpart ? getCompte(counterpart) : "Compte à déterminer",
       });
     });
 
@@ -1208,14 +1208,14 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         compte: getCompte(row),
         libelle: getLibelle(row),
         amount: getAmount(row) || "À contrôler",
-        contrepartie: "À vérifier",
+        contrepartie: "Compte à déterminer",
       }));
     }
 
     if (!detected) {
       entries.push(makeAnalysisEntry({
         label: `Analyse ${cfg.key}`,
-        debit: "À vérifier",
+        debit: "—",
         credit: "—",
         amount: 0,
         justification: `Aucune ${cfg.label.toLowerCase()} détectée dans la balance ou le grand livre pour cet exercice.`,
@@ -1238,15 +1238,15 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       [...regRows, ...balanceRegRows].map(getCompte).filter(Boolean)
     )];
 
-    let analysisDebit = "À vérifier";
-    let analysisCredit = "—";
+    let analysisDebit = "Compte à déterminer";
+    let analysisCredit = "Compte à déterminer";
 
     if (regAccounts.length === 1) {
       if (cfg.debitReg) {
         analysisDebit = regAccounts[0];
-        analysisCredit = "À vérifier";
+        analysisCredit = "Compte à déterminer";
       } else {
-        analysisDebit = "À vérifier";
+        analysisDebit = "Compte à déterminer";
         analysisCredit = regAccounts[0];
       }
     }
