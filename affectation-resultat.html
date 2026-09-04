@@ -194,7 +194,21 @@ function resultPeriodNetAmount(row){
   if(!row)return 0;
   const entries=Object.entries(row);
 
-  // Standard exports: explicit debit/credit columns.
+  // 1) Priorité au solde de période : pour les comptes 6/7, c'est la base
+  // la plus fiable pour déterminer le résultat de l'exercice.
+  // GIPSE exporte un en-tête fusionné "Solde Période" :
+  //   colonne F = solde débiteur, colonne H = solde créditeur.
+  const soldeIndex=entries.findIndex(([k])=>{
+    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    return key==="soldeperiode";
+  });
+  if(soldeIndex>=0){
+    const soldeDebit=numFromValue(entries[soldeIndex]?.[1]);
+    const soldeCredit=numFromValue(entries[soldeIndex+2]?.[1]);
+    if(soldeDebit||soldeCredit)return soldeDebit-soldeCredit;
+  }
+
+  // 2) Exports standards avec colonnes Débit / Crédit explicites.
   let debit=0,credit=0,hasDebit=false,hasCredit=false;
   for(const [k,v] of entries){
     const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
@@ -204,8 +218,7 @@ function resultPeriodNetAmount(row){
   }
   if(hasDebit||hasCredit)return debit-credit;
 
-  // GIPSE / exports with merged two-row headers parsed by SheetJS.
-  // Example keys: N° Compte, Intitulé, Total Période, __EMPTY, __EMPTY_1, Solde Période...
+  // 3) Repli GIPSE sur les mouvements "Total Période" si le solde n'est pas présent.
   const totalIndex=entries.findIndex(([k])=>{
     const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
     return key==="totalperiode";
@@ -681,7 +694,7 @@ async function loadClosure(user){
       control=sameType&&sameAmount?` Contrôle 120/129 cohérent (${sanitize(r.existing.account)}).`:` Attention : le compte ${sanitize(r.existing.account)} présent dans la balance ne concorde pas avec le résultat calculé.`;
     }
     const nature=resultType==="profit"?"bénéfice":resultType==="loss"?"perte":"résultat nul";
-    const detail=(r.charges!==undefined&&r.products!==undefined)?` Charges classe 6 : ${euro(r.charges)} — Produits classe 7 : ${euro(r.products)}.`:"";
+    const detail=(r.charges!==undefined&&r.products!==undefined)?` Charges classe 6 : ${euro(r.charges)} — Produits classe 7 : ${euro(r.products)} — Résultat : ${euro(r.signed)}.`:"";
     $("statusLine").innerHTML=`<span class="ok">Résultat calculé depuis les comptes 6 et 7 : ${nature} de ${euro(resultAmount)}.${resultType!=="zero"?` Compte de résultat proposé : ${account}.`:""}${detail}${control}</span>`;
   }else{
     resultType="profit";resultAmount=0;
