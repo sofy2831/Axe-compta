@@ -553,18 +553,30 @@ function makeEntryFromRow(row, config) {
   return entry;
 }
 
-function displayAnalysisAccount(value, fallback = "—") {
-  if (value === undefined || value === null || value === "") return fallback;
-  if (value === "—" || value === "Compte à déterminer") return value;
-  return normalizeAccountCode(value);
+function normalizeAnalysisAccountDisplay(value, fallback = "—") {
+  if (value === null || value === undefined || value === "") return fallback;
+
+  const raw = String(value).trim();
+
+  // Les libellés métier doivent rester lisibles.
+  if (raw === "Compte à déterminer" || raw === "—") return raw;
+
+  // Seuls les vrais numéros de compte sont normalisés.
+  return normalizeAccountCode(raw);
 }
 
 function makeAnalysisEntry(config) {
   const entry = {
     journal: "ANALYSE",
     label: config.label,
-    debit: displayAnalysisAccount(config.debit, "Compte à déterminer"),
-    credit: displayAnalysisAccount(config.credit, "—"),
+    debit: normalizeAnalysisAccountDisplay(
+      config.debit !== undefined ? config.debit : "Compte à déterminer",
+      "Compte à déterminer"
+    ),
+    credit: normalizeAnalysisAccountDisplay(
+      config.credit !== undefined ? config.credit : "—",
+      "—"
+    ),
     amount: config.amount !== undefined ? config.amount : "À contrôler",
     justification: config.justification,
     confidence: config.confidence || 0.75,
