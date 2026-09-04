@@ -1648,6 +1648,82 @@ function parseFecText(content) {
   });
 }
 
+
+// Normalise les balances Excel à en-têtes complexes (ex. GIPSE/Oxygène)
+// vers un schéma interne stable utilisé par tout Axe Compta.
+function normalizeBalanceWorksheet(sheet) {
+  const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: true });
+  if (!matrix.length) return [];
+
+  const first = matrix[0] || [];
+  const second = matrix[1] || [];
+  const h1 = first.map(normalizeText);
+  const h2 = second.map(normalizeText);
+
+  const accountIndex = h1.findIndex(v => v.includes("compte"));
+  const titleIndex = h1.findIndex(v => v.includes("intitule") || v.includes("libelle"));
+  const totalPeriodIndex = h1.findIndex(v => v.includes("total periode"));
+  const balancePeriodIndex = h1.findIndex(v => v.includes("solde periode"));
+
+  // Export GIPSE/Oxygène : en-tête à deux niveaux et cellules fusionnées.
+  // Les cellules fusionnées décalent visuellement les valeurs :
+  // A compte, B intitulé, D débit période, E crédit période,
+  // F solde débiteur, H solde créditeur.
+  const isTwoLevelBalance =
+    accountIndex >= 0 &&
+    titleIndex >= 0 &&
+    totalPeriodIndex >= 0 &&
+    balancePeriodIndex >= 0 &&
+    h2.some(v => v.includes("debit")) &&
+    h2.some(v => v.includes("credit"));
+
+  if (isTwoLevelBalance) {
+    const rows = [];
+    for (let i = 2; i < matrix.length; i++) {
+      const r = matrix[i] || [];
+      const compte = normalizeAccountCode(r[accountIndex]);
+      if (!compte || !/^[0-9A-Za-z]/.test(compte)) continue;
+
+      const mouvementDebit = toNumber(r[3]);
+      const mouvementCredit = toNumber(r[4]);
+      const soldeDebit = toNumber(r[5]);
+      const soldeCredit = toNumber(r[7]);
+
+      rows.push({
+        Compte: compte,
+        Intitulé: String(r[titleIndex] || "").trim(),
+        MouvementDebit: mouvementDebit,
+        MouvementCredit: mouvementCredit,
+        SoldeDebit: soldeDebit,
+        SoldeCredit: soldeCredit,
+        // Compatibilité avec les moteurs existants : le montant représente
+        // en priorité le solde de clôture, sinon le mouvement de période.
+        Débit: soldeDebit || mouvementDebit || 0,
+        Crédit: soldeCredit || mouvementCredit || 0,
+        Montant: Math.abs((soldeDebit || 0) - (soldeCredit || 0)) || Math.abs((mouvementDebit || 0) - (mouvementCredit || 0)) || 0,
+      });
+    }
+    return rows.slice(0, 2000);
+  }
+
+  // Formats standards : conservation de la lecture historique, avec ajout
+  // des champs normalisés lorsque les colonnes sont identifiables.
+  return XLSX.utils.sheet_to_json(sheet, { defval: "" })
+    .slice(0, 2000)
+    .map(row => {
+      const compte = normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || row["N° Compte"] || row["N° compte"] || "");
+      const debit = toNumber(getCell(row, ["solde debit", "solde débiteur", "debit", "débit"]));
+      const credit = toNumber(getCell(row, ["solde credit", "solde créditeur", "credit", "crédit"]));
+      return {
+        ...row,
+        Compte: compte,
+        Intitulé: getLibelle(row),
+        SoldeDebit: debit,
+        SoldeCredit: credit,
+      };
+    });
+}
+
 exports.parseClosureFiles = onRequest(async (req, res) => {
   setCors(res, "Content-Type");
 
@@ -1671,7 +1747,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     const amortissementsPath = closure.files?.amortissements?.storagePath;
     const empruntPath = closure.files?.emprunt?.storagePath;
 
-   async function parseFile(storagePath) {
+   async function parseFile(storagePath, kind = "generic") {
   if (!storagePath) return [];
 
   const [buffer] = await bucket.file(storagePath).download();
@@ -1680,6 +1756,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   if (["xlsx", "xls", "csv"].includes(ext)) {
     const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    if (kind === "balance") return normalizeBalanceWorksheet(sheet);
     return XLSX.utils.sheet_to_json(sheet, { defval: "" })
       .slice(0, 2000)
       .map(row => ({
@@ -1700,7 +1777,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   throw new Error("Format non pris en charge : " + ext);
 } 
 
-    const balanceRows = await parseFile(balancePath);
+    const balanceRows = await parseFile(balancePath, "balance");
     const grandLivreRows = await parseFile(grandLivrePath);
     const amortissementRows = await parseFile(amortissementsPath);
     const empruntRows = await parseFile(empruntPath);
@@ -1796,11 +1873,12 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
 
     const closure = closureSnap.data() || {};
 
-    async function parseFile(storagePath) {
+    async function parseFile(storagePath, kind = "generic") {
       if (!storagePath) return [];
       const [buffer] = await bucket.file(storagePath).download();
       const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      if (kind === "balance") return normalizeBalanceWorksheet(sheet);
       return XLSX.utils.sheet_to_json(sheet, { defval: "" })
       .slice(0, 2000)
       .map(row => ({
@@ -1809,7 +1887,7 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
       }));
     }
 
-    const balanceRows = await parseFile(closure.files?.balance?.storagePath);
+    const balanceRows = await parseFile(closure.files?.balance?.storagePath, "balance");
     const grandLivreRows = await parseFile(closure.files?.grandLivre?.storagePath);
 
     const amortissementRowsFromFile = await parseFile(closure.files?.amortissements?.storagePath);
