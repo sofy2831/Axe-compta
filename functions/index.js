@@ -1664,7 +1664,13 @@ function computeAccountingResultSummary(balanceRows) {
     let net = 0;
 
     if (row?.SoldeDebit !== undefined || row?.SoldeCredit !== undefined) {
-      net = toNumber(row?.SoldeDebit) - toNumber(row?.SoldeCredit);
+      const soldeNet = toNumber(row?.SoldeDebit) - toNumber(row?.SoldeCredit);
+      const mouvementNet = toNumber(row?.MouvementDebit) - toNumber(row?.MouvementCredit);
+
+      // Certains exports à en-têtes fusionnés restituent ponctuellement
+      // un solde à 0 alors que les mouvements de période sont bien présents.
+      // Dans ce cas, les mouvements constituent le repli fiable.
+      net = Math.abs(soldeNet) > 0.000001 ? soldeNet : mouvementNet;
     } else if (row?.MouvementDebit !== undefined || row?.MouvementCredit !== undefined) {
       net = toNumber(row?.MouvementDebit) - toNumber(row?.MouvementCredit);
     } else {
