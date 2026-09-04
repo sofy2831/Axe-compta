@@ -70,6 +70,20 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   </div>
 </div>
 
+<div class="modalBack" id="revisionIncompleteModal">
+  <div class="modal">
+    <h2>Révision incomplète</h2>
+    <p class="muted">
+      Avant d’enregistrer le dossier et de poursuivre, vérifiez le statut de chaque point de révision.
+      <br><br>
+      Chaque OD doit être <b>Révision validée</b> après contrôle de son calcul, de son justificatif et de son commentaire.
+    </p>
+    <div class="actions">
+      <button class="btn warn" type="button" id="closeIncompleteModalBtn">Retour à la révision</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { showAdminFeedbackIfAllowed } from "./admin-access.js";
@@ -95,11 +109,11 @@ function makeReviewItem(e,i){
     calculation:e.calculation||"",
     comment:e.reviewComment||"",
     document:e.reviewDocument||"",
-    status:e.reviewStatus || (e.status==="Validée" ? "Validé" : "À documenter")
+    status:e.reviewStatus==="Validé" ? "Révision validée" : (e.reviewStatus || (e.status==="Validée" ? "Révision validée" : "À documenter"))
   };
 }
 function updateAffectationAccess(){
-  const completed = revisionSaved === true;
+  const completed = revisionSaved === true && reviewItems.length > 0 && reviewItems.every(x => x.status === "Révision validée" || x.status === "Validé");
 
   [$("affectationBtn"), $("affectationTopBtn"), $("modalAffectationBtn")].forEach(btn=>{
     if(!btn)return;
@@ -112,7 +126,7 @@ function renderRows(){
   $("reviewCount").textContent=reviewItems.length;
   $("reviewRows").innerHTML=reviewItems.length?reviewItems.map((r,i)=>`
     <div class="card" style="margin-top:12px">
-      <div class="grid3"><div><b>${sanitize(r.label)}</b><br><span class="muted">${sanitize(r.journal)} — Débit ${sanitize(r.debit||"—")} / Crédit ${sanitize(r.credit||"—")}</span></div><div><b>${euro(r.amount)}</b><br><span class="muted">Montant proposé</span></div><div><label>Statut</label><select data-status="${i}"><option ${r.status==="À documenter"?"selected":""}>À documenter</option><option ${r.status==="Documenté"?"selected":""}>Documenté</option><option ${r.status==="Validé"?"selected":""}>Validé</option><option ${r.status==="À corriger"?"selected":""}>À corriger</option></select></div></div>
+      <div class="grid3"><div><b>${sanitize(r.label)}</b><br><span class="muted">${sanitize(r.journal)} — Débit ${sanitize(r.debit||"—")} / Crédit ${sanitize(r.credit||"—")}</span></div><div><b>${euro(r.amount)}</b><br><span class="muted">Montant proposé</span></div><div><label>Statut</label><select data-status="${i}"><option ${r.status==="À documenter"?"selected":""}>À documenter</option><option ${r.status==="Documenté"?"selected":""}>Documenté</option><option ${r.status==="Révision validée"||r.status==="Validé"?"selected":""}>Révision validée</option><option ${r.status==="À corriger"?"selected":""}>À corriger</option></select></div></div>
       <label>Pourquoi cette écriture est proposée</label><textarea data-why="${i}">${sanitize(r.why)}</textarea>
       <div class="grid"><div><label>Calcul / méthode</label><textarea data-calc="${i}">${sanitize(r.calculation)}</textarea></div><div><label>Justificatif attendu ou déposé</label><textarea data-doc="${i}">${sanitize(r.document)}</textarea></div></div>
       <label>Commentaire de révision</label><textarea data-comment="${i}">${sanitize(r.comment)}</textarea>
@@ -126,9 +140,15 @@ function renderRows(){
   renderPrint();
 }
 async function saveReview(){
-  const validCount=reviewItems.filter(x => x.status==="Validé").length;
+  const invalidItems=reviewItems.filter(x => x.status!=="Révision validée" && x.status!=="Validé");
+  if(!reviewItems.length || invalidItems.length){
+    $("revisionIncompleteModal").style.display="flex";
+    return;
+  }
+
+  const validCount=reviewItems.filter(x => x.status==="Révision validée" || x.status==="Validé").length;
   const payload={
-    status:validCount===reviewItems.length&&reviewItems.length?"completed":"in_progress",
+    status:"completed",
     items:reviewItems,
     itemsCount:reviewItems.length,
     validCount,
@@ -150,7 +170,7 @@ revisionSaved=true;
   $("saveRevisionModal").style.display="flex";
 }
 function docHtml(){
-  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Dossier de révision</div><div class="docSub">Justificatifs et validation des OD de clôture</div></div>
+  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Dossier de révision</div><div class="docSub">Justificatifs et révision des OD de clôture proposées</div></div>
   <table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyLabel").textContent)}</td></tr><tr><td>Exercice</td><td>${sanitize($("yearLabel").textContent)}</td></tr><tr><td>Points de révision</td><td>${reviewItems.length}</td></tr></table>
   <table><thead><tr><th>Écriture</th><th>Montant</th><th>Statut</th><th>Justificatif / commentaire</th></tr></thead><tbody>${reviewItems.map(r=>`<tr><td>${sanitize(r.label)}<br>${sanitize(r.debit||"—")} / ${sanitize(r.credit||"—")}</td><td class="num">${euro(r.amount)}</td><td>${sanitize(r.status)}</td><td>${sanitize(r.document||"")}<br>${sanitize(r.comment||"")}</td></tr>`).join("")}</tbody></table>
   <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
@@ -180,6 +200,8 @@ $("csvBtn").addEventListener("click",()=>{
   download("dossier-revision.csv",csv,"text/csv;charset=utf-8");
 });
 $("closeRevisionModalBtn").addEventListener("click",()=>{$("saveRevisionModal").style.display="none";});
+$("closeIncompleteModalBtn").addEventListener("click",()=>{$("revisionIncompleteModal").style.display="none";});
+$("revisionIncompleteModal").addEventListener("click",e=>{if(e.target===$("revisionIncompleteModal"))$("revisionIncompleteModal").style.display="none";});
 $("saveRevisionModal").addEventListener("click",e=>{if(e.target===$("saveRevisionModal"))$("saveRevisionModal").style.display="none";});
 
 async function loadClosure(user){
@@ -198,7 +220,7 @@ async function loadClosure(user){
   const saved=Array.isArray(currentClosure.dossierRevision?.items)?currentClosure.dossierRevision.items:null;
   reviewItems=saved||((Array.isArray(currentClosure.entries)?currentClosure.entries:[]).filter(e=>String(e.journal||"").toUpperCase()!=="ANALYSE").map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
-  revisionSaved = currentClosure.dossierRevision?.status === "completed" || currentClosure.dossierRevision?.status === "in_progress";
+  revisionSaved = currentClosure.dossierRevision?.status === "completed";
 
 if(revisionSaved){
   $("saveBtn").textContent="Dossier enregistré";
