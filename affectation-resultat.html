@@ -23,7 +23,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div>
       <img src="images/axe-compta.png" alt="Axe Compta IA" class="logo" onerror="this.style.display='none'">
       <h1>Affectation du résultat</h1>
-      <p class="muted">Assistant d’affectation du résultat après OD de clôture définitives et avant extournes N+1.</p>
+      <p class="muted">Assistant d’affectation du résultat après validation du dossier de révision et avant extournes N+1.</p>
     </div>
     <div class="navActions">
       <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
@@ -153,7 +153,16 @@ function n(id){return Number($(id).value||0)}
 function set(id,v){$(id).value=v??""}
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
 function cleanFile(s){return String(s||"document").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").toLowerCase()||"document"}
-function getCompte(row){return String(row.Compte||row.compte||row.CompteNum||row.compteNum||"").replace(/\s/g,"")}
+function getCompte(row){
+  if(!row)return "";
+  const direct=row.Compte||row.compte||row.CompteNum||row.compteNum||row["N° Compte"]||row["Nº Compte"]||row["N°Compte"]||row["NºCompte"];
+  if(direct!==undefined&&direct!==null&&direct!=="")return String(direct).replace(/\s/g,"");
+  for(const [k,v] of Object.entries(row)){
+    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    if(key.includes("compte") && !key.includes("intitule") && v!==undefined && v!==null && v!=="")return String(v).replace(/\s/g,"");
+  }
+  return "";
+}
 function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const x=Number(raw);return Number.isNaN(x)?0:x}
 function signedAmount(row){const keys=Object.keys(row||{});let debit=0,credit=0,solde=null,montant=null;for(const k of keys){const x=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");const val=numFromValue(row[k]);if(!val)continue;if(x.includes("debit"))debit+=Math.abs(val);else if(x.includes("credit"))credit+=Math.abs(val);else if(x.includes("solde"))solde=val;else if(x.includes("montant"))montant=val;}if(debit||credit)return debit-credit;if(solde!==null)return solde;if(montant!==null)return montant;return 0}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
@@ -180,6 +189,35 @@ function docDateFr(v){if(!v)return "à compléter";const m=String(v).match(/^(\d
 function exerciceEndFr(){const fy=$("fiscalYear").value||"";const dates=fy.match(/\d{4}-\d{2}-\d{2}/g);if(dates&&dates.length){const last=dates[dates.length-1].split("-");return `${last[2]}/${last[1]}/${last[0]}`}return fy||"l'exercice"}
 function activityText(c){return c?.activity||c?.activite||c?.businessActivity||c?.companyActivity||"Non renseignée"}
 function vatText(c){return c?.vatRegime||c?.regimeTva||c?.tvaRegime||c?.vat||"Non renseigné"}
+
+function resultPeriodNetAmount(row){
+  if(!row)return 0;
+  const entries=Object.entries(row);
+
+  // Standard exports: explicit debit/credit columns.
+  let debit=0,credit=0,hasDebit=false,hasCredit=false;
+  for(const [k,v] of entries){
+    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    const val=numFromValue(v);
+    if(key.includes("debit") && !key.includes("solde")){debit+=Math.abs(val);hasDebit=true;}
+    else if(key.includes("credit") && !key.includes("solde")){credit+=Math.abs(val);hasCredit=true;}
+  }
+  if(hasDebit||hasCredit)return debit-credit;
+
+  // GIPSE / exports with merged two-row headers parsed by SheetJS.
+  // Example keys: N° Compte, Intitulé, Total Période, __EMPTY, __EMPTY_1, Solde Période...
+  const totalIndex=entries.findIndex(([k])=>{
+    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    return key==="totalperiode";
+  });
+  if(totalIndex>=0){
+    const debitMvt=numFromValue(entries[totalIndex+1]?.[1]);
+    const creditMvt=numFromValue(entries[totalIndex+2]?.[1]);
+    if(debitMvt||creditMvt)return debitMvt-creditMvt;
+  }
+
+  return balanceNetAmount(row);
+}
 
 function balanceNetAmount(row){
   const keys=Object.keys(row||{});
@@ -219,7 +257,7 @@ function findResultFromClasses67(c){
   for(const row of rows){
     const compte=getCompte(row);
     if(!compte)continue;
-    const net=balanceNetAmount(row);
+    const net=resultPeriodNetAmount(row);
     if(compte.startsWith("6")){charges+=net;found=true;}
     else if(compte.startsWith("7")){products+=-net;found=true;}
   }
@@ -227,7 +265,7 @@ function findResultFromClasses67(c){
   products=Math.round(products*100)/100;
   if(!found)return null;
   const signed=Math.round((products-charges)*100)/100;
-  return{type:signed<0?"loss":"profit",amount:Math.abs(signed),signed,charges,products,source:"classes67"};
+  return{type:signed<0?"loss":signed>0?"profit":"zero",amount:Math.abs(signed),signed,charges,products,source:"classes67"};
 }
 
 function findResult(c){
@@ -434,6 +472,7 @@ $("aiBtn").addEventListener("click", async ()=>{
 });
 
 function buildEntries(){
+  if(resultType==="zero" || resultAmount<=0)throw new Error("Aucun résultat positif ou négatif à affecter.");
   const t=totals();
   if(Math.abs(t.remaining)>0.01)throw new Error("L’affectation doit être équilibrée avant de générer les écritures.");
   const rows=[];
@@ -502,8 +541,8 @@ async function saveAffectation(){
   if(!generatedRows.length)generatedRows=buildEntries();
 
   if(hasBlockingWorkflowIssue()){
-    const ok=confirm("Les OD de clôture ne semblent pas totalement définitives. Enregistrer quand même l'affectation ?");
-    if(!ok)return;
+    alert("Le dossier de révision doit être entièrement validé avant d’enregistrer l’affectation du résultat.");
+    return;
   }
 
   const data={
@@ -641,7 +680,9 @@ async function loadClosure(user){
       const sameAmount=Math.abs(r.existing.amount-r.amount)<=0.01;
       control=sameType&&sameAmount?` Contrôle 120/129 cohérent (${sanitize(r.existing.account)}).`:` Attention : le compte ${sanitize(r.existing.account)} présent dans la balance ne concorde pas avec le résultat calculé.`;
     }
-    $("statusLine").innerHTML=`<span class="ok">Résultat calculé depuis les comptes 6 et 7 : ${resultType==="profit"?"bénéfice":"perte"} de ${euro(resultAmount)}. Compte de résultat proposé : ${account}.${control}</span>`;
+    const nature=resultType==="profit"?"bénéfice":resultType==="loss"?"perte":"résultat nul";
+    const detail=(r.charges!==undefined&&r.products!==undefined)?` Charges classe 6 : ${euro(r.charges)} — Produits classe 7 : ${euro(r.products)}.`:"";
+    $("statusLine").innerHTML=`<span class="ok">Résultat calculé depuis les comptes 6 et 7 : ${nature} de ${euro(resultAmount)}.${resultType!=="zero"?` Compte de résultat proposé : ${account}.`:""}${detail}${control}</span>`;
   }else{
     resultType="profit";resultAmount=0;
     $("statusLine").innerHTML='<span class="err">Résultat non détecté : impossible de calculer les classes 6 et 7 de la balance.</span>';
