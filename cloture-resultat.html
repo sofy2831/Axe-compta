@@ -90,11 +90,19 @@ function formatAmount(v){
   }).format(n) + " €";
 }
 
-function formatCellAmount(v){
+function formatAccount(v){
   if(v === "—" || v === "" || v == null) return "—";
-  const s = String(v).toLowerCase();
-  if(s.includes("à contrôler")) return "À contrôler";
-  return formatAmount(v);
+
+  let s = String(v)
+    .trim()
+    .replace(/\u00a0/g, "")
+    .replace(/\s+/g, "")
+    .replace(/^'+/, "");
+
+  // Excel peut restituer un numéro de compte numérique sous la forme 607000.0
+  if(/^\d+[.,]0+$/.test(s)) s = s.replace(/[.,]0+$/, "");
+
+  return s;
 }
 function cleanDisplayLabel(label){const s=String(label||"");const p=s.split(" - ");return p.length===2&&p[0].trim().toLowerCase()===p[1].trim().toLowerCase()?p[0].trim():s}
 function stripUserContext(t){return String(t||"").split("Informations fournies par l'utilisateur")[0].trim()}
@@ -218,8 +226,8 @@ function rowHtml(e,i){
   return `<tr>
     <td>${safe(entryJournal(e))}</td>
     <td>${safe(cleanDisplayLabel(e.label))}</td>
-    <td>${safe(formatAmount(e.debit))}</td>
-    <td>${safe(formatAmount(e.credit))}</td>
+    <td>${safe(formatAccount(e.debit))}</td>
+    <td>${safe(formatAccount(e.credit))}</td>
     <td>${safe(formatAmount(e.amount))}</td>
     <td class="justificationShort">${compactJustification(e)}</td>
     <td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td>
@@ -240,9 +248,9 @@ function unlockResult(label="Actif"){$("paymentBlock").style.display="none";$("e
 function fileBaseName(){return `axe-compta-${(currentClosure?.companyName||"cloture").replace(/[^\w\-]+/g,"_")}-${(currentClosure?.endDate||"resultat").replaceAll("-","")}`}
 function downloadBlob(c,m,f){const b=new Blob([c],{type:m}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=f;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u)}
 function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`}
-function exportCsv(){const h=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];downloadBlob("\ufeff"+[h.map(csvEscape).join(";"),...currentEntries.map(e=>[entryJournal(e),cleanDisplayLabel(e.label),formatAmount(e.debit),formatAmount(e.credit),formatAmount(e.amount),e.justification,entryStatus(e)].map(csvEscape).join(";"))].join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv")}
-function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAmount(e.debit))}</td><td>${safe(formatAmount(e.credit))}</td><td>${safe(formatAmount(e.amount))}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");downloadBlob(`<html><meta charset="UTF-8"><body><table border="1">${body}</table></body></html>`,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls")}
-function pdfRowsHtml(){return currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAmount(e.debit))}</td><td>${safe(formatAmount(e.credit))}</td><td class="num">${formatAmount(e.amount)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("")}
+function exportCsv(){const h=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];downloadBlob("\ufeff"+[h.map(csvEscape).join(";"),...currentEntries.map(e=>[entryJournal(e),cleanDisplayLabel(e.label),formatAccount(e.debit),formatAccount(e.credit),formatAmount(e.amount),e.justification,entryStatus(e)].map(csvEscape).join(";"))].join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv")}
+function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAccount(e.debit))}</td><td>${safe(formatAccount(e.credit))}</td><td>${safe(formatAmount(e.amount))}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");downloadBlob(`<html><meta charset="UTF-8"><body><table border="1">${body}</table></body></html>`,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls")}
+function pdfRowsHtml(){return currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAccount(e.debit))}</td><td>${safe(formatAccount(e.credit))}</td><td class="num">${formatAmount(e.amount)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("")}
 function docHtml(){const company=safe(currentClosure?.companyName||"Société sans nom");const period=safe(`${currentClosure?.startDate||"—"} → ${currentClosure?.endDate||"—"}`);const total=currentEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">OD de clôture</div><div class="docSub">Écritures proposées et contrôles à valider</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${period}</td></tr><tr><td>Écritures possibles</td><td>${currentEntries.length}</td></tr><tr><td>Statut OD</td><td>${odFinalized(currentClosure)?"Définitives":"À valider"}</td></tr></table><div class="docOk">Total indicatif des écritures chiffrées : ${formatAmount(total)}</div><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th><th>Statut</th></tr></thead><tbody>${pdfRowsHtml()}</tbody></table><p class="docNote">Ces OD doivent être rapprochées des factures, contrats, tableaux et justificatifs avant comptabilisation définitive. Le dossier de révision centralise ensuite les justificatifs, commentaires et calculs.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderPrint(){if(!currentEntries.length)return;$("printArea").innerHTML=docHtml()}
 function exportPdf(){renderPrint();window.print()}
