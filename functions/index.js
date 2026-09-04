@@ -1651,6 +1651,51 @@ function parseFecText(content) {
 
 // Normalise les balances Excel à en-têtes complexes (ex. GIPSE/Oxygène)
 // vers un schéma interne stable utilisé par tout Axe Compta.
+
+function computeAccountingResultSummary(balanceRows) {
+  let charges = 0;
+  let products = 0;
+  let found = false;
+
+  for (const row of Array.isArray(balanceRows) ? balanceRows : []) {
+    const compte = getCompte(row);
+    if (!compte || (!compte.startsWith("6") && !compte.startsWith("7"))) continue;
+
+    let net = 0;
+
+    if (row?.SoldeDebit !== undefined || row?.SoldeCredit !== undefined) {
+      net = toNumber(row?.SoldeDebit) - toNumber(row?.SoldeCredit);
+    } else if (row?.MouvementDebit !== undefined || row?.MouvementCredit !== undefined) {
+      net = toNumber(row?.MouvementDebit) - toNumber(row?.MouvementCredit);
+    } else {
+      const debit = toNumber(getCell(row, ["solde debit", "solde débiteur", "debit", "débit"]));
+      const credit = toNumber(getCell(row, ["solde credit", "solde créditeur", "credit", "crédit"]));
+      net = debit - credit;
+    }
+
+    if (compte.startsWith("6")) charges += net;
+    else products += -net;
+
+    found = true;
+  }
+
+  if (!found) return null;
+
+  charges = Math.round(charges * 100) / 100;
+  products = Math.round(products * 100) / 100;
+  const signed = Math.round((products - charges) * 100) / 100;
+
+  return {
+    charges,
+    products,
+    signed,
+    amount: Math.abs(signed),
+    type: signed < 0 ? "loss" : signed > 0 ? "profit" : "zero",
+    account: signed < 0 ? "129" : signed > 0 ? "120" : "",
+    source: "balance_normalized",
+  };
+}
+
 function normalizeBalanceWorksheet(sheet) {
   const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "", raw: true });
   if (!matrix.length) return [];
@@ -1802,6 +1847,8 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   closure
 ) || {};
 
+    const accountingResultSummary = computeAccountingResultSummary(balanceRows);
+
 controls = [
   ...controls,
   ...(detected.controls || [])
@@ -1818,6 +1865,7 @@ anomalies = [
         grandLivre: grandLivreRows,
         amortissements: amortissementRows,
         emprunt: empruntRows,
+        accountingResultSummary,
         controls,
         anomalies,
        entries: detected.entries || [],
@@ -1925,6 +1973,8 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
       closure
     ) || {};
 
+    const accountingResultSummary = computeAccountingResultSummary(balanceRows);
+
     controls = [
       ...controls,
       ...(detected.controls || [])
@@ -1942,6 +1992,7 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
       grandLivre: grandLivreRows,
       amortissements: amortissementRows,
       emprunt: empruntRows,
+      accountingResultSummary,
       controls,
       anomalies,
       scoreCorrections: {
