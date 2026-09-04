@@ -196,7 +196,9 @@ function resultPeriodNetAmount(row){
   // Format canonique fourni par index.js.
   // Ne pas additionner les champs de compatibilité, sinon on double les montants.
   if(row.SoldeDebit!==undefined || row.SoldeCredit!==undefined){
-    return numFromValue(row.SoldeDebit)-numFromValue(row.SoldeCredit);
+    const soldeNet=numFromValue(row.SoldeDebit)-numFromValue(row.SoldeCredit);
+    const mouvementNet=numFromValue(row.MouvementDebit)-numFromValue(row.MouvementCredit);
+    return Math.abs(soldeNet)>0.000001 ? soldeNet : mouvementNet;
   }
 
   if(row.MouvementDebit!==undefined || row.MouvementCredit!==undefined){
