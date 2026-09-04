@@ -67,7 +67,7 @@ function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&
 function normEmail(v){return String(v||"").trim().toLowerCase();}
 function txt(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
 function entryJournal(e){return e.journal||"OD"}
-function entryStatus(e){return e.status||"À valider"}
+function entryStatus(e){return e.status||(isAnalysisEntry(e)?"À examiner":"Proposée")}
 function isAnalysisEntry(e){return entryJournal(e).toUpperCase()==="ANALYSE"}
 function hasDetails(e){return Array.isArray(e.details)&&e.details.length>0}
 function amountNumber(v){
@@ -211,7 +211,7 @@ function ensurePayrollAnalysis(c,entries){
   const already=entries.some(e=>txt((e.label||"")+" "+(e.justification||"")).includes("paie")||txt(e.label).includes("conges payes")||txt(e.label).includes("charges sociales"));
   if(!hasPayrollRows(c)||already)return entries;
   const rows=[...(Array.isArray(c.balance)?c.balance:[]),...(Array.isArray(c.grandLivre)?c.grandLivre:[])].filter(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(428|438|641|645)/));
-  return [...entries,{journal:"ANALYSE",label:"Analyse Paie / Charges sociales",debit:"—",credit:"—",amount:"À contrôler",justification:`Comptes de paie ou charges sociales détectés.\n\nContrôles à effectuer :\n- vérifier les comptes 428 et 438 en fin d'exercice ;\n- contrôler les congés payés à payer et les charges sociales associées ;\n- rapprocher les comptes 641 et 645 des bulletins, DSN et OD de paie ;\n- documenter le calcul dans le dossier de révision.\n\nAucune écriture automatique fiable n'est proposée sans détail de paie suffisant.`,confidence:0.72,source:"balance/grandLivre",status:"À valider",details:rows.map(r=>({compte:String(r.Compte||r.compte||""),libelle:String(r.Libellé||r.libelle||r.Libelle||"Compte paie"),amount:amountNumber(r.Montant||r.montant||r.Solde||r.solde||r.Débit||r.Crédit||0)}))}];
+  return [...entries,{journal:"ANALYSE",label:"Analyse Paie / Charges sociales",debit:"—",credit:"—",amount:"À contrôler",justification:`Comptes de paie ou charges sociales détectés.\n\nContrôles à effectuer :\n- vérifier les comptes 428 et 438 en fin d'exercice ;\n- contrôler les congés payés à payer et les charges sociales associées ;\n- rapprocher les comptes 641 et 645 des bulletins, DSN et OD de paie ;\n- documenter le calcul dans le dossier de révision.\n\nAucune écriture automatique fiable n'est proposée sans détail de paie suffisant.`,confidence:0.72,source:"balance/grandLivre",status:"À examiner",details:rows.map(r=>({compte:String(r.Compte||r.compte||""),libelle:String(r.Libellé||r.libelle||r.Libelle||"Compte paie"),amount:amountNumber(r.Montant||r.montant||r.Solde||r.solde||r.Débit||r.Crédit||0)}))}];
 }
 function removeDuplicateFnpCreditBail(entries){
   return entries.filter((e,idx,arr)=>{
@@ -224,7 +224,7 @@ function removeDuplicateFnpCreditBail(entries){
 }
 function normalizeEntries(c,entries){return removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries));}
 function rowHtml(e,i){
-  const s=entryStatus(e),done=s==="Validée";
+  const status=isAnalysisEntry(e)?"À examiner":"Proposée";
   return `<tr>
     <td>${safe(entryJournal(e))}</td>
     <td>${safe(cleanDisplayLabel(e.label))}</td>
@@ -232,12 +232,11 @@ function rowHtml(e,i){
     <td>${safe(formatAccount(e.credit))}</td>
     <td>${safe(formatAmount(e.amount))}</td>
     <td class="justificationShort">${compactJustification(e)}</td>
-    <td><button class="statusBtn ${done?"done":""}" type="button" data-entry-index="${i}">${done?"Validée":"À valider"}</button>${detailsButtonHtml(e,i)}</td>
+    <td><span class="statusBtn ${isAnalysisEntry(e)?"":"done"}">${status}</span>${detailsButtonHtml(e,i)}</td>
   </tr>`;
 }
 function renderEntries(){
   $("entriesRows").innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
-  document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false,false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
   document.querySelectorAll("[data-view-index]").forEach(btn=>btn.addEventListener("click",()=>openDetailsModal(currentEntries[Number(btn.dataset.viewIndex)])));
   renderConfidenceNotice();
 }
@@ -323,7 +322,11 @@ async function loadPage(user){
   applyStepLocks(c);
 
   currentEntries=Array.isArray(c.entries)&&c.entries.length?c.entries:buildEntries(c.answers||{});
-  currentEntries=normalizeEntries(c,currentEntries.map(e=>({journal:e.journal||"OD",...e,status:e.status||"À valider"})));
+  currentEntries=normalizeEntries(c,currentEntries.map(e=>{
+    const entry={journal:e.journal||"OD",...e};
+    entry.status=(entry.journal||"").toUpperCase()==="ANALYSE"?"À examiner":"Proposée";
+    return entry;
+  }));
 
   $("cyclesCount").textContent=countCycles(c);
   $("entriesCount").textContent=currentEntries.length;
