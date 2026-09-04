@@ -93,11 +93,12 @@ function formatAmount(v){
 function formatAccount(v){
   if(v === "—" || v === "" || v == null) return "—";
 
-  let s = String(v)
-    .trim()
-    .replace(/\u00a0/g, "")
-    .replace(/\s+/g, "")
-    .replace(/^'+/, "");
+  let s = String(v).trim().replace(/\u00a0/g, " ");
+
+  // Les libellés métier ("Compte à déterminer", etc.) restent lisibles.
+  if(!/^['\s]*\d+[.,]?\d*\s*$/.test(s)) return s;
+
+  s = s.replace(/\s+/g, "").replace(/^'+/, "");
 
   // Excel peut restituer un numéro de compte numérique sous la forme 607000.0
   if(/^\d+[.,]0+$/.test(s)) s = s.replace(/[.,]0+$/, "");
@@ -226,15 +227,14 @@ function normalizeEntries(c,entries){return removeDuplicateFnpCreditBail(ensureP
 function rowHtml(e,i){
   const analysis=isAnalysisEntry(e);
   const status=analysis?"À examiner":"Proposée";
-  const debitDisplay=analysis?"À vérifier":formatAccount(e.debit);
   return `<tr>
     <td>${safe(entryJournal(e))}</td>
     <td>${safe(cleanDisplayLabel(e.label))}</td>
-    <td>${safe(debitDisplay)}</td>
+    <td>${safe(formatAccount(e.debit))}</td>
     <td>${safe(formatAccount(e.credit))}</td>
     <td>${safe(formatAmount(e.amount))}</td>
     <td class="justificationShort">${compactJustification(e)}</td>
-    <td><span class="statusBtn ${isAnalysisEntry(e)?"":"done"}">${status}</span>${detailsButtonHtml(e,i)}</td>
+    <td><span class="statusBtn ${analysis?"":"done"}">${status}</span>${detailsButtonHtml(e,i)}</td>
   </tr>`;
 }
 function renderEntries(){
