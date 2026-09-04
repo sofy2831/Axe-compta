@@ -373,8 +373,23 @@ function getRowText(row) {
   return normalizeText(Object.values(row || {}).join(" "));
 }
 
+function normalizeAccountCode(value) {
+  if (value === null || value === undefined || value === "") return "";
+
+  let s = String(value)
+    .trim()
+    .replace(/\u00a0/g, "")
+    .replace(/\s+/g, "")
+    .replace(/^'+/, "");
+
+  // Certains exports Excel restituent un compte numérique sous la forme 401000.0
+  if (/^\d+[.,]0+$/.test(s)) s = s.replace(/[.,]0+$/, "");
+
+  return s;
+}
+
 function getCompte(row) {
-  return String(row?.Compte || row?.compte || row?.CompteNum || row?.compteNum || "").replace(/\s/g, "");
+  return normalizeAccountCode(row?.Compte || row?.compte || row?.CompteNum || row?.compteNum || "");
 }
 
 function getLibelle(row) {
@@ -525,8 +540,8 @@ function makeEntryFromRow(row, config) {
   const entry = {
     journal: config.journal || "OD",
     label: cleanEntryLabel(config.label, row),
-    debit: config.debit,
-    credit: config.credit,
+    debit: normalizeAccountCode(config.debit),
+    credit: normalizeAccountCode(config.credit),
     amount: config.amount !== undefined ? config.amount : (getAmount(row) || "À contrôler"),
     justification: config.justification,
     confidence: config.confidence || 0.9,
@@ -1515,7 +1530,14 @@ Aucune écriture automatique n'est proposée.
   }
 
   if (entries.length === 0) anomalies.push({ type: "no_entries_generated", label: "Aucune écriture générée selon les réponses fournies", level: "info" });
-  return { entries: dedupeEntries(entries), controls, anomalies };
+
+  const normalizedEntries = dedupeEntries(entries).map(entry => ({
+    ...entry,
+    debit: normalizeAccountCode(entry.debit),
+    credit: normalizeAccountCode(entry.credit),
+  }));
+
+  return { entries: normalizedEntries, controls, anomalies };
 }
 
 function parseFecText(content) {
@@ -1538,7 +1560,7 @@ function parseFecText(content) {
 
     return {
       ...row,
-      Compte: row.CompteNum || row.compte || row.Compte || "",
+      Compte: normalizeAccountCode(row.CompteNum || row.compte || row.Compte || ""),
       Libellé: row.EcritureLib || row.Libellé || row.Libelle || "",
       Débit: row.Debit || row.Débit || "",
       Crédit: row.Credit || row.Crédit || "",
@@ -1582,7 +1604,12 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   if (["xlsx", "xls", "csv"].includes(ext)) {
     const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 2000);
+    return XLSX.utils.sheet_to_json(sheet, { defval: "" })
+      .slice(0, 2000)
+      .map(row => ({
+        ...row,
+        Compte: normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || ""),
+      }));
   }
 
   if (["txt", "fec"].includes(ext)) {
@@ -1698,7 +1725,12 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
       const [buffer] = await bucket.file(storagePath).download();
       const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      return XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 2000);
+      return XLSX.utils.sheet_to_json(sheet, { defval: "" })
+      .slice(0, 2000)
+      .map(row => ({
+        ...row,
+        Compte: normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || ""),
+      }));
     }
 
     const balanceRows = await parseFile(closure.files?.balance?.storagePath);
