@@ -546,7 +546,7 @@ function makeEntryFromRow(row, config) {
     justification: config.justification,
     confidence: config.confidence || 0.9,
     source: config.source || "grandLivre",
-    status: config.status || "À valider",
+    status: config.status || "Proposée",
   };
 
   if (config.details !== undefined) entry.details = config.details;
@@ -563,7 +563,7 @@ function makeAnalysisEntry(config) {
     justification: config.justification,
     confidence: config.confidence || 0.75,
     source: config.source || "analyse",
-    status: config.status || "À valider",
+    status: config.status || "À examiner",
   };
 
   if (config.details !== undefined) entry.details = config.details;
@@ -1097,128 +1097,105 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   if (hasAcc(["164", "661"])) controls.push({ type: "loan_detected", label: "Emprunt ou intérêts détectés", level: "info" });
   if (hasAcc(["706", "707"])) controls.push({ type: "revenue_detected", label: "Chiffre d'affaires détecté", level: "info" });
 
-  // FNP
-  if (hasAcc(["408"]) && (answerYes(answers, "fournisseurs") || hasAcc(["408"]))) {
-    const fnpRows = grandLivreRows.filter(row => {
-  const compte = getCompte(row);
-  const text = getRowText(row);
-  if (isLeasingRow(row)) return false;
-  return compte.startsWith("6") && (text.includes("fnp") || text.includes("facture non parvenue") || text.includes("facture non recue"));
-});
+  // CUT-OFF : FNP / CCA / PCA / FAE / PAR / CAP
+  // Règle de sécurité : la présence d’un compte de régularisation déclenche une analyse.
+  // Une OD n’est générée que si le compte de contrepartie est explicitement identifiable
+  // dans le grand livre. On n’invente jamais 607, 616, 706, 628, etc.
+  const cutoffConfigs = [
+    { key: "FNP", reg: ["408"], counterpart: ["6"], debitReg: false, label: "Factures non parvenues" },
+    { key: "CCA", reg: ["486"], counterpart: ["6"], debitReg: true, label: "Charges constatées d'avance" },
+    { key: "PCA", reg: ["487"], counterpart: ["7"], debitReg: false, label: "Produits constatés d'avance" },
+    { key: "FAE", reg: ["4181"], counterpart: ["7"], debitReg: true, label: "Factures à établir" },
+    { key: "PAR", reg: ["4187", "4687"], counterpart: ["7"], debitReg: true, label: "Produits à recevoir" },
+    { key: "CAP", reg: ["448", "4686"], counterpart: ["6"], debitReg: false, label: "Charges à payer" },
+  ];
 
-    if (fnpRows.length) {
-      fnpRows.forEach(row => entries.push(makeEntryFromRow(row, {
-        label: "FNP",
-        debit: "607000",
-        credit: "408100",
-        justification: `Facture fournisseur non parvenue détectée dans le grand livre.${userContext}`,
-        confidence: 0.9,
-      })));
-    } else {
-      entries.push({ journal: "OD", label: "FNP", debit: "607000", credit: "408100", amount: getBalanceAmount(["408"]) || "À contrôler", justification: `Compte 408 détecté : facture fournisseur non parvenue à vérifier.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    }
-  }
+  const rowMeta = row => ({
+    date: String(getCell(row, ["date", "ecrituredate", "écriture date"]) || "").trim(),
+    journal: String(getCell(row, ["journal", "journalcode", "code journal"]) || "").trim(),
+    piece: String(getCell(row, ["piece", "pièce", "pieceref", "reference piece", "référence pièce"]) || "").trim(),
+  });
 
+  const sameOperation = (a, b) => {
+    const ma = rowMeta(a), mb = rowMeta(b);
+    if (ma.piece && mb.piece && ma.piece === mb.piece) return true;
+    if (ma.date && mb.date && ma.date === mb.date && ma.journal && mb.journal && ma.journal === mb.journal) return true;
+    return false;
+  };
 
-  // CCA
-  if (hasAcc(["486"]) && (answerYes(answers, "cca") || hasAcc(["486"]))) {
-    const ccaRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("486") && (text.includes("cca") || text.includes("charge constatee") || text.includes("charges constatees") || text.includes("periode suivante") || text.includes("periode 2023"));
+  const findExplicitCounterpart = (regRow, prefixes) => {
+    const amount = getAmount(regRow);
+    if (!amount) return null;
+    const candidates = grandLivreRows.filter(r => {
+      if (r === regRow) return false;
+      const c = getCompte(r);
+      if (!prefixes.some(p => c.startsWith(p))) return false;
+      if (Math.abs((getAmount(r) || 0) - amount) > 0.01) return false;
+      return sameOperation(regRow, r);
     });
+    return candidates.length === 1 ? candidates[0] : null;
+  };
 
-    if (ccaRows.length) {
-      ccaRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "CCA", debit: "486000", credit: "616000", justification: `Charge constatée d'avance détectée dans le grand livre.${userContext}`, confidence: 0.9 })));
-    } else {
-      entries.push({ journal: "OD", label: "CCA", debit: "486000", credit: "616000", amount: getBalanceAmount(["486"]) || "À contrôler", justification: `Compte 486 détecté : charge couvrant une période postérieure à la clôture.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    }
-  }
+  cutoffConfigs.forEach(cfg => {
+    const regRows = grandLivreRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
+    const balanceRegRows = balanceRows.filter(row => cfg.reg.some(p => getCompte(row).startsWith(p)));
+    if (!regRows.length && !balanceRegRows.length) return;
 
-  // PCA
-  if (hasAcc(["487"]) && (answerYes(answers, "cca") || hasAcc(["487"]))) {
-    const pcaRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("487") || text.includes("pca") || text.includes("produit constate") || text.includes("produits constates");
-    });
+    const detailsRows = [];
+    let proposed = 0;
 
-    if (pcaRows.length) {
-      pcaRows.filter(row => getCompte(row).startsWith("487")).forEach(row => entries.push(makeEntryFromRow(row, { label: "PCA", debit: "706000", credit: "487000", justification: `Produit constaté d'avance détecté dans le grand livre.${userContext}`, confidence: 0.9 })));
-    } else {
-      entries.push({ journal: "OD", label: "PCA", debit: "706000", credit: "487000", amount: getBalanceAmount(["487"]) || "À contrôler", justification: `Compte 487 détecté : produit rattaché à l'exercice suivant.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    }
-  }
+    regRows.forEach(regRow => {
+      if (cfg.key === "FNP" && isLeasingRow(regRow)) return;
+      if (cfg.key === "CAP" && (getCompte(regRow).startsWith("428") || getCompte(regRow).startsWith("438"))) return;
 
-  // FAE
-  if (hasAcc(["418"]) && (answerYes(answers, "clients") || hasAcc(["418"]))) {
-    const faeRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("4181") || text.includes("fae") || text.includes("facture a etablir") || text.includes("facture à établir");
-    });
+      const counterpart = findExplicitCounterpart(regRow, cfg.counterpart);
+      const regAccount = getCompte(regRow);
+      const amount = getAmount(regRow) || "À contrôler";
 
-    if (faeRows.length) {
-      faeRows.forEach(row => entries.push(makeEntryFromRow(row, { label: "FAE", debit: "418100", credit: "706000", justification: `Facture à établir détectée dans le grand livre. Vérifier le montant et le rattachement à l'exercice.${userContext}`, confidence: 0.9 })));
-    } else {
-      entries.push({ journal: "OD", label: "FAE", debit: "418100", credit: "706000", amount: getBalanceAmount(["4181"]) || "À contrôler", justification: `Compte 418100 détecté : facture à établir à vérifier.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    }
-  }
+      if (counterpart) {
+        const counterpartAccount = getCompte(counterpart);
+        const debit = cfg.debitReg ? regAccount : counterpartAccount;
+        const credit = cfg.debitReg ? counterpartAccount : regAccount;
+        entries.push({
+          journal: "OD",
+          label: cfg.key,
+          debit,
+          credit,
+          amount,
+          justification: `${cfg.label} : compte de régularisation ${regAccount} et contrepartie ${counterpartAccount} rapprochés sur la même opération. Vérifier le justificatif avant comptabilisation définitive.`,
+          confidence: 0.9,
+          source: "grandLivre",
+          status: "Proposée",
+        });
+        proposed += 1;
+      }
 
-  // PAR
-  if (hasAcc(["4187", "4687"]) && (answerYes(answers, "clients") || hasAcc(["4187", "4687"]))) {
-    const parRows = grandLivreRows.filter(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      return compte.startsWith("4187") || compte.startsWith("4687") || text.includes("produit a recevoir") || text.includes("produits a recevoir") || text.includes("produit à recevoir") || text.includes("produits à recevoir");
-    });
-
-    if (parRows.length) {
-      parRows.forEach(row => {
-        const compte = getCompte(row);
-        entries.push(makeEntryFromRow(row, { label: "PAR", debit: compte.startsWith("4687") ? "468700" : "418700", credit: "706000", justification: `Produit à recevoir détecté dans le grand livre. Vérifier le rattachement à l'exercice.${userContext}`, confidence: 0.9 }));
+      detailsRows.push({
+        compte: regAccount,
+        libelle: getLibelle(regRow),
+        amount,
+        contrepartie: counterpart ? getCompte(counterpart) : "Non déterminée",
       });
-    } else {
-      entries.push({ journal: "OD", label: "PAR", debit: "418700", credit: "706000", amount: getBalanceAmount(["4187", "4687"]) || "À contrôler", justification: `Produit à recevoir détecté dans la balance. Vérifier le justificatif.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
-    }
-  }
-
-  // CAP hors FNP et paie
-  if (answerYes(answers, "fournisseurs") || hasAcc(["448", "4686"])) {
-   const capRows = grandLivreRows.filter(row => {
-  const compte = getCompte(row);
-  const text = getRowText(row);
-
-  const isCapAccount = compte.startsWith("448") || compte.startsWith("4686");
-  const isCapText =
-    text.includes("cap") ||
-    text.includes("charge a payer") ||
-    text.includes("charge à payer") ||
-    text.includes("charges a payer") ||
-    text.includes("charges à payer");
-
-  if (isLeasingRow(row)) return false;
-  if (compte.startsWith("428") || compte.startsWith("438")) return false;
-
-  return isCapAccount || isCapText;
-}); 
-
-    capRows.forEach(row => {
-      const compte = getCompte(row);
-      const text = getRowText(row);
-      if (compte.startsWith("428") || compte.startsWith("438") || text.includes("conges payes") || text.includes("congés payés") || text.includes("cotisations conges") || text.includes("cotisations congés")) return;
-
-      let debit = "628000";
-      let credit = compte || "468600";
-      if (text.includes("honoraire") || text.includes("avocat") || text.includes("comptable")) debit = "622600";
-      if (text.includes("assurance")) debit = "616000";
-      if (text.includes("edf") || text.includes("electricite") || text.includes("électricité")) debit = "606100";
-      if (text.includes("urssaf") || text.includes("social")) debit = "645000";
-      if (compte.startsWith("448") || text.includes("cfe") || text.includes("taxe") || text.includes("fonciere") || text.includes("foncière")) debit = "635000";
-
-      entries.push(makeEntryFromRow(row, { label: "CAP", debit, credit, justification: `Charge à payer détectée dans le grand livre. Vérifier la facture ou l'avis correspondant.${userContext}`, confidence: 0.85 }));
     });
-  }
+
+    // Si le compte n'est visible que dans la balance, on le signale sans fabriquer d'OD.
+    if (!regRows.length) {
+      balanceRegRows.forEach(row => detailsRows.push({
+        compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || "À contrôler", contrepartie: "Non déterminée"
+      }));
+    }
+
+    entries.push(makeAnalysisEntry({
+      label: `Analyse ${cfg.key}`,
+      amount: detailsRows.reduce((sum, d) => sum + (typeof d.amount === "number" ? d.amount : 0), 0) || "À contrôler",
+      justification: `${cfg.label} détectée(s). ${proposed ? `${proposed} OD proposée(s) car la contrepartie a été identifiée de façon univoque dans le grand livre.` : "Aucune OD automatique : la contrepartie comptable n'est pas suffisamment établie."}\n\nContrôler le justificatif, la période de rattachement et la contrepartie avant comptabilisation définitive.`,
+      confidence: proposed ? 0.85 : 0.7,
+      source: "balance/grandLivre",
+      status: "À examiner",
+      details: detailsRows,
+    }));
+    controls.push({ type: `${cfg.key.toLowerCase()}_detected`, label: `${cfg.label} détectée(s)`, level: proposed ? "info" : "warning" });
+  });
 
   // Stocks
   if (answers.stocks === "yes") {
@@ -1512,7 +1489,9 @@ Aucune écriture automatique n'est proposée.
     const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
     const loanEntryAmount = finalIcneAmount || "À calculer";
 
-    entries.push({ journal: "OD", label: "Intérêts courus d'emprunt", debit: "661100", credit: "168800", amount: loanEntryAmount, justification: icneAmount ? `Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance.${userContext}` : calculatedIcne ? `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.${userContext}` : `Compte 1688 absent : ICNE à calculer avec le tableau d'emprunt.${userContext}`, confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55, source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse", status: "À valider" });
+    if (finalIcneAmount) {
+      entries.push({ journal: "OD", label: "Intérêts courus d'emprunt", debit: "661100", credit: "168800", amount: finalIcneAmount, justification: icneAmount ? `Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance.${userContext}` : `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.${userContext}`, confidence: icneAmount ? 0.85 : 0.8, source: icneAmount ? "balance" : "tableau emprunt", status: "Proposée" });
+    }
 
     entries.push(makeAnalysisEntry({
       label: "Analyse emprunt",
