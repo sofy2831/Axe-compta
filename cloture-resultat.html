@@ -28,7 +28,7 @@
   <div class="box" id="filesBlock"><h2>Corrections utilisateur / nouvelle analyse</h2><p class="muted" id="filesIntro">Remplacez uniquement les fichiers corrigés, puis relancez l'analyse. Les OD seront recalculées. L'affectation, les extournes et le score final seront remis à zéro si le dossier avait déjà avancé.</p><div class="fileGrid"><div class="fileBox"><label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentBalance">Fichier actuel : —</span></div><div class="fileBox"><label>Grand livre</label><input id="grandLivreFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentGrandLivre">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau amortissements</label><input id="amortissementsFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentAmortissements">Fichier actuel : —</span></div><div class="fileBox"><label>Tableau emprunt</label><input id="empruntFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><span id="currentEmprunt">Fichier actuel : —</span></div></div><div class="actions fileActionsDetached"><button class="btn primary" type="button" id="reparseBtn">Recharger et recalculer</button></div><div class="notice" id="fileMsg" style="display:none"></div></div>
   <div class="box"><h2>OD de clôture proposées</h2><div class="summaryGrid"><div class="metric"><b id="cyclesCount">0</b><span>cycles contrôlés</span></div><div class="metric"><b id="entriesCount">0</b><span>écritures possibles</span></div><div class="metric"><b id="docsCount">0</b><span>points à documenter</span></div><div class="metric"><b id="accessStatus">Verrouillé</b><span>accès</span></div></div>
     <div id="paymentBlock" class="paywall" style="display:none"><h3>Débloquer les écritures détaillées</h3><p class="muted">Votre analyse est prête. Pour accéder aux comptes débit/crédit, aux justifications et aux exports, activez ce dossier ou choisissez une formule mensuelle.</p><div class="payGrid"><button class="btn primary" type="button" id="payOneShotBtn">Solo - 99 €</button><button class="btn" type="button" id="payExpertBtn">Expert - 149 €/mois</button><button class="btn" type="button" id="payCabinetBtn">Cabinet - 399 €/mois</button><button class="btn" type="button" id="payExtraCollabBtn" style="display:none">Collaborateur — 129 €/mois</button></div><div class="notice">Après paiement, votre dossier sera activé automatiquement.</div></div>
-    <div id="entriesWrapper"><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="7" class="muted">Chargement...</td></tr></tbody></table><div class="notice" id="accessNotice">Avant comptabilisation définitive, chaque OD doit être justifiée. Le dossier de révision récupérera ensuite le justificatif, le commentaire et le calcul.</div><div class="notice" id="confidenceNotice"></div><div class="actions actionsDetached"><button class="btn primary" type="button" id="exportPdfBtn">Imprimer / PDF</button><button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button><button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button><button class="btn warn" type="button" id="saveEntriesBtn">Enregistrer le projet</button><button class="btn primary" type="button" id="finalizeEntriesBtn">Valider les OD définitives</button><a class="btn primary" id="revisionBtn" href="dossier-revision.html">Dossier de révision</a></div><div class="notice warn" id="finalizeNotice" style="display:none"></div></div>
+    <div id="entriesWrapper"><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th>Montant</th><th>Justification</th><th>Statut</th></tr></thead><tbody id="entriesRows"><tr><td colspan="7" class="muted">Chargement...</td></tr></tbody></table><div class="notice" id="accessNotice">Avant comptabilisation définitive, chaque OD doit être justifiée. Le dossier de révision récupérera ensuite le justificatif, le commentaire et le calcul.</div><div class="notice" id="confidenceNotice"></div><div class="actions actionsDetached"><button class="btn primary" type="button" id="exportPdfBtn">Imprimer / PDF</button><button class="btn" type="button" id="exportExcelBtn">Exporter Excel</button><button class="btn" type="button" id="exportCsvBtn">Exporter CSV</button><button class="btn warn" type="button" id="saveEntriesBtn">Enregistrer le projet</button><a class="btn primary" id="revisionBtn" href="dossier-revision.html">Dossier de révision</a></div></div>
   </div>
 </div></main>
 <section class="printArea printable" id="printArea"></section>
@@ -111,23 +111,25 @@ function detailsButtonHtml(e,i){return (isAnalysisEntry(e)||hasDetails(e)||Strin
 function countCycles(c){const controls=Array.isArray(c.controls)?c.controls:[];const b=controls.filter(x=>!["balance_loaded","grand_livre_loaded","amortissements_loaded","emprunt_loaded"].includes(x.type));return b.length||Object.values(c.answers||{}).filter(v=>v==="yes"||v==="check").length}
 function countDocs(entries){return entries.filter(e=>String(e.amount||"").toLowerCase().includes("à")||isAnalysisEntry(e)).length}
 function renderConfidenceNotice(){
-    if(odFinalized(currentClosure)){
-        $("confidenceNotice").innerHTML =
-        "<b>100 % — Les écritures de clôture sont validées définitivement. Vous pouvez poursuivre vers le dossier de révision.</b>";
-        return;
-    }
-    $("confidenceNotice").innerHTML =
-    "<b>Votre analyse est terminée. Enregistrez les écritures puis cliquez sur « Valider les OD définitives » afin de figer la clôture.</b>";
+  const saved=projectSaved(currentClosure);
+  $("confidenceNotice").innerHTML=saved
+    ? "<b>Projet d’OD enregistré. Vous pouvez poursuivre vers le dossier de révision.</b>"
+    : "<b>Votre analyse est terminée. Enregistrez le projet d’OD pour accéder au dossier de révision.</b>";
 }
 function closureRef(){return doc(db,"users",currentOwnerUid,"closures",id)}
 function ownerQueryParam(){return currentOwnerUid&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
 function buildEntries(){return []}
 function isSoloClosure(c){return c?.paymentMode==="solo"||c?.planSource==="solo"||c?.plan==="solo"||c?.hasSoloPurchase===true}
 function isSoloClosureLocked(c){return isSoloClosure(c)&&(c?.soloClosureLocked===true||c?.lockedAfterExtournes===true||c?.extournesN1?.soloClosureLocked===true)}
-function odFinalized(c){return c?.odStatus==="finalized"||c?.odFinalized===true||c?.entriesFinalized===true}
+function projectSaved(c){return c?.odStatus==="draft_saved"||c?.projectEntriesSaved===true}
 function setLinkDisabled(el,disabled,title){if(!el)return;el.classList.toggle("disabledLink",disabled);if(disabled)el.setAttribute("title",title||"Étape verrouillée");else el.removeAttribute("title")}
 function renderWorkflow(c){if(!$('workflowSteps'))return;$('workflowSteps').innerHTML="";}
-function applyStepLocks(c){const final=odFinalized(c);setLinkDisabled($("revisionBtn"),!final,"Validez d'abord les OD définitives.");$("finalizeEntriesBtn").textContent=final?"OD définitives validées":"Valider les OD définitives";$("finalizeEntriesBtn").disabled=final;$("finalizeNotice").style.display=final?"block":"none";$("finalizeNotice").innerHTML=final?`<b class="ok">OD définitives validées.</b><br>Le dossier peut passer au dossier de révision.`:"";}
+function applyStepLocks(c){
+  const saved=projectSaved(c);
+  setLinkDisabled($("revisionBtn"),!saved,"Enregistrez d'abord le projet d’OD.");
+  $("saveEntriesBtn").disabled=saved;
+  $("saveEntriesBtn").textContent=saved?"Projet enregistré":"Enregistrer le projet";
+}
 function openResultModal(title,text,nextVisible=true){
   $("resultSaveModalTitle").textContent=title;
   $("resultSaveModalText").innerHTML=text;
@@ -235,11 +237,26 @@ function rowHtml(e,i){
 }
 function renderEntries(){
   $("entriesRows").innerHTML=currentEntries.length?currentEntries.map(rowHtml).join(""):`<tr><td colspan="7" class="muted">Aucune écriture proposée à ce stade.</td></tr>`;
-  document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
+  document.querySelectorAll("[data-entry-index]").forEach(btn=>btn.addEventListener("click",async()=>{const i=Number(btn.dataset.entryIndex);if(!currentEntries[i])return;currentEntries[i].status=entryStatus(currentEntries[i])==="Validée"?"À valider":"Validée";try{await saveEntriesStatus(false,false);renderEntries()}catch(e){console.error(e);alert("Impossible de mettre à jour le statut.")}}));
   document.querySelectorAll("[data-view-index]").forEach(btn=>btn.addEventListener("click",()=>openDetailsModal(currentEntries[Number(btn.dataset.viewIndex)])));
   renderConfidenceNotice();
 }
-async function saveEntriesStatus(showAlert=true){if(!currentUser||!id)return;await updateDoc(closureRef(),{entries:currentEntries,entriesSavedAt:serverTimestamp(),updatedAt:serverTimestamp()});if(showAlert)openResultModal("✔ Projet enregistré","Le projet d’OD est enregistré.<br><br>Vous pouvez maintenant valider les OD définitives quand le contrôle est terminé.",false)}
+async function saveEntriesStatus(showAlert=true,markProject=true){
+  if(!currentUser||!id)return;
+  const payload={entries:currentEntries,updatedAt:serverTimestamp()};
+  if(markProject){
+    payload.odStatus="draft_saved";
+    payload.projectEntriesSaved=true;
+    payload.entriesSavedAt=serverTimestamp();
+  }
+  await updateDoc(closureRef(),payload);
+  if(markProject){
+    currentClosure={...currentClosure,entries:currentEntries,odStatus:"draft_saved",projectEntriesSaved:true,entriesSavedAt:new Date().toISOString()};
+    applyStepLocks(currentClosure);
+    renderConfidenceNotice();
+  }
+  if(showAlert)openResultModal("✔ Projet enregistré","Le projet d’OD est enregistré.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",true);
+}
 function renderDetailCard(d,i){return `<div class="detailCard"><b>${i+1}. ${safe((d.compte||"—")+" "+(d.libelle||""))}</b><p><strong>Montant :</strong> ${formatAmount(d.amount)}</p>${d.caseLabel?`<p><strong>Cas détecté :</strong> ${safe(d.caseLabel)}</p>`:""}${d.recommendation?`<p><strong>Recommandation :</strong> ${safe(d.recommendation)}</p>`:""}</div>`}
 function openDetailsModal(e){if(!e)return;$("modalTitle").textContent=cleanDisplayLabel(e.label)||"Détail";$("modalSubtitle").textContent="Analyse détaillée";$("modalJournal").textContent=entryJournal(e);$("modalAmount").textContent=formatAmount(e.amount);$("modalStatus").textContent=entryStatus(e);$("modalJustification").textContent=stripUserContext(e.justification||"Aucune justification détaillée disponible.");if(hasDetails(e)){$("modalDetailsWrap").style.display="block";$("modalDetails").innerHTML=e.details.map(renderDetailCard).join("")}else{$("modalDetailsWrap").style.display="none";$("modalDetails").innerHTML=""}$("detailsModal").classList.add("open")}
 function closeDetailsModal(){$("detailsModal").classList.remove("open")}
@@ -251,74 +268,14 @@ function csvEscape(v){return `"${String(v??"").replaceAll('"','""')}"`}
 function exportCsv(){const h=["Journal","Libellé","Débit","Crédit","Montant","Justification","Statut"];downloadBlob("\ufeff"+[h.map(csvEscape).join(";"),...currentEntries.map(e=>[entryJournal(e),cleanDisplayLabel(e.label),formatAccount(e.debit),formatAccount(e.credit),formatAmount(e.amount),e.justification,entryStatus(e)].map(csvEscape).join(";"))].join("\n"),"text/csv;charset=utf-8",fileBaseName()+".csv")}
 function exportExcel(){const body=currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAccount(e.debit))}</td><td>${safe(formatAccount(e.credit))}</td><td>${safe(formatAmount(e.amount))}</td><td>${safe(e.justification)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("");downloadBlob(`<html><meta charset="UTF-8"><body><table border="1">${body}</table></body></html>`,"application/vnd.ms-excel;charset=utf-8",fileBaseName()+".xls")}
 function pdfRowsHtml(){return currentEntries.map(e=>`<tr><td>${safe(entryJournal(e))}</td><td>${safe(cleanDisplayLabel(e.label))}</td><td>${safe(formatAccount(e.debit))}</td><td>${safe(formatAccount(e.credit))}</td><td class="num">${formatAmount(e.amount)}</td><td>${safe(entryStatus(e))}</td></tr>`).join("")}
-function docHtml(){const company=safe(currentClosure?.companyName||"Société sans nom");const period=safe(`${currentClosure?.startDate||"—"} → ${currentClosure?.endDate||"—"}`);const total=currentEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">OD de clôture</div><div class="docSub">Écritures proposées et contrôles à valider</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${period}</td></tr><tr><td>Écritures possibles</td><td>${currentEntries.length}</td></tr><tr><td>Statut OD</td><td>${odFinalized(currentClosure)?"Définitives":"À valider"}</td></tr></table><div class="docOk">Total indicatif des écritures chiffrées : ${formatAmount(total)}</div><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th><th>Statut</th></tr></thead><tbody>${pdfRowsHtml()}</tbody></table><p class="docNote">Ces OD doivent être rapprochées des factures, contrats, tableaux et justificatifs avant comptabilisation définitive. Le dossier de révision centralise ensuite les justificatifs, commentaires et calculs.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
+function docHtml(){const company=safe(currentClosure?.companyName||"Société sans nom");const period=safe(`${currentClosure?.startDate||"—"} → ${currentClosure?.endDate||"—"}`);const total=currentEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">OD de clôture</div><div class="docSub">Écritures proposées et contrôles à valider</div></div><table class="docInfo"><tr><td>Société</td><td>${company}</td></tr><tr><td>Exercice concerné</td><td>${period}</td></tr><tr><td>Écritures possibles</td><td>${currentEntries.length}</td></tr><tr><td>Statut OD</td><td>${projectSaved(currentClosure)?"Projet enregistré":"Projet"}</td></tr></table><div class="docOk">Total indicatif des écritures chiffrées : ${formatAmount(total)}</div><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th><th>Statut</th></tr></thead><tbody>${pdfRowsHtml()}</tbody></table><p class="docNote">Ces OD doivent être rapprochées des factures, contrats, tableaux et justificatifs avant comptabilisation définitive. Le dossier de révision centralise ensuite les justificatifs, commentaires et calculs.</p><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`}
 function renderPrint(){if(!currentEntries.length)return;$("printArea").innerHTML=docHtml()}
 function exportPdf(){renderPrint();window.print()}
 async function startCheckout(plan){try{const btnMap={solo:"payOneShotBtn",expert:"payExpertBtn",cabinet:"payCabinetBtn","extra-collab":"payExtraCollabBtn"};const btn=$(btnMap[plan]);btn.disabled=true;btn.textContent="Redirection Stripe...";const r=await fetch(CREATE_CHECKOUT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,closureId:id,plan,email:currentUser.email})});const d=await r.json();if(!r.ok||!d.url)throw new Error(d.error||"Erreur Stripe");location.href=d.url}catch(e){alert(e.message)}}
 function fileNameFor(path){return path?.split("/").pop()||"—"}
 function renderFileNames(c){$("currentBalance").textContent="Fichier actuel : "+(c.files?.balance?.name||fileNameFor(c.files?.balance?.storagePath));$("currentGrandLivre").textContent="Fichier actuel : "+(c.files?.grandLivre?.name||fileNameFor(c.files?.grandLivre?.storagePath));$("currentAmortissements").textContent="Fichier actuel : "+(c.files?.amortissements?.name||fileNameFor(c.files?.amortissements?.storagePath));$("currentEmprunt").textContent="Fichier actuel : "+(c.files?.emprunt?.name||fileNameFor(c.files?.emprunt?.storagePath))}
 async function uploadReplacementFile(kind,inputId){if(isSoloClosureLocked(currentClosure))throw new Error("Clôture Solo verrouillée : réimport impossible.");const file=$(inputId).files?.[0];if(!file)return null;const cleanName=file.name.replace(/[^a-zA-Z0-9_.-]/g,"_");const storagePath=`closures/${currentOwnerUid}/${id}/${kind}-${Date.now()}-${cleanName}`;await uploadBytes(ref(storage,storagePath),file);return {name:file.name,storagePath,uploadedAt:new Date().toISOString()}}
-async function reparseFiles(){if(!currentUser||!id)return;if(isSoloClosureLocked(currentClosure)){$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Réimport bloqué.</b><br>Cette clôture Solo 99 € est verrouillée après validation des extournes.`;return}const msg=$("fileMsg");msg.style.display="block";msg.className="notice";msg.innerHTML="Téléversement et recalcul en cours...";$("reparseBtn").disabled=true;$("reparseBtn").textContent="Recalcul en cours...";try{const files={};const balance=await uploadReplacementFile("balance","balanceFile");const grandLivre=await uploadReplacementFile("grandLivre","grandLivreFile");const amortissements=await uploadReplacementFile("amortissements","amortissementsFile");const emprunt=await uploadReplacementFile("emprunt","empruntFile");if(balance)files.balance=balance;if(grandLivre)files.grandLivre=grandLivre;if(amortissements)files.amortissements=amortissements;if(emprunt)files.emprunt=emprunt;if(!Object.keys(files).length)throw new Error("Aucun fichier sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...files},odStatus:"draft",odFinalized:false,entriesFinalized:false,odFinalizedAt:deleteField(),affectationResult:deleteField(),extournesN1:deleteField(),scoreQualite:deleteField(),scoreQuality:deleteField(),validatedAt:deleteField(),finalValidation:deleteField(),closingReport:deleteField(),archivedAt:deleteField(),status:"reanalysis_pending",updatedAt:serverTimestamp()});const r=await fetch(PARSE_CLOSURE_FILES_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId:id})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok!==true)throw new Error(d.error||"Erreur recalcul fichiers.");msg.className="notice";msg.innerHTML=`<b class="ok">Nouvelle analyse terminée.</b><br>${d.entries||0} écriture(s), ${d.controls||0} contrôle(s), ${d.anomalies||0} anomalie(s). Les étapes suivantes ont été remises à zéro.`;setTimeout(()=>location.reload(),800)}catch(e){console.error(e);msg.className="notice err";msg.innerHTML=`<b class="err">${safe(e.message||"Erreur pendant le recalcul.")}</b>`;$("reparseBtn").disabled=false;$("reparseBtn").textContent="Recharger et recalculer"}}
-async function finalizeEntries(){
-  if(!currentEntries.length){
-    openResultModal("Aucune OD à valider","Aucune écriture OD n’est disponible pour validation.",false);
-    return;
-  }
-
-  openResultModal(
-    "Valider les OD définitives",
-    "Confirmez-vous la validation définitive de toutes les OD de clôture ?<br><br>Les lignes passeront automatiquement en statut Validée.",
-    true
-  );
-
-  $("resultSaveModalNextBtn").href = "#";
-  $("resultSaveModalNextBtn").textContent = "Confirmer";
-
-  $("resultSaveModalNextBtn").onclick = async (e) => {
-    e.preventDefault();
-    closeResultModal();
-    await validateOdFinales();
-  };
-}
-  async function validateOdFinales(){
-  const finalized = currentEntries.map(e => ({
-    ...e,
-    status: "Validée",
-    validatedAt: new Date().toISOString()
-  }));
-
-  await updateDoc(closureRef(),{
-    entries: finalized,
-    odStatus: "finalized",
-    odFinalized: true,
-    entriesFinalized: true,
-    odFinalizedAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-
-  currentEntries = finalized;
-  currentClosure = {
-    ...currentClosure,
-    entries: finalized,
-    odStatus: "finalized",
-    odFinalized: true,
-    entriesFinalized: true
-  };
-
-  renderEntries();
-  applyStepLocks(currentClosure);
-  renderWorkflow(currentClosure);
-
-  $("resultSaveModalNextBtn").onclick = null;
-  $("resultSaveModalNextBtn").href = `dossier-revision.html?id=${id}${ownerQueryParam()}`;
-  $("resultSaveModalNextBtn").textContent = "Dossier de révision";
-
-  openResultModal(
-    "✔ OD définitives validées",
-    "Les écritures de clôture ont été validées définitivement.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",
-    true
-  );
-}
+async function reparseFiles(){if(!currentUser||!id)return;if(isSoloClosureLocked(currentClosure)){$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Réimport bloqué.</b><br>Cette clôture Solo 99 € est verrouillée après validation des extournes.`;return}const msg=$("fileMsg");msg.style.display="block";msg.className="notice";msg.innerHTML="Téléversement et recalcul en cours...";$("reparseBtn").disabled=true;$("reparseBtn").textContent="Recalcul en cours...";try{const files={};const balance=await uploadReplacementFile("balance","balanceFile");const grandLivre=await uploadReplacementFile("grandLivre","grandLivreFile");const amortissements=await uploadReplacementFile("amortissements","amortissementsFile");const emprunt=await uploadReplacementFile("emprunt","empruntFile");if(balance)files.balance=balance;if(grandLivre)files.grandLivre=grandLivre;if(amortissements)files.amortissements=amortissements;if(emprunt)files.emprunt=emprunt;if(!Object.keys(files).length)throw new Error("Aucun fichier sélectionné.");await updateDoc(closureRef(),{files:{...(currentClosure.files||{}),...files},odStatus:"draft",projectEntriesSaved:false,entriesSavedAt:deleteField(),odFinalized:false,entriesFinalized:false,odFinalizedAt:deleteField(),affectationResult:deleteField(),extournesN1:deleteField(),scoreQualite:deleteField(),scoreQuality:deleteField(),validatedAt:deleteField(),finalValidation:deleteField(),closingReport:deleteField(),archivedAt:deleteField(),status:"reanalysis_pending",updatedAt:serverTimestamp()});const r=await fetch(PARSE_CLOSURE_FILES_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentOwnerUid,closureId:id})});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok!==true)throw new Error(d.error||"Erreur recalcul fichiers.");msg.className="notice";msg.innerHTML=`<b class="ok">Nouvelle analyse terminée.</b><br>${d.entries||0} écriture(s), ${d.controls||0} contrôle(s), ${d.anomalies||0} anomalie(s). Les étapes suivantes ont été remises à zéro.`;setTimeout(()=>location.reload(),800)}catch(e){console.error(e);msg.className="notice err";msg.innerHTML=`<b class="err">${safe(e.message||"Erreur pendant le recalcul.")}</b>`;$("reparseBtn").disabled=false;$("reparseBtn").textContent="Recharger et recalculer"}}
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
 function userHasSubscription(u){return u.developerAccess===true||u.role==="admin"||u.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(u.plan)}
@@ -396,7 +353,6 @@ $("exportPdfBtn").addEventListener("click",exportPdf);
 $("exportExcelBtn").addEventListener("click",exportExcel);
 $("exportCsvBtn").addEventListener("click",exportCsv);
 $("saveEntriesBtn").addEventListener("click",async()=>{try{await saveEntriesStatus(true)}catch(e){alert("Impossible d'Enregistrer le projet.")}});
-$("finalizeEntriesBtn").addEventListener("click",async()=>{try{await finalizeEntries()}catch(e){console.error(e);alert("Impossible de valider les OD définitives.")}});
 $("reparseBtn").addEventListener("click",reparseFiles);
 $("payOneShotBtn").addEventListener("click",()=>startCheckout("solo"));
 $("payExpertBtn").addEventListener("click",()=>startCheckout("expert"));
