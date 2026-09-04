@@ -192,41 +192,15 @@ function vatText(c){return c?.vatRegime||c?.regimeTva||c?.tvaRegime||c?.vat||"No
 
 function resultPeriodNetAmount(row){
   if(!row)return 0;
-  const entries=Object.entries(row);
 
-  // 1) Priorité au solde de période : pour les comptes 6/7, c'est la base
-  // la plus fiable pour déterminer le résultat de l'exercice.
-  // GIPSE exporte un en-tête fusionné "Solde Période" :
-  //   colonne F = solde débiteur, colonne H = solde créditeur.
-  const soldeIndex=entries.findIndex(([k])=>{
-    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-    return key==="soldeperiode";
-  });
-  if(soldeIndex>=0){
-    const soldeDebit=numFromValue(entries[soldeIndex]?.[1]);
-    const soldeCredit=numFromValue(entries[soldeIndex+2]?.[1]);
-    if(soldeDebit||soldeCredit)return soldeDebit-soldeCredit;
+  // Format canonique fourni par index.js.
+  // Ne pas additionner les champs de compatibilité, sinon on double les montants.
+  if(row.SoldeDebit!==undefined || row.SoldeCredit!==undefined){
+    return numFromValue(row.SoldeDebit)-numFromValue(row.SoldeCredit);
   }
 
-  // 2) Exports standards avec colonnes Débit / Crédit explicites.
-  let debit=0,credit=0,hasDebit=false,hasCredit=false;
-  for(const [k,v] of entries){
-    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-    const val=numFromValue(v);
-    if(key.includes("debit") && !key.includes("solde")){debit+=Math.abs(val);hasDebit=true;}
-    else if(key.includes("credit") && !key.includes("solde")){credit+=Math.abs(val);hasCredit=true;}
-  }
-  if(hasDebit||hasCredit)return debit-credit;
-
-  // 3) Repli GIPSE sur les mouvements "Total Période" si le solde n'est pas présent.
-  const totalIndex=entries.findIndex(([k])=>{
-    const key=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-    return key==="totalperiode";
-  });
-  if(totalIndex>=0){
-    const debitMvt=numFromValue(entries[totalIndex+1]?.[1]);
-    const creditMvt=numFromValue(entries[totalIndex+2]?.[1]);
-    if(debitMvt||creditMvt)return debitMvt-creditMvt;
+  if(row.MouvementDebit!==undefined || row.MouvementCredit!==undefined){
+    return numFromValue(row.MouvementDebit)-numFromValue(row.MouvementCredit);
   }
 
   return balanceNetAmount(row);
@@ -282,6 +256,24 @@ function findResultFromClasses67(c){
 }
 
 function findResult(c){
+  const summary=c?.accountingResultSummary;
+
+  if(
+    summary &&
+    ["profit","loss","zero"].includes(summary.type) &&
+    Number.isFinite(Number(summary.amount))
+  ){
+    return{
+      type:summary.type,
+      amount:Math.abs(Number(summary.amount||0)),
+      signed:Number(summary.signed||0),
+      charges:Number(summary.charges||0),
+      products:Number(summary.products||0),
+      source:summary.source||"balance_normalized",
+      existing:findExistingResultAccount(c)
+    };
+  }
+
   const calculated=findResultFromClasses67(c);
   if(calculated){
     calculated.existing=findExistingResultAccount(c);
@@ -694,7 +686,7 @@ async function loadClosure(user){
       control=sameType&&sameAmount?` Contrôle 120/129 cohérent (${sanitize(r.existing.account)}).`:` Attention : le compte ${sanitize(r.existing.account)} présent dans la balance ne concorde pas avec le résultat calculé.`;
     }
     const nature=resultType==="profit"?"bénéfice":resultType==="loss"?"perte":"résultat nul";
-    const detail=(r.charges!==undefined&&r.products!==undefined)?` Charges classe 6 : ${euro(r.charges)} — Produits classe 7 : ${euro(r.products)} — Résultat : ${euro(r.signed)}.`:"";
+    const detail=(r.charges!==undefined&&r.products!==undefined)?` Charges classe 6 : ${euro(r.charges)} — Produits classe 7 : ${euro(r.products)}.`:"";
     $("statusLine").innerHTML=`<span class="ok">Résultat calculé depuis les comptes 6 et 7 : ${nature} de ${euro(resultAmount)}.${resultType!=="zero"?` Compte de résultat proposé : ${account}.`:""}${detail}${control}</span>`;
   }else{
     resultType="profit";resultAmount=0;
