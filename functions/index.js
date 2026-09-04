@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 const Stripe = require("stripe");
 const XLSX = require("xlsx");
 
+
 admin.initializeApp();
 setGlobalOptions({ region: "europe-west9", maxInstances: 10 });
 
