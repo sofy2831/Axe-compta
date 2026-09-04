@@ -553,12 +553,18 @@ function makeEntryFromRow(row, config) {
   return entry;
 }
 
+function displayAnalysisAccount(value, fallback = "—") {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (value === "—" || value === "Compte à déterminer") return value;
+  return normalizeAccountCode(value);
+}
+
 function makeAnalysisEntry(config) {
   const entry = {
     journal: "ANALYSE",
     label: config.label,
-    debit: config.debit !== undefined ? normalizeAccountCode(config.debit) : "Compte à déterminer",
-    credit: config.credit !== undefined ? normalizeAccountCode(config.credit) : "—",
+    debit: displayAnalysisAccount(config.debit, "Compte à déterminer"),
+    credit: displayAnalysisAccount(config.credit, "—"),
     amount: config.amount !== undefined ? config.amount : "À contrôler",
     justification: config.justification,
     confidence: config.confidence || 0.75,
