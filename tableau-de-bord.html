@@ -42,6 +42,25 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <section class="box" id="sharedBox"><h2>Clôtures partagées avec moi</h2><p class="muted" id="sharedHelp">Dossiers transmis par le cabinet ou par un autre compte autorisé.</p><table><thead id="sharedHead"><tr><th>Société</th><th>Exercice</th><th>Statut</th><th>Score</th><th></th></tr></thead><tbody id="sharedRows"><tr><td colspan="5" class="muted">Chargement...</td></tr></tbody></table></section>
 </div></main>
 <footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
+<div class="modalOverlay" id="editClosureModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <div>
+        <div class="modalTitle">Modifier la société</div>
+        <div class="muted">Ces informations s'appliquent à cette clôture uniquement.</div>
+      </div>
+      <button class="closeBtn" type="button" id="closeEditClosureBtn">Fermer</button>
+    </div>
+    <div class="field"><label>Nom de l’entreprise</label><input id="editCompanyName" type="text"></div>
+    <div class="field"><label>Activité</label><select id="editActivity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select></div>
+    <div class="field"><label>Régime TVA</label><select id="editVatRegime"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non assujetti à la TVA</option><option>Non renseigné</option></select></div>
+    <div class="notice" id="editClosureNotice">Modifier le régime TVA recalculera le score qualité lors de sa prochaine ouverture.</div>
+    <div class="actions">
+      <button class="btn primary" type="button" id="saveEditClosureBtn">Enregistrer les modifications</button>
+      <button class="btn secondary" type="button" id="cancelEditClosureBtn">Annuler</button>
+    </div>
+  </div>
+</div>
 <div class="modalOverlay" id="menuModal"><div class="modal" role="dialog" aria-modal="true"><div class="modalHead"><div><div class="modalTitle" id="modalTitle">Menu Axe Compta</div><div class="muted" id="modalSubtitle">Axe Compta évolue grâce aux retours de ses utilisateurs.</div></div><button class="closeBtn" type="button" id="closeModalBtn">Fermer</button></div><div id="modalContent"></div></div></div>
 
 <script type="module">
@@ -62,7 +81,7 @@ const sharedHead=document.getElementById("sharedHead");
 const sharedHelp=document.getElementById("sharedHelp");
 const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
-let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[],currentCabinetCollaborators=[];
+let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[],currentCabinetCollaborators=[],editingClosureId="",editingClosureOwnerUid="";
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
@@ -74,6 +93,49 @@ function isCabinetMember(){return currentUserData.cabinetMember===true||currentM
 function dashboardPlanLabel(data){if(isCabinetMember()&&!isCabinetOwner(data))return"Cabinet inclus";return planDisplay(data.plan);}
 function dashboardStatusLabel(data,active){if(isCabinetMember()&&!isCabinetOwner(data))return"Collaborateur Cabinet";if(data.cancelAtPeriodEnd===true)return"Résiliation programmée";return active?"Actif":"À activer";}
 function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabinetHeaderBtn.style.display=show?"inline-flex":"none";cabinetMenuCard.classList.toggle("hidden",!show);}
+function openEditClosure(id,ownerUid,companyName,activity,vatRegime){
+  editingClosureId=id||"";
+  editingClosureOwnerUid=ownerUid||currentUser?.uid||"";
+  document.getElementById("editCompanyName").value=companyName||"";
+  const activityEl=document.getElementById("editActivity");
+  activityEl.value=activity||"Autre";
+  if(![...activityEl.options].some(o=>o.value===activityEl.value))activityEl.value="Autre";
+  const vatEl=document.getElementById("editVatRegime");
+  vatEl.value=vatRegime||"Non renseigné";
+  if(![...vatEl.options].some(o=>o.value===vatEl.value))vatEl.value="Non renseigné";
+  document.getElementById("editClosureNotice").innerHTML="Vous pouvez corriger le nom, l’activité et le régime TVA de cette clôture.";
+  document.getElementById("editClosureModal").classList.add("open");
+}
+function closeEditClosure(){
+  document.getElementById("editClosureModal").classList.remove("open");
+  editingClosureId="";
+  editingClosureOwnerUid="";
+}
+async function saveEditClosure(){
+  if(!editingClosureId||!editingClosureOwnerUid)return;
+  const companyName=document.getElementById("editCompanyName").value.trim();
+  if(!companyName)return alert("Indiquez le nom de l’entreprise.");
+  const btn=document.getElementById("saveEditClosureBtn");
+  try{
+    btn.disabled=true;btn.textContent="Enregistrement...";
+    await updateDoc(doc(db,"users",editingClosureOwnerUid,"closures",editingClosureId),{
+      companyName,
+      activity:document.getElementById("editActivity").value,
+      vatRegime:document.getElementById("editVatRegime").value,
+      scoreQualite:null,
+      scoreQuality:null,
+      finalScore:null,
+      updatedAt:serverTimestamp()
+    });
+    closeEditClosure();
+    await loadDashboard(currentUser);
+  }catch(e){
+    console.error(e);
+    alert(e.message||"Modification impossible.");
+  }finally{
+    btn.disabled=false;btn.textContent="Enregistrer les modifications";
+  }
+}
 function isSubscriptionActive(data){return data.developerAccess===true||data.role==="admin"||data.subscriptionActive===true||(data.active!==false&&["expert","cabinet","extra-collab","monthly"].includes(data.plan));}
 function hasPaidAccess(){return isSubscriptionActive(currentUserData)||isCabinetMember();}
 function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
@@ -441,6 +503,9 @@ async function loadDashboard(user){
         ?`<button class="btn small shareBtn" type="button" data-share="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager</button>`:"";
       const shareToCabinetButton=cabinetMember&&!cabinetOwner&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
+      const editButton=!item.shared
+        ?`<button class="btn small" type="button" data-edit-closure="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-company="${safe(c.companyName||"")}" data-activity="${safe(c.activity||"")}" data-vat="${safe(c.vatRegime||"Non renseigné")}">Modifier société</button>`
+        :"";
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
         :`<span class="pill dev">Cabinet</span>`;
@@ -453,7 +518,7 @@ async function loadDashboard(user){
         stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score"),
         stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
         stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report"),
-        shareButton,shareToCabinetButton,archiveBtn
+        editButton,shareButton,shareToCabinetButton,archiveBtn
       ].filter(Boolean).join(" ");
 
       rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:sharedCabinetBadge(c)}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
@@ -475,6 +540,7 @@ async function loadDashboard(user){
     activeClosuresEl.textContent=String(activeCount);
     exportsCountEl.textContent=String(exports);
 
+    document.querySelectorAll("[data-edit-closure]").forEach(btn=>btn.addEventListener("click",()=>openEditClosure(btn.dataset.editClosure,btn.dataset.owner,btn.dataset.company,btn.dataset.activity,btn.dataset.vat)));
     document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;try{await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}catch(e){alert(e.message||"Archivage impossible.");btn.disabled=false;}}));
     document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));
     document.querySelectorAll("[data-share-cabinet]").forEach(btn=>btn.addEventListener("click",()=>renderShareWithCabinet(btn.dataset.shareCabinet,btn.dataset.company||"Société sans nom")));
@@ -671,6 +737,11 @@ Object.values(moduleLinks).forEach(el=>el?.addEventListener("click",e=>{if(el.cl
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;await syncStripeBeforeDashboard(user);await loadDashboard(user);});
+document.getElementById("closeEditClosureBtn").addEventListener("click",closeEditClosure);
+document.getElementById("cancelEditClosureBtn").addEventListener("click",closeEditClosure);
+document.getElementById("saveEditClosureBtn").addEventListener("click",saveEditClosure);
+document.getElementById("editClosureModal").addEventListener("click",e=>{if(e.target===document.getElementById("editClosureModal"))closeEditClosure();});
+
 logoutBtnEl.addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html";});
 </script>
 </body>
