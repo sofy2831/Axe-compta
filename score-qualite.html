@@ -84,15 +84,47 @@ function openAssociateModal(){
         <div class="associateField"><label>Nature / origine du solde</label><input data-associate-nature="${sanitize(code)}" value="${sanitize(v.nature||"")}" placeholder="Ex. avance en compte courant"></div>
         <div class="associateField"><label>Solde au 31/12 confirmé</label><select data-associate-confirmed="${sanitize(code)}"><option value="">À renseigner</option><option value="yes" ${v.balanceConfirmed===true?"selected":""}>Oui</option><option value="no" ${v.balanceConfirmed===false?"selected":""}>Non</option></select></div>
         <div class="associateField"><label>Compte rémunéré</label><select data-associate-remunerated="${sanitize(code)}"><option value="">À renseigner</option><option value="no" ${v.remunerated==="no"?"selected":""}>Non</option><option value="yes" ${v.remunerated==="yes"?"selected":""}>Oui</option></select></div>
-        <div class="associateField"><label>Taux si rémunéré</label><input data-associate-rate="${sanitize(code)}" value="${sanitize(v.rate||"")}" placeholder="Ex. 3,00 %"></div>
+        <div class="associateField" data-associate-rate-wrap="${sanitize(code)}"><label>Taux si rémunéré</label><input data-associate-rate="${sanitize(code)}" value="${sanitize(v.rate||"")}" placeholder="Ex. 3,00 %"></div>
         <div class="associateField full"><label>Pièce justificative ou commentaire</label><textarea data-associate-evidence="${sanitize(code)}" placeholder="Convention, relevé, confirmation de l'associé, commentaire de contrôle...">${sanitize(v.evidence||"")}</textarea></div>
-        <div class="associateField full"><label>Contrôle des intérêts si rémunéré</label><input data-associate-interest="${sanitize(code)}" value="${sanitize(v.interestCheck||"")}" placeholder="Ex. intérêts recalculés et conformes / non applicable"></div>
+        <div class="associateField full" data-associate-interest-wrap="${sanitize(code)}"><label>Contrôle des intérêts si rémunéré</label><input data-associate-interest="${sanitize(code)}" value="${sanitize(v.interestCheck||"")}" placeholder="Ex. intérêts recalculés et conformes / non applicable"></div>
       </div>
       <div class="associateStatus ${associateReviewComplete(code)?"ok":"warn"}">${associateReviewComplete(code)?"✓ Compte justifié":"À compléter"}</div>
     </div>`;
   }).join(""):`<div class="notice">Aucun compte 455 détecté.</div>`;
   $("associateMsg").style.display="none";
   $("associateModal").style.display="flex";
+  initAssociateDynamicUI();
+}
+function updateAssociateRemunerationUI(code){
+  const sel=document.querySelector(`[data-associate-remunerated="${CSS.escape(code)}"]`);
+  const rateWrap=document.querySelector(`[data-associate-rate-wrap="${CSS.escape(code)}"]`);
+  const interestWrap=document.querySelector(`[data-associate-interest-wrap="${CSS.escape(code)}"]`);
+  const show=sel?.value==="yes";
+  if(rateWrap)rateWrap.style.display=show?"":"none";
+  if(interestWrap)interestWrap.style.display=show?"":"none";
+}
+function refreshAssociateCardStatus(code){
+  const card=document.querySelector(`[data-associate-card="${CSS.escape(code)}"]`);
+  if(!card)return;
+  const nature=document.querySelector(`[data-associate-nature="${CSS.escape(code)}"]`)?.value.trim()||"";
+  const confirmed=document.querySelector(`[data-associate-confirmed="${CSS.escape(code)}"]`)?.value||"";
+  const remunerated=document.querySelector(`[data-associate-remunerated="${CSS.escape(code)}"]`)?.value||"";
+  const evidence=document.querySelector(`[data-associate-evidence="${CSS.escape(code)}"]`)?.value.trim()||"";
+  const rate=document.querySelector(`[data-associate-rate="${CSS.escape(code)}"]`)?.value.trim()||"";
+  const interest=document.querySelector(`[data-associate-interest="${CSS.escape(code)}"]`)?.value.trim()||"";
+  const complete=!!(nature && confirmed==="yes" && ["yes","no"].includes(remunerated) && evidence && (remunerated!=="yes" || (rate&&interest)));
+  const status=card.querySelector(".associateStatus");
+  if(status){
+    status.className=`associateStatus ${complete?"ok":"warn"}`;
+    status.textContent=complete?"✓ Prêt à enregistrer":"À compléter";
+  }
+}
+function initAssociateDynamicUI(){
+  document.querySelectorAll("[data-associate-remunerated]").forEach(sel=>{
+    const code=sel.getAttribute("data-associate-remunerated");
+    updateAssociateRemunerationUI(code);
+    refreshAssociateCardStatus(code);
+  });
 }
 function closeAssociateModal(){$("associateModal").style.display="none"}
 async function saveAssociateReviews(){
@@ -200,6 +232,17 @@ function rowsForKey(k){
 }
 function entriesTableHtml(rows){if(!rows.length)return`<div class="notice">Aucune écriture détaillée détectée pour ce contrôle.</div>`;return`<table class="modalTable"><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${sanitize(r.journal||"OD")}</td><td>${sanitize(r.label||r.libelle||r.sourceLabel||"")}</td><td>${sanitize(formatAccountDisplay(r.debit||""))}</td><td>${sanitize(formatAccountDisplay(r.credit||""))}</td><td class="num">${euro(amount(r))}</td></tr>`).join("")}</tbody></table>`}
 function openView(k){if(k==="associate"){openAssociateModal();return}const i=findItem(k);if(!i)return;const rows=rowsForKey(k);$("modalTitle").textContent=i.title;$("modalText").innerHTML=`Score : <b>${i.score}/${i.max}</b><br>${sanitize(i.detail)}`;$("modalEntries").innerHTML=`<h3>Écritures / lignes concernées</h3>${entriesTableHtml(rows)}`;$("modalBack").style.display="flex"}
+$("associateForms").addEventListener("change",e=>{
+  const el=e.target;
+  const code=el.getAttribute("data-associate-remunerated")||el.getAttribute("data-associate-confirmed");
+  if(el.hasAttribute("data-associate-remunerated")&&code)updateAssociateRemunerationUI(code);
+  if(code)refreshAssociateCardStatus(code);
+});
+$("associateForms").addEventListener("input",e=>{
+  const el=e.target;
+  const attrs=["data-associate-nature","data-associate-rate","data-associate-evidence","data-associate-interest"];
+  for(const a of attrs){if(el.hasAttribute(a)){refreshAssociateCardStatus(el.getAttribute(a));break}}
+});
 $("closeAssociateBtn").addEventListener("click",closeAssociateModal);
 $("associateModal").addEventListener("click",e=>{if(e.target===$("associateModal"))closeAssociateModal()});
 $("saveAssociateBtn").addEventListener("click",saveAssociateReviews);
