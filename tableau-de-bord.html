@@ -504,7 +504,7 @@ async function loadDashboard(user){
       const shareToCabinetButton=cabinetMember&&!cabinetOwner&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
       const editButton=!item.shared
-        ?`<button class="btn small" type="button" data-edit-closure="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-company="${safe(c.companyName||"")}" data-activity="${safe(c.activity||"")}" data-vat="${safe(c.vatRegime||"Non renseigné")}">Modifier société</button>`
+        ?`<button class="btn small" type="button" data-edit-closure="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-company="${safe(c.companyName||"")}" data-activity="${safe(c.activity||"")}" data-vat="${safe(c.vatRegime||"Non renseigné")}">✎ Modifier</button>`
         :"";
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
@@ -518,10 +518,10 @@ async function loadDashboard(user){
         stepLink("Score qualité","score-qualite.html",item.id,item.ownerUid,c,paid,"score"),
         stepLink("Validation","validation-cloture.html",item.id,item.ownerUid,c,paid,"validation"),
         stepLink("Rapport","rapport-cloture.html",item.id,item.ownerUid,c,paid,"report"),
-        editButton,shareButton,shareToCabinetButton,archiveBtn
+        shareButton,shareToCabinetButton,archiveBtn
       ].filter(Boolean).join(" ");
 
-      rows.innerHTML+=`<tr><td>${safe(c.companyName||"Société sans nom")}${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:sharedCabinetBadge(c)}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
+      rows.innerHTML+=`<tr><td><b>${safe(c.companyName||"Société sans nom")}</b>${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:`<br>${editButton}${sharedCabinetBadge(c)}`}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
     });
 
     if(firstAccessible){
