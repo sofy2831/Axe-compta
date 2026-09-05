@@ -45,7 +45,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <div><label>Exercice concerné</label><input id="fiscalYear" readonly></div>
     </div>
     <div class="grid4" style="margin-top:14px">
-      <div class="metric"><span>OD de clôture</span><b id="sourceCount">0</b></div>
+      <div class="metric"><span>OD révisées retenues</span><b id="sourceCount">0</b></div>
       <div class="metric"><span>Extournes proposées</span><b id="extourneCount">0</b></div>
       <div class="metric"><span>Date N+1 proposée</span><b id="dateLabel">—</b></div>
       <div class="metric"><span>Montant total</span><b id="amountLabel">0,00 €</b></div>
@@ -66,7 +66,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div class="actions">
       <button class="btn warn" type="button" id="generateBtn">Générer les extournes</button>
     </div>
-    <div id="noticeBox" class="notice">Générez les extournes N+1 à partir des OD de clôture définitives.</div>
+    <div id="noticeBox" class="notice">Générez les extournes N+1 à partir des OD de clôture révisées et retenues.</div>
     <div id="entriesBox"></div>
   </section>
 
@@ -175,8 +175,25 @@ function makeExtourne(entry){
     manualIncluded:true
   };
 }
+function reviewedClosureEntries(){
+  const revision=currentClosure?.dossierRevision;
+  const items=Array.isArray(revision?.items)?revision.items:[];
+
+  if(revision?.status==="completed" && items.length){
+    return items.filter(item =>
+      item &&
+      String(item.journal||"").toUpperCase()!=="ANALYSE" &&
+      (item.status==="Révision validée" || item.status==="Validé")
+    );
+  }
+
+  return Array.isArray(currentClosure?.entries)
+    ? currentClosure.entries.filter(e=>String(e?.journal||"").toUpperCase()!=="ANALYSE")
+    : [];
+}
+
 function computeExtournes(){
-  sourceEntries = Array.isArray(currentClosure?.entries) ? currentClosure.entries : [];
+  sourceEntries = reviewedClosureEntries();
   affectationEntries = Array.isArray(currentClosure?.affectationResult?.entries) ? currentClosure.affectationResult.entries : [];
   return sourceEntries.filter(isExtournable).map(makeExtourne).filter(r => r.amount > 0);
 }
@@ -194,7 +211,7 @@ function updateMetrics(){
 }
 function renderWorkflowBox(){
   const issues = [];
-  if(!Array.isArray(currentClosure?.entries) || !currentClosure.entries.length) issues.push("aucune OD de clôture définitive détectée");
+  if(!reviewedClosureEntries().length) issues.push("aucune OD de clôture révisée et retenue détectée");
   if(!Array.isArray(currentClosure?.affectationResult?.entries) || !currentClosure.affectationResult.entries.length) issues.push("affectation du résultat non enregistrée");
   if(currentClosure?.scoreQuality?.score || currentClosure?.scoreQualite?.score){
     const s=currentClosure?.scoreQuality?.score || currentClosure?.scoreQualite?.score;
@@ -202,7 +219,7 @@ function renderWorkflowBox(){
   }
   if(issues.length){
     $("workflowBox").className="notice warningBox";
-    $("workflowBox").innerHTML=`<b class="warnText">Étape à surveiller.</b><br>${issues.map(x=>`- ${sanitize(x)}`).join("<br>")}<br><br>Le workflow recommandé est : OD définitives → affectation du résultat → extournes N+1 → score qualité final.`;
+    $("workflowBox").innerHTML=`<b class="warnText">Étape à surveiller.</b><br>${issues.map(x=>`- ${sanitize(x)}`).join("<br>")}<br><br>Le workflow recommandé est : OD révisées → affectation du résultat → extournes N+1 → score qualité final.`;
   }else{
     $("workflowBox").className="notice";
     $("workflowBox").innerHTML=`<b class="ok">Workflow cohérent.</b><br>Les OD de clôture et l'affectation sont enregistrées. Vous pouvez générer les extournes N+1.`;
@@ -351,9 +368,9 @@ async function loadClosure(user){
   set("companyName",currentClosure.companyName || "Société sans nom");
   set("fiscalYear",fiscalYear(currentClosure));
   set("extourneDate", nextDayAfterEnd(currentClosure) || "");
-  sourceEntries = Array.isArray(currentClosure.entries) ? currentClosure.entries : [];
+  sourceEntries = reviewedClosureEntries();
   affectationEntries = Array.isArray(currentClosure.affectationResult?.entries) ? currentClosure.affectationResult.entries : [];
-  $("statusLine").innerHTML='<span class="ok">Clôture chargée. Générez les extournes à partir des OD définitives.</span>';
+  $("statusLine").innerHTML='<span class="ok">Clôture chargée. Générez les extournes à partir des OD révisées et retenues.</span>';
   const saved=currentClosure.extournesN1;
   if(saved && (saved.entries?.length || saved.excludedEntries?.length)){
     set("extourneDate",saved.date || $("extourneDate").value);
