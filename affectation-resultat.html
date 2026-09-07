@@ -193,16 +193,48 @@ function vatText(c){return c?.vatRegime||c?.regimeTva||c?.tvaRegime||c?.vat||"No
 function resultPeriodNetAmount(row){
   if(!row)return 0;
 
-  // Format canonique fourni par index.js.
-  // Ne pas additionner les champs de compatibilité, sinon on double les montants.
-  if(row.SoldeDebit!==undefined || row.SoldeCredit!==undefined){
-    const soldeNet=numFromValue(row.SoldeDebit)-numFromValue(row.SoldeCredit);
-    const mouvementNet=numFromValue(row.MouvementDebit)-numFromValue(row.MouvementCredit);
-    return Math.abs(soldeNet)>0.000001 ? soldeNet : mouvementNet;
+  const normalized={};
+  for(const [k,v] of Object.entries(row)){
+    const key=String(k).toLowerCase().normalize("NFD")
+      .replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]/g,"");
+    normalized[key]=v;
   }
 
-  if(row.MouvementDebit!==undefined || row.MouvementCredit!==undefined){
-    return numFromValue(row.MouvementDebit)-numFromValue(row.MouvementCredit);
+  // Solde de clôture : priorité absolue pour calculer le résultat.
+  const sd=numFromValue(
+    normalized.soldedebit ??
+    normalized.soldefinaldebit ??
+    normalized.debitsolde ??
+    0
+  );
+  const sc=numFromValue(
+    normalized.soldecredit ??
+    normalized.soldefinalcredit ??
+    normalized.creditsolde ??
+    0
+  );
+  if(Math.abs(sd)>0.000001 || Math.abs(sc)>0.000001){
+    return sd-sc;
+  }
+
+  // Balance avec colonnes de mouvements de l'exercice.
+  const md=numFromValue(
+    normalized.mouvementdebit ??
+    normalized.mouvementsdebit ??
+    normalized.debitmouvement ??
+    normalized.debitmouvements ??
+    0
+  );
+  const mc=numFromValue(
+    normalized.mouvementcredit ??
+    normalized.mouvementscredit ??
+    normalized.creditmouvement ??
+    normalized.creditmouvements ??
+    0
+  );
+  if(Math.abs(md)>0.000001 || Math.abs(mc)>0.000001){
+    return md-mc;
   }
 
   return balanceNetAmount(row);
@@ -258,7 +290,18 @@ function findResultFromClasses67(c){
 }
 
 function findResult(c){
+  const calculated=findResultFromClasses67(c);
   const summary=c?.accountingResultSummary;
+
+  // Une balance exploitable est la source prioritaire.
+  // Cela évite qu'un ancien accountingResultSummary à 0 écrase le vrai résultat.
+  if(calculated && (
+    Math.abs(Number(calculated.charges||0))>0.000001 ||
+    Math.abs(Number(calculated.products||0))>0.000001
+  )){
+    calculated.existing=findExistingResultAccount(c);
+    return calculated;
+  }
 
   if(
     summary &&
@@ -276,26 +319,30 @@ function findResult(c){
     };
   }
 
-  const calculated=findResultFromClasses67(c);
   if(calculated){
     calculated.existing=findExistingResultAccount(c);
     return calculated;
   }
+
   for(const k of ["resultAmount","accountingResult","netIncome","result","resultat"]){
     if(c?.[k]!==undefined&&c?.[k]!==null&&!Number.isNaN(Number(c[k]))){
       const v=Number(c[k]);
-      return{type:v<0?"loss":"profit",amount:Math.abs(v),signed:v,source:k,existing:findExistingResultAccount(c)};
+      return{type:v<0?"loss":v>0?"profit":"zero",amount:Math.abs(v),signed:v,source:k,existing:findExistingResultAccount(c)};
     }
   }
+
   const existing=findExistingResultAccount(c);
   return existing?{...existing,signed:existing.type==="loss"?-existing.amount:existing.amount,source:"120129",existing}:null;
 }
 
 function showMode(){
   const profit=resultType==="profit";
+  const loss=resultType==="loss";
   $("profitInputs").style.display=profit?"block":"none";
-  $("lossInputs").style.display=profit?"none":"block";
-  $("resultNature").textContent=profit?"Bénéfice":"Perte";
+  $("lossInputs").style.display=loss?"block":"none";
+  $("resultNature").textContent=profit?"Bénéfice":loss?"Perte":"Résultat nul";
+  $("generateBtn").disabled=resultType==="zero" || resultAmount<=0;
+  $("aiBtn").disabled=resultType==="zero" || resultAmount<=0;
 }
 
 function totals(){
