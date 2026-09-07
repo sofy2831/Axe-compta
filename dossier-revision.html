@@ -238,20 +238,20 @@ async function loadClosure(user){
       const journal=String(e.journal||"").toUpperCase();
       if(journal!=="ANALYSE") return true;
 
-      // Une analyse n'entre dans le dossier de révision que si elle nécessite
-      // réellement une intervention : montant non nul ou contrôle explicite.
+      // Les analyses de cut-off à zéro (FNP/CCA/PCA/FAE/PAR/CAP)
+      // sont des contrôles sans détection : elles n'alourdissent pas le dossier.
+      const label=String(e.label||"").trim().toUpperCase();
       const rawAmount=e.amount;
       const numericAmount=Number(String(rawAmount??0).replace(/\s/g,"").replace(",",".").replace(/[^0-9.-]/g,""))||0;
-      const amountText=String(rawAmount??"").toLowerCase();
-      const text=[
-        e.label,e.justification,e.analysis,e.details,e.calculation,e.status
-      ].filter(Boolean).join(" ").toLowerCase();
+      const zeroCutoffLabels=[
+        "ANALYSE FNP","ANALYSE CCA","ANALYSE PCA",
+        "ANALYSE FAE","ANALYSE PAR","ANALYSE CAP"
+      ];
+      if(zeroCutoffLabels.includes(label) && Math.abs(numericAmount)<=0.000001) return false;
 
-      const explicitControl =
-        amountText.includes("contrô") ||
-        /à\s*contr[oô]ler|à\s*examiner|contr[oô]le\s+requis|vérifier|impossible\s+de\s+calculer/.test(text);
-
-      return Math.abs(numericAmount)>0.000001 || explicitControl;
+      // Toute autre analyse conservée ici correspond à un point réellement
+      // remonté par le moteur : montant concerné ou contrôle métier à traiter.
+      return true;
     })
     .map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
