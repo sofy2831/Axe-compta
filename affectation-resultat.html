@@ -74,13 +74,14 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div id="allocationJustificationBox" class="notice" style="display:none"></div>
 
     <div id="profitInputs">
-      <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
-        <div><label>Réserve légale / autres réserves - 1068</label><input id="reserveAmount" type="number" step="0.01" value="0"></div>
+      <div class="grid4">
+        <div><label>Réserve légale - 1061</label><input id="legalReserveAmount" type="number" step="0.01" value="0"></div>
+        <div><label>Autres réserves - 1068</label><input id="reserveAmount" type="number" step="0.01" value="0"></div>
         <div><label>Report à nouveau créditeur - 110</label><input id="carryForwardAmount" type="number" step="0.01" value="0"></div>
         <div><label>Dividendes à payer - 457</label><input id="dividendAmount" type="number" step="0.01" value="0"></div>
       </div>
       <div class="cards3">
-        <div class="choice" data-strategy-card="prudent"><b>Prudent</b><p>Réserve légale estimée puis solde en report à nouveau.  ✔ Renforce les capitaux propres.</p><button class="btn secondary small" type="button" data-strategy="prudent">Choisir</button></div>
+        <div class="choice" data-strategy-card="prudent"><b>Prudent</b><p>Ventilation prudentielle proposée par l’IA, à valider et adapter selon les réserves existantes, les statuts et la décision de l’Assemblée Générale. ✔ Renforce les capitaux propres.</p><button class="btn secondary small" type="button" data-strategy="prudent">Choisir</button></div>
         <div class="choice" data-strategy-card="report"><b>Report intégral</b><p>100 % du bénéfice en report à nouveau créditeur. ✔ Préserve la trésorerie.</p><button class="btn secondary small" type="button" data-strategy="report">Choisir</button></div>
         <div class="choice" data-strategy-card="distribution"><b>Distribution</b><p>100 % du bénéfice en dividendes à payer. ✔ Sous réserve de la décision de l'Assemblée Générale.</p><button class="btn secondary small" type="button" data-strategy="distribution">Choisir</button></div>
       </div>
@@ -346,7 +347,7 @@ function showMode(){
 }
 
 function totals(){
-  const allocated=resultType==="profit"?n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");
+  const allocated=resultType==="profit"?n("legalReserveAmount")+n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");
   const remaining=+(resultAmount-allocated).toFixed(2);
   return{allocated,remaining};
 }
@@ -380,12 +381,13 @@ function updateSummary(){
 
 function renderAllocationJustification(source="auto"){
   const result = Math.abs(resultAmount || 0);
+  const legalReserve = n("legalReserveAmount");
   const reserve = n("reserveAmount");
   const carry = n("carryForwardAmount");
   const dividend = n("dividendAmount");
   const lossCarry = n("lossCarryForwardAmount");
   const isLoss = resultType === "loss";
-  const total = isLoss ? lossCarry : reserve + carry + dividend;
+  const total = isLoss ? lossCarry : legalReserve + reserve + carry + dividend;
   const remaining = Math.round((result - total) * 100) / 100;
 
   let html = "";
@@ -409,7 +411,7 @@ function renderAllocationJustification(source="auto"){
       Reste à affecter : <b>${money(remaining)}</b><br><br>
       ${dividend > 0
         ? "Une distribution de dividendes est proposée. Elle devra être validée par l'Assemblée Générale et rester compatible avec la trésorerie disponible ainsi qu'avec les dispositions légales."
-        : "Cette proposition privilégie le renforcement des capitaux propres afin de consolider la situation financière de l'entreprise."
+        : "Cette ventilation est une <b>recommandation à valider</b>. Elle doit être adaptée aux réserves déjà constituées, aux dispositions statutaires et à la décision de l’Assemblée Générale."
       }
     `;
   }
@@ -418,7 +420,7 @@ function renderAllocationJustification(source="auto"){
   $("allocationJustificationBox").innerHTML = html;
 }
 
-["reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>{
+["legalReserveAmount","reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>{
   $(id).addEventListener("input",()=>{
     updateSummary();
     renderAllocationJustification();
@@ -447,23 +449,28 @@ function markStrategy(strategy,{recommended=false,selected=false}={}){
 }
 function inferAiStrategy(data){
   if(resultType==="loss")return "loss";
+  const legalReserve=Math.abs(Number(data.legalReserveAmount||0));
   const reserve=Math.abs(Number(data.reserveAmount||0));
   const carry=Math.abs(Number(data.carryForwardAmount||0));
   const dividend=Math.abs(Number(data.dividendAmount||0));
   if(dividend>0 && dividend>=reserve+carry)return "distribution";
-  if(reserve>0)return "prudent";
+  if(legalReserve>0||reserve>0)return "prudent";
   if(carry>0)return "report";
   return "prudent";
 }
 function strategyValues(strategy){
-  if(strategy==="loss")return{reserveAmount:0,carryForwardAmount:0,dividendAmount:0,lossCarryForwardAmount:resultAmount};
-  if(strategy==="distribution")return{reserveAmount:0,carryForwardAmount:0,dividendAmount:resultAmount,lossCarryForwardAmount:0};
-  if(strategy==="report")return{reserveAmount:0,carryForwardAmount:resultAmount,dividendAmount:0,lossCarryForwardAmount:0};
-  const reserve=Math.min(resultAmount,Math.round(resultAmount*0.05*100)/100);
-  return{reserveAmount:reserve,carryForwardAmount:+(resultAmount-reserve).toFixed(2),dividendAmount:0,lossCarryForwardAmount:0};
+  if(strategy==="loss")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:0,dividendAmount:0,lossCarryForwardAmount:resultAmount};
+  if(strategy==="distribution")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:0,dividendAmount:resultAmount,lossCarryForwardAmount:0};
+  if(strategy==="report")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:resultAmount,dividendAmount:0,lossCarryForwardAmount:0};
+  // Proposition prudentielle : ne pas présenter 5 % comme une réserve légale automatique.
+  // En l'absence de données fiables sur la réserve légale existante, la proposition est ventilée
+  // entre autres réserves et report à nouveau, puis reste entièrement modifiable par le client.
+  const otherReserve=Math.round((resultAmount/2)*100)/100;
+  return{legalReserveAmount:0,reserveAmount:otherReserve,carryForwardAmount:+(resultAmount-otherReserve).toFixed(2),dividendAmount:0,lossCarryForwardAmount:0};
 }
 function applyStrategy(strategy,values=null){
   const v=values||strategyValues(strategy);
+  set("legalReserveAmount",v.legalReserveAmount||0);
   set("reserveAmount",v.reserveAmount||0);
   set("carryForwardAmount",v.carryForwardAmount||0);
   set("dividendAmount",v.dividendAmount||0);
@@ -509,18 +516,18 @@ $("aiBtn").addEventListener("click", async ()=>{
   try{
     const response = await fetch(AI_AFFECTATION_URL,{
       method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({uid:currentOwnerUid,closureId,resultType,resultAmount,activity:activityText(currentClosure),vatRegime:vatText(currentClosure),currentAllocation:{reserveAmount:n("reserveAmount"),carryForwardAmount:n("carryForwardAmount"),dividendAmount:n("dividendAmount"),lossCarryForwardAmount:n("lossCarryForwardAmount")}})
+      body:JSON.stringify({uid:currentOwnerUid,closureId,resultType,resultAmount,activity:activityText(currentClosure),vatRegime:vatText(currentClosure),currentAllocation:{legalReserveAmount:n("legalReserveAmount"),reserveAmount:n("reserveAmount"),carryForwardAmount:n("carryForwardAmount"),dividendAmount:n("dividendAmount"),lossCarryForwardAmount:n("lossCarryForwardAmount")}})
     });
     const data = await response.json().catch(()=>({}));
     if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
     const strategy=inferAiStrategy(data);
-    aiRecommendation={strategy,values:{reserveAmount:Number(data.reserveAmount||0),carryForwardAmount:Number(data.carryForwardAmount||0),dividendAmount:Number(data.dividendAmount||0),lossCarryForwardAmount:Number(data.lossCarryForwardAmount||0)},explanation:data.explanation||"",warnings:Array.isArray(data.warnings)?data.warnings:[]};
+    aiRecommendation={strategy,values:{legalReserveAmount:Number(data.legalReserveAmount||0),reserveAmount:Number(data.reserveAmount||0),carryForwardAmount:Number(data.carryForwardAmount||0),dividendAmount:Number(data.dividendAmount||0),lossCarryForwardAmount:Number(data.lossCarryForwardAmount||0)},explanation:data.explanation||"",warnings:Array.isArray(data.warnings)?data.warnings:[]};
     clearStrategyVisuals();
     markStrategy(strategy,{recommended:true,selected:false});
     $("autoBtn").disabled=false;
     const labels={prudent:"Prudent",report:"Report intégral",distribution:"Distribution",loss:"Report de la perte"};
     $("balanceBox").className="notice";
-    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}<br><br>${resultType==="loss"?"Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter automatiquement la perte en 119, puis générez les écritures.":"La carte correspondante est mise en évidence ci-dessous. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez manuellement une autre stratégie."}${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
+    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}<br><br>${resultType==="loss"?"Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter automatiquement la perte en 119, puis générez les écritures.":"La carte correspondante est mise en évidence ci-dessous. Cette ventilation constitue une <b>recommandation à valider</b> : elle doit être adaptée aux réserves existantes, aux statuts et à la décision de l’Assemblée Générale. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez manuellement une autre stratégie."}${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
   }catch(e){console.error(e);alert(e.message||"Erreur lors de l'appel IA.");}
   finally{btn.disabled=false;btn.textContent="Demander l'avis de l'IA";}
 });
@@ -532,8 +539,9 @@ function buildEntries(){
   const rows=[];
   if(resultType==="profit"){
     rows.push({journal:"OD",label:"Affectation du résultat bénéficiaire",debit:"120000",credit:"",amount:resultAmount});
-    const r=n("reserveAmount"),cf=n("carryForwardAmount"),d=n("dividendAmount");
-    if(r)rows.push({journal:"OD",label:"Affectation en réserves",debit:"",credit:"106800",amount:r,affectation:"Réserve légale / autres réserves"});
+    const lr=n("legalReserveAmount"),r=n("reserveAmount"),cf=n("carryForwardAmount"),d=n("dividendAmount");
+    if(lr)rows.push({journal:"OD",label:"Affectation en réserve légale",debit:"",credit:"106100",amount:lr,affectation:"Réserve légale"});
+    if(r)rows.push({journal:"OD",label:"Affectation en autres réserves",debit:"",credit:"106800",amount:r,affectation:"Autres réserves"});
     if(cf)rows.push({journal:"OD",label:"Report à nouveau créditeur",debit:"",credit:"110000",amount:cf,affectation:"Report à nouveau créditeur"});
     if(d)rows.push({journal:"OD",label:"Dividendes à payer",debit:"",credit:"457000",amount:d,affectation:"Dividendes à payer"});
   }else{
@@ -606,6 +614,7 @@ async function saveAffectation(){
     vatRegime:vatText(currentClosure),
     resultType,
     resultAmount,
+    legalReserveAmount:n("legalReserveAmount"),
     reserveAmount:n("reserveAmount"),
     carryForwardAmount:n("carryForwardAmount"),
     dividendAmount:n("dividendAmount"),
@@ -749,6 +758,7 @@ async function loadClosure(user){
 
   if(saved){
     set("pvDate",saved.pvDate||"");
+    set("legalReserveAmount",saved.legalReserveAmount||0);
     set("reserveAmount",saved.reserveAmount||0);
     set("carryForwardAmount",saved.carryForwardAmount||0);
     set("dividendAmount",saved.dividendAmount||0);
@@ -772,7 +782,7 @@ if(generatedRows.length){
   }else{
     const today=new Date();
     set("pvDate",`${today.getFullYear()}-06-30`);
-    set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);set("lossCarryForwardAmount",0);
+    set("legalReserveAmount",0);set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);set("lossCarryForwardAmount",0);
     aiRecommendation=null;selectedStrategy=null;clearStrategyVisuals();$("autoBtn").disabled=true;
     updateSummary();
   }
