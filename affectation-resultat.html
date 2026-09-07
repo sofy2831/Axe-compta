@@ -93,6 +93,15 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <div class="choice" data-strategy-card="loss" style="margin-top:12px"><b>Perte détectée</b><p>La perte est affectée automatiquement en report à nouveau débiteur. Après application de la recommandation IA, vous pouvez générer les écritures.</p></div>
     </div>
 
+    <div id="allocationValidationBox" class="notice" style="margin-top:14px">
+      <b>Répartition à valider</b>
+      <p style="margin:7px 0 10px">Vérifiez et ajustez les montants proposés ci-dessus en fonction des réserves existantes, des statuts et de la décision de l’Assemblée Générale.</p>
+      <label style="display:flex;gap:9px;align-items:flex-start;font-weight:800;cursor:pointer">
+        <input id="allocationValidated" type="checkbox" style="width:auto;margin-top:3px">
+        <span>Je valide cette répartition pour l’affectation du résultat.</span>
+      </label>
+    </div>
+
     <label>Date du PV d’Assemblée Générale</label>
     <input id="pvDate" type="date">
 
@@ -342,14 +351,28 @@ function showMode(){
   $("profitInputs").style.display=profit?"block":"none";
   $("lossInputs").style.display=loss?"block":"none";
   $("resultNature").textContent=profit?"Bénéfice":loss?"Perte":"Résultat nul";
-  $("generateBtn").disabled=resultType==="zero" || resultAmount<=0;
   $("aiBtn").disabled=resultType==="zero" || resultAmount<=0;
+  updateGenerateAvailability();
 }
 
 function totals(){
   const allocated=resultType==="profit"?n("legalReserveAmount")+n("reserveAmount")+n("carryForwardAmount")+n("dividendAmount"):n("lossCarryForwardAmount");
   const remaining=+(resultAmount-allocated).toFixed(2);
   return{allocated,remaining};
+}
+
+function updateGenerateAvailability(){
+  const cb=$("allocationValidated");
+  const btn=$("generateBtn");
+  if(!btn)return;
+  const t=totals();
+  const balanced=Math.abs(t.remaining)<=0.01;
+  btn.disabled=resultType==="zero" || resultAmount<=0 || !balanced || !(cb&&cb.checked);
+}
+function resetAllocationValidation(){
+  const cb=$("allocationValidated");
+  if(cb)cb.checked=false;
+  updateGenerateAvailability();
 }
 
 function updateSummary(){
@@ -377,6 +400,7 @@ function updateSummary(){
   $("pvBtn").disabled=true;
   $("exportBar").style.display="none";
   setExtournesAccess(false);
+  updateGenerateAvailability();
 }
 
 function renderAllocationJustification(source="auto"){
@@ -404,7 +428,8 @@ function renderAllocationJustification(source="auto"){
     html = `
       <b>Justification chiffrée de l’affectation</b><br><br>
       Résultat bénéficiaire à affecter : <b>${money(result)}</b><br>
-      Réserve légale / autres réserves <b>1068</b> : <b>${money(reserve)}</b><br>
+      Réserve légale <b>1061</b> : <b>${money(legalReserve)}</b><br>
+      Autres réserves <b>1068</b> : <b>${money(reserve)}</b><br>
       Report à nouveau créditeur <b>110</b> : <b>${money(carry)}</b><br>
       Dividendes à payer <b>457</b> : <b>${money(dividend)}</b><br><br>
       Total affecté : <b>${money(total)}</b><br>
@@ -420,12 +445,18 @@ function renderAllocationJustification(source="auto"){
   $("allocationJustificationBox").innerHTML = html;
 }
 
-["legalReserveAmount","reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount","pvDate"].forEach(id=>{
+["legalReserveAmount","reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount"].forEach(id=>{
   $(id).addEventListener("input",()=>{
+    resetAllocationValidation();
     updateSummary();
     renderAllocationJustification();
   });
 });
+$("pvDate").addEventListener("input",()=>{
+  updateSummary();
+  renderAllocationJustification();
+});
+$("allocationValidated").addEventListener("change",updateGenerateAvailability);
 
 function clearStrategyVisuals(){
   document.querySelectorAll("[data-strategy-card]").forEach(card=>{
@@ -469,6 +500,7 @@ function strategyValues(strategy){
   return{legalReserveAmount:0,reserveAmount:otherReserve,carryForwardAmount:+(resultAmount-otherReserve).toFixed(2),dividendAmount:0,lossCarryForwardAmount:0};
 }
 function applyStrategy(strategy,values=null){
+  resetAllocationValidation();
   const v=values||strategyValues(strategy);
   set("legalReserveAmount",v.legalReserveAmount||0);
   set("reserveAmount",v.reserveAmount||0);
@@ -586,6 +618,9 @@ function renderEntries(rows){
 
 $("generateBtn").addEventListener("click",()=>{
   try{
+    if(!$("allocationValidated").checked){
+      throw new Error("Validez la répartition retenue avant de générer les écritures.");
+    }
     generatedRows=buildEntries();
     renderEntries(generatedRows);
     $("saveBtn").disabled=false;
@@ -614,6 +649,7 @@ async function saveAffectation(){
     vatRegime:vatText(currentClosure),
     resultType,
     resultAmount,
+    allocationValidated:!!$("allocationValidated").checked,
     legalReserveAmount:n("legalReserveAmount"),
     reserveAmount:n("reserveAmount"),
     carryForwardAmount:n("carryForwardAmount"),
@@ -763,6 +799,7 @@ async function loadClosure(user){
     set("carryForwardAmount",saved.carryForwardAmount||0);
     set("dividendAmount",saved.dividendAmount||0);
     set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
+    $("allocationValidated").checked=!!saved.allocationValidated;
     setExtournesAccess(true);
     
 updateSummary();
@@ -783,6 +820,7 @@ if(generatedRows.length){
     const today=new Date();
     set("pvDate",`${today.getFullYear()}-06-30`);
     set("legalReserveAmount",0);set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);set("lossCarryForwardAmount",0);
+    $("allocationValidated").checked=false;
     aiRecommendation=null;selectedStrategy=null;clearStrategyVisuals();$("autoBtn").disabled=true;
     updateSummary();
   }
