@@ -766,64 +766,21 @@ function detectPayroll(balanceRows, grandLivreRows, entries, controls, answers =
   const payrollRows = uniqueRows(allRows.filter(row => {
     const compte = getCompte(row);
     const text = getRowText(row);
-    return (
-      compte.startsWith("421") || compte.startsWith("428") || compte.startsWith("431") ||
-      compte.startsWith("437") || compte.startsWith("438") || compte.startsWith("641") ||
-      compte.startsWith("645") || text.includes("paie") || text.includes("salaire") ||
-      text.includes("conges payes") || text.includes("congés payés") || text.includes("urssaf")
-    );
+    return ["421","428","431","437","438","641","645"].some(p => compte.startsWith(p)) ||
+      text.includes("paie") || text.includes("salaire") || text.includes("conges payes") ||
+      text.includes("congés payés") || text.includes("urssaf");
   }));
 
-  const amount428 = amountByPrefixes(allRows, ["428"]);
-  const amount438 = amountByPrefixes(allRows, ["438"]);
-  const salaries = amountByPrefixes(allRows, ["641"]);
-  const socialCharges = amountByPrefixes(allRows, ["645"]);
-  const payrollRate = salaries && socialCharges ? socialCharges / salaries : null;
-
-  if (amount428) {
-    entries.push({
-      journal: "OD",
-      label: "Congés payés à payer - charge salariale",
-      debit: "641000",
-      credit: "428200",
-      amount: amount428,
-      justification: "Compte 428 détecté : congés payés ou éléments de paie à rattacher à l'exercice.",
-      confidence: 0.85,
-      source: "balance/grandLivre",
-      status: "À valider",
-    });
-  }
-
-  if (amount438) {
-    entries.push({
-      journal: "OD",
-      label: "Charges sociales à payer",
-      debit: "645000",
-      credit: "438600",
-      amount: amount438,
-      justification: "Compte 438 détecté : charges sociales à payer à rattacher à la clôture.",
-      confidence: 0.85,
-      source: "balance/grandLivre",
-      status: "À valider",
-    });
-  } else if (amount428 && payrollRate && payrollRate > 0 && payrollRate <= 1) {
-    const socialAmount = Math.round(amount428 * payrollRate * 100) / 100;
-    entries.push({
-      journal: "OD",
-      label: "Charges sociales sur congés payés",
-      debit: "645000",
-      credit: "438600",
-      amount: socialAmount,
-      justification: `Charges sociales estimées à partir du taux historique détecté : ${Math.round(payrollRate * 100)} %.`,
-      confidence: 0.75,
-      source: "balance/grandLivre",
-      status: "À valider",
-    });
-  }
+  // Priorité à la balance : un solde 428/438 présent à la clôture est une écriture déjà comptabilisée,
+  // pas une OD à recréer. Le grand livre n'est utilisé ici que pour le détail du contrôle.
+  const amount428 = amountByPrefixes(balanceRows, ["428"]);
+  const amount438 = amountByPrefixes(balanceRows, ["438"]);
+  const salaries = amountByPrefixes(balanceRows, ["641"]) || amountByPrefixes(grandLivreRows, ["641"]);
+  const socialCharges = amountByPrefixes(balanceRows, ["645"]) || amountByPrefixes(grandLivreRows, ["645"]);
 
   entries.push(makeAnalysisEntry({
     label: "Analyse paie / charges sociales",
-    amount: (amount428 || 0) + (amount438 || 0) + (socialCharges || 0) + (salaries || 0) || "À contrôler",
+    amount: (amount428 || 0) + (amount438 || 0) || "À contrôler",
     justification:
 `Paie et charges sociales détectées.
 
@@ -832,12 +789,12 @@ Charges sociales / compte 645 : ${formatEuro(socialCharges)}
 Personnel - charges à payer / compte 428 : ${formatEuro(amount428)}
 Organismes sociaux - charges à payer / compte 438 : ${formatEuro(amount438)}
 
-Contrôles à effectuer :
-- rapprocher les montants du journal de paie ;
-- contrôler les congés payés à payer ;
-- vérifier les charges sociales rattachées ;
-- vérifier les comptes 421, 428, 431, 437 et 438 avant validation définitive.`,
-    confidence: 0.8,
+${amount428 || amount438
+  ? "Les comptes 428/438 sont déjà présents dans la balance de clôture : aucune OD 641/428 ou 645/438 supplémentaire n'est générée afin d'éviter un doublon."
+  : "Aucun solde 428/438 exploitable n'est détecté dans la balance. Aucune OD automatique n'est générée sans détail de paie ou calcul de congés payés fiable."}
+
+Contrôles : rapprocher journal de paie, DSN, provision de congés payés et charges sociales associées.`,
+    confidence: 0.9,
     source: "balance/grandLivre",
     details: payrollRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
   }));
@@ -1315,23 +1272,78 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   }
 
   // Amortissements
-  if (hasAcc(["281", "681"]) && answers.immo === "yes") {
-    const amortRows = grandLivreRows.filter(row => {
+  // Page Résultat = uniquement ce qui nécessite encore une action du client.
+  // Les dotations déjà comptabilisées et cohérentes avec le tableau servent au rapprochement
+  // en arrière-plan mais ne sont pas affichées comme OD ni comme analyse à traiter.
+  if ((hasAcc(["281", "681"]) || amortissementRows.length) && answers.immo === "yes") {
+    const glAmortRows = uniqueRows(grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
-      return compte.startsWith("6811") || compte.startsWith("68112") || text.includes("dotation amortissement") || text.includes("dotation aux amortissements");
-    });
+      return compte.startsWith("6811") || text.includes("dotation amortissement") || text.includes("dotation aux amortissements");
+    }));
 
-    if (amortRows.length) {
-      amortRows.filter(row => getCompte(row).startsWith("681")).forEach(row => {
-        const credit = activity.includes("location meuble") ? "281300" : "281830";
-        entries.push(makeEntryFromRow(row, { label: "Dotation amortissement", debit: "681120", credit, justification: `Dotation amortissement détectée dans le grand livre. Vérifier le tableau d'amortissement.${userContext}`, confidence: 0.9 }));
+    const glAmortAmount = glAmortRows.reduce((sum, row) => sum + (getAmount(row) || 0), 0);
+
+    const amortTableDetails = amortissementRows.map(row => {
+      const annual = getAssetValue(row, [
+        "dotation exercice", "dotation de l'exercice", "dotation annuelle", "annuite", "annuité",
+        "amortissement exercice", "amortissement de l'exercice", "amortissement 2013"
+      ]);
+      return {
+        compte: normalizeAccountCode(getCell(row, ["compte amortissement", "compte d'amortissement", "compte 28"])) || "—",
+        libelle: String(getCell(row, ["designation", "désignation", "libelle", "libellé", "immobilisation"]) || getLibelle(row) || "Immobilisation"),
+        amount: annual || 0,
+      };
+    }).filter(d => d.amount);
+
+    const tableAmortAmount = amortTableDetails.reduce((sum, d) => sum + d.amount, 0);
+    const rawDifference = tableAmortAmount ? +(tableAmortAmount - glAmortAmount).toFixed(2) : 0;
+
+    if (tableAmortAmount && Math.abs(rawDifference) <= 0.01) {
+      // Contrôle satisfait : rien à passer, donc rien à afficher dans Résultat.
+      controls.push({
+        type: "amortisation_reconciled",
+        label: "Amortissements rapprochés : aucune OD complémentaire",
+        level: "info",
       });
+    } else if (tableAmortAmount && rawDifference > 0.01) {
+      // Seul le complément réellement manquant est proposé.
+      entries.push({
+        journal: "OD",
+        label: "Dotation amortissement à compléter",
+        debit: "681120",
+        credit: "Compte à déterminer",
+        amount: rawDifference,
+        justification: `Tableau d'amortissement : ${formatEuro(tableAmortAmount)}. Dotations 681 déjà comptabilisées : ${formatEuro(glAmortAmount)}. Seul l'écart restant de ${formatEuro(rawDifference)} est à comptabiliser. Ventiler le crédit sur le ou les comptes 28 correspondants à partir du tableau d'immobilisations.`,
+        confidence: 0.75,
+        source: "tableau amortissements/grandLivre",
+        status: "Proposée",
+        details: amortTableDetails,
+      });
+      controls.push({ type: "amortisation_difference", label: "Complément d'amortissement à comptabiliser", level: "warning" });
+    } else if (tableAmortAmount && rawDifference < -0.01) {
+      // Une sur-dotations apparente ne doit jamais produire automatiquement une OD inverse.
+      entries.push(makeAnalysisEntry({
+        label: "Analyse amortissements - écart à contrôler",
+        amount: Math.abs(rawDifference),
+        justification: `Dotations 681 comptabilisées : ${formatEuro(glAmortAmount)}. Dotation issue du tableau : ${formatEuro(tableAmortAmount)}. Le grand livre dépasse le tableau de ${formatEuro(Math.abs(rawDifference))}. Aucune OD inverse n'est générée automatiquement : contrôler les écritures et le tableau d'immobilisations.`,
+        confidence: 0.8,
+        source: "tableau amortissements/grandLivre",
+        details: amortTableDetails,
+      }));
+      controls.push({ type: "amortisation_excess", label: "Écart d'amortissement à contrôler", level: "warning" });
     } else {
-      const amortRow = findBalanceRow(balanceRows, ["681"]) || findBalanceRow(balanceRows, ["281"]);
-      const amount = amortRow ? getAmount(amortRow) : 0;
-      const credit = activity.includes("location meuble") ? "281300" : "281830";
-      entries.push({ journal: "OD", label: "Dotation amortissement", debit: "681120", credit, amount: amount || "À contrôler", justification: `Amortissement détecté dans la balance. Vérifier le tableau d'amortissement.${userContext}`, confidence: amount ? 0.9 : 0.65, source: "balance", status: "À valider" });
+      // Tableau absent ou inexploitable : les 681 existants ne sont pas reproposés,
+      // mais le contrôle reste une action à mener.
+      entries.push(makeAnalysisEntry({
+        label: "Analyse amortissements",
+        amount: glAmortAmount || "À contrôler",
+        justification: `Dotations 681 déjà comptabilisées : ${formatEuro(glAmortAmount)}. Le tableau d'amortissement est absent ou sa dotation de l'exercice n'est pas exploitable. Aucune OD existante n'est reproposée. Fournir ou contrôler le tableau d'immobilisations pour déterminer s'il reste une écriture à passer.`,
+        confidence: 0.7,
+        source: "grandLivre",
+        details: glAmortRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      }));
+      controls.push({ type: "amortisation_table_missing", label: "Tableau d'amortissement à contrôler", level: "warning" });
     }
   }
 
@@ -1568,9 +1580,20 @@ Aucune écriture automatique n'est proposée.
   }
 
   // TVA
+  // Un solde 44551 dans la balance correspond à une TVA à décaisser déjà comptabilisée :
+  // il doit être contrôlé, mais ne doit pas générer automatiquement une nouvelle OD 44571 / 44551.
   if (hasAcc(["44551"])) {
+    const vatRows = uniqueRows(allRows.filter(row => getCompte(row).startsWith("44551")));
+    const vatDue = getBalanceAmount(["44551"]) || vatRows.reduce((s, r) => s + getAmount(r), 0);
     controls.push({ type: "vat_due_detected", label: "TVA à décaisser détectée", level: "info" });
-    entries.push({ journal: "OD", label: "TVA à décaisser à contrôler", debit: "445710", credit: "445510", amount: getBalanceAmount(["44551"]) || "À contrôler", justification: `Compte 445510 détecté : TVA à décaisser.${userContext}`, confidence: 0.85, source: "balance", status: "À valider" });
+    entries.push(makeAnalysisEntry({
+      label: "Analyse TVA à décaisser",
+      amount: vatDue || "À contrôler",
+      justification: `Compte 44551 détecté pour ${formatEuro(vatDue)}. Ce solde est déjà comptabilisé dans la balance : aucune OD supplémentaire 44571 / 44551 n'est proposée. Rapprocher la déclaration de TVA, le compte 44571 et le paiement avant validation définitive.`,
+      confidence: 0.9,
+      source: "balance/grandLivre",
+      details: vatRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+    }));
   }
 
   // Emprunts / ICNE
@@ -1586,8 +1609,8 @@ Aucune écriture automatique n'est proposée.
     const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
     const loanEntryAmount = finalIcneAmount || "À calculer";
 
-    if (finalIcneAmount) {
-      entries.push({ journal: "OD", label: "Intérêts courus d'emprunt", debit: "661100", credit: "168800", amount: finalIcneAmount, justification: icneAmount ? `Compte 1688 détecté : intérêts courus non échus déjà identifiés dans la balance.${userContext}` : `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période.${userContext}`, confidence: icneAmount ? 0.85 : 0.8, source: icneAmount ? "balance" : "tableau emprunt", status: "Proposée" });
+    if (!icneAmount && calculatedIcne?.icne) {
+      entries.push({ journal: "OD", label: "Intérêts courus d'emprunt à comptabiliser", debit: "661100", credit: "168800", amount: calculatedIcne.icne, justification: `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période. Aucun solde 1688 n'est déjà présent dans la balance.${userContext}`, confidence: 0.8, source: "tableau emprunt", status: "Proposée" });
     }
 
     entries.push(makeAnalysisEntry({
