@@ -236,8 +236,22 @@ async function loadClosure(user){
   reviewItems=saved||((Array.isArray(currentClosure.entries)?currentClosure.entries:[])
     .filter(e=>{
       const journal=String(e.journal||"").toUpperCase();
-      if(journal==="ANALYSE") return true;
-      return true;
+      if(journal!=="ANALYSE") return true;
+
+      // Une analyse n'entre dans le dossier de révision que si elle nécessite
+      // réellement une intervention : montant non nul ou contrôle explicite.
+      const rawAmount=e.amount;
+      const numericAmount=Number(String(rawAmount??0).replace(/\s/g,"").replace(",",".").replace(/[^0-9.-]/g,""))||0;
+      const amountText=String(rawAmount??"").toLowerCase();
+      const text=[
+        e.label,e.justification,e.analysis,e.details,e.calculation,e.status
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      const explicitControl =
+        amountText.includes("contrô") ||
+        /à\s*contr[oô]ler|à\s*examiner|contr[oô]le\s+requis|vérifier|impossible\s+de\s+calculer/.test(text);
+
+      return Math.abs(numericAmount)>0.000001 || explicitControl;
     })
     .map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
