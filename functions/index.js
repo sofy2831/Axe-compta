@@ -394,7 +394,13 @@ function getCompte(row) {
 }
 
 function getLibelle(row) {
-  return String(row?.Libellé || row?.libelle || row?.Libelle || row?.Intitulé || row?.intitule || "ligne grand livre").trim();
+  return String(
+    row?.["Libellé opération"] || row?.["Libelle operation"] ||
+    row?.Libellé || row?.libelle || row?.Libelle ||
+    row?.["Intitulé compte"] || row?.["Intitule compte"] ||
+    row?.Intitulé || row?.intitule ||
+    "ligne grand livre"
+  ).trim();
 }
 
 function toNumber(value) {
@@ -452,6 +458,49 @@ function getAmount(row) {
   if (debit || credit) return Math.abs(debit || credit);
 
   return 0;
+}
+
+// Montant d'un mouvement du grand livre : ne jamais utiliser la colonne Solde,
+// qui est cumulative ligne après ligne dans certains logiciels (notamment Memsoft/Oxygène).
+function getMovementAmount(row) {
+  if (!row) return 0;
+  const keys = Object.keys(row);
+  const findKey = names => keys.find(k => {
+    const nk = normalizeText(k);
+    return names.some(name => nk === normalizeText(name));
+  });
+
+  const debitKey = findKey(["debit", "débit"]);
+  const creditKey = findKey(["credit", "crédit"]);
+  const debit = debitKey ? toNumber(row[debitKey]) : 0;
+  const credit = creditKey ? toNumber(row[creditKey]) : 0;
+  if (debit || credit) return Math.abs(debit - credit);
+
+  const montantKey = findKey(["montant"]);
+  if (montantKey) return Math.abs(toNumber(row[montantKey]));
+  return 0;
+}
+
+// Solde de clôture d'une ligne de balance. On privilégie explicitement
+// Solde Débit / Solde Crédit au lieu des à-nouveaux ou mouvements cumulés.
+function getClosingBalanceAmount(row) {
+  if (!row) return 0;
+  const keys = Object.keys(row);
+  const normalized = k => normalizeText(k).replace(/\s+/g, " ").trim();
+  const debitKey = keys.find(k => {
+    const nk = normalized(k);
+    return nk.includes("solde") && nk.includes("debit");
+  });
+  const creditKey = keys.find(k => {
+    const nk = normalized(k);
+    return nk.includes("solde") && nk.includes("credit");
+  });
+  if (debitKey || creditKey) {
+    const debit = debitKey ? toNumber(row[debitKey]) : 0;
+    const credit = creditKey ? toNumber(row[creditKey]) : 0;
+    return Math.abs(debit - credit);
+  }
+  return getAmount(row);
 }
 
 function accountStarts(row, prefixes) {
@@ -1282,7 +1331,7 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       return compte.startsWith("6811") || text.includes("dotation amortissement") || text.includes("dotation aux amortissements");
     }));
 
-    const glAmortAmount = glAmortRows.reduce((sum, row) => sum + (getAmount(row) || 0), 0);
+    const glAmortAmount = glAmortRows.reduce((sum, row) => sum + (getMovementAmount(row) || 0), 0);
 
     const amortTableDetails = amortissementRows.map(row => {
       const annual = getAssetValue(row, [
@@ -1338,10 +1387,10 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
       entries.push(makeAnalysisEntry({
         label: "Analyse amortissements",
         amount: glAmortAmount || "À contrôler",
-        justification: `Dotations 681 déjà comptabilisées : ${formatEuro(glAmortAmount)}. Le tableau d'amortissement est absent ou sa dotation de l'exercice n'est pas exploitable. Aucune OD existante n'est reproposée. Fournir ou contrôler le tableau d'immobilisations pour déterminer s'il reste une écriture à passer.`,
+        justification: `Dotations 681 déjà comptabilisées : ${formatEuro(glAmortAmount)}. Le tableau d'amortissement est présent mais ne fournit pas de colonne explicite de dotation de l'exercice exploitable, ou cette information est absente. Aucune OD existante n'est reproposée. Fournir ou contrôler le tableau d'immobilisations pour déterminer s'il reste une écriture à passer.`,
         confidence: 0.7,
         source: "grandLivre",
-        details: glAmortRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+        details: glAmortRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getMovementAmount(row) || 0 })),
       }));
       controls.push({ type: "amortisation_table_missing", label: "Tableau d'amortissement à contrôler", level: "warning" });
     }
@@ -1378,11 +1427,18 @@ Contrôles à effectuer :
 
   // Comptes d'attente 471/472
   if (hasAcc(["471", "472"])) {
-    const waitingRows = uniqueRows(allRows.filter(row => {
+    const waitingBalanceRows = balanceRows.filter(row => {
+      const compte = getCompte(row);
+      return compte.startsWith("471") || compte.startsWith("472");
+    });
+    const waitingLedgerRows = uniqueRows(grandLivreRows.filter(row => {
       const compte = getCompte(row);
       return compte.startsWith("471") || compte.startsWith("472");
     }));
-    const totalWaiting = waitingRows.reduce((total, row) => total + (getAmount(row) || 0), 0);
+
+    // Pour une clôture, le montant à traiter est le SOLDE de clôture de la balance,
+    // pas la somme des soldes successifs du grand livre.
+    const totalWaiting = waitingBalanceRows.reduce((total, row) => total + (getClosingBalanceAmount(row) || 0), 0);
 
     entries.push(makeAnalysisEntry({
       label: "Comptes d'attente",
@@ -1390,18 +1446,29 @@ Contrôles à effectuer :
       justification:
 `Comptes d'attente détectés.
 
-Nombre de mouvements : ${waitingRows.length}
-Montant cumulé : ${formatEuro(totalWaiting)}
+Solde de clôture 471/472 : ${formatEuro(totalWaiting)}
+Nombre de mouvements visibles dans le grand livre : ${waitingLedgerRows.length}
 
 Contrôles à effectuer :
-- identifier l'origine des soldes ;
+- identifier l'origine du solde de clôture ;
 - régulariser avant clôture si possible ;
 - vérifier l'absence d'anciens mouvements ;
 - contrôler qu'il ne s'agit pas d'erreurs d'imputation.
-Cliquer sur « Voir » pour afficher le détail des mouvements.`,
-      confidence: 0.85,
+Cliquer sur « Voir » pour afficher le solde et le détail des mouvements.`,
+      confidence: 0.9,
       source: "balance/grandLivre",
-      details: waitingRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
+      details: [
+        ...waitingBalanceRows.map(row => ({
+          compte: getCompte(row),
+          libelle: `${getLibelle(row)} — solde de clôture`,
+          amount: getClosingBalanceAmount(row) || 0
+        })),
+        ...waitingLedgerRows.map(row => ({
+          compte: getCompte(row),
+          libelle: getLibelle(row),
+          amount: getMovementAmount(row) || 0
+        }))
+      ],
     }));
     controls.push({ type: "waiting_account_detected", label: "Compte d'attente détecté", level: "warning" });
   }
