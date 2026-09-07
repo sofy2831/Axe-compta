@@ -1669,12 +1669,25 @@ Aucune écriture automatique n'est proposée.
     const interestRow = findFirstRowByPrefixes(balanceRows, ["661"]) || findFirstRowByPrefixes(grandLivreRows, ["661"]);
     const icneRow = findFirstRowByPrefixes(balanceRows, ["1688"]) || findFirstRowByPrefixes(grandLivreRows, ["1688"]);
 
-    const capitalAmount = loanRow ? getAmount(loanRow) : 0;
+    // Pour les comptes de bilan (164 / 1688), utiliser le solde de clôture de la balance.
+    // Ne jamais reprendre l'à-nouveau ou un solde intermédiaire du grand livre.
+    const capitalBalanceRow = findFirstRowByPrefixes(balanceRows, ["164"]);
+    const icneBalanceRow = findFirstRowByPrefixes(balanceRows, ["1688"]);
+    const capitalAmount = capitalBalanceRow
+      ? getClosingBalanceAmount(capitalBalanceRow)
+      : (loanRow ? getAmount(loanRow) : 0);
     const interestAmount = interestRow ? getAmount(interestRow) : 0;
-    const icneAmount = icneRow ? getAmount(icneRow) : 0;
+    const icneAmount = icneBalanceRow
+      ? getClosingBalanceAmount(icneBalanceRow)
+      : (icneRow ? getAmount(icneRow) : 0);
     const calculatedIcne = findLoanIcne(empruntRows, closure.endDate);
     const finalIcneAmount = icneAmount || calculatedIcne?.icne || 0;
-    const loanEntryAmount = finalIcneAmount || "À calculer";
+
+    // Dans la ligne ANALYSE, le montant affiché est le montant de référence du contrôle :
+    // - ICNE s'il est connu/calculé ;
+    // - sinon capital restant dû au 31/12.
+    // Ce montant n'est pas une OD : il sert uniquement à rendre l'analyse explicite.
+    const loanEntryAmount = finalIcneAmount || capitalAmount || "À calculer";
 
     if (!icneAmount && calculatedIcne?.icne) {
       entries.push({ journal: "OD", label: "Intérêts courus d'emprunt à comptabiliser", debit: "661100", credit: "168800", amount: calculatedIcne.icne, justification: `ICNE calculé depuis le tableau d'emprunt : ${calculatedIcne.elapsedDays} jours courus / ${calculatedIcne.periodDays} jours de période. Aucun solde 1688 n'est déjà présent dans la balance.${userContext}`, confidence: 0.8, source: "tableau emprunt", status: "Proposée" });
@@ -1684,10 +1697,10 @@ Aucune écriture automatique n'est proposée.
       label: "Analyse emprunt",
       amount: loanEntryAmount,
       justification: icneAmount
-        ? `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.`
+        ? `Emprunt détecté.\n\nCapital restant dû au ${closure.endDate ? new Date(closure.endDate).toLocaleDateString("fr-FR") : "jour de clôture"} / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\nICNE repris du compte 1688 : ${formatEuro(icneAmount)}\n\nLe compte 1688 étant présent dans la balance, ce montant est repris directement.`
         : calculatedIcne
           ? `Emprunt détecté.\n\nBanque : ${calculatedIcne.bank || "?"}\nRéférence : ${calculatedIcne.reference || "?"}\n\nPériode : ${calculatedIcne.start.toLocaleDateString("fr-FR")} → ${calculatedIcne.due.toLocaleDateString("fr-FR")}\nJours courus : ${calculatedIcne.elapsedDays}\nJours période : ${calculatedIcne.periodDays}\nIntérêts de l'échéance : ${formatEuro(calculatedIcne.interest)}\nICNE calculé : ${formatEuro(calculatedIcne.icne)}\n\nÉcriture proposée : débit 661100 / crédit 168800.${userContext}`
-          : `Emprunt détecté.\n\nCapital restant dû / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\n\nImpossible de calculer les ICNE automatiquement. Le tableau d'emprunt est absent ou inexploitable.`,
+          : `Emprunt détecté.\n\nCapital restant dû au ${closure.endDate ? new Date(closure.endDate).toLocaleDateString("fr-FR") : "jour de clôture"} / compte 164 : ${formatEuro(capitalAmount)}\nIntérêts comptabilisés / compte 661 : ${formatEuro(interestAmount)}\n\nImpossible de calculer les ICNE automatiquement. Le tableau d'emprunt est absent ou inexploitable.`,
       confidence: icneAmount ? 0.85 : calculatedIcne ? 0.8 : 0.55,
       source: icneAmount ? "balance" : calculatedIcne ? "tableau emprunt" : "analyse",
     }));
