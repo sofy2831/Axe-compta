@@ -284,15 +284,84 @@ function renderRows(rows){
 }
 function lockScore(){ $("scoreBtn").classList.add("disabledLink"); $("scoreBtn").setAttribute("aria-disabled","true"); }
 function unlockScore(){ $("scoreBtn").classList.remove("disabledLink"); $("scoreBtn").removeAttribute("aria-disabled"); }
-function generate(){
+
+async function validateNoExtournes(){
+  if(!currentUser || !closureId) return;
+
+  const payload = {
+    extournesN1:{
+      date:$("extourneDate").value,
+      journal:$("journalCode").value || "OD",
+      entries:[],
+      excludedEntries:[],
+      count:0,
+      total:0,
+      status:"completed",
+      noExtourneRequired:true,
+      generatedAfterAffectationAt:currentClosure?.affectationResult?.updatedAt || null,
+      updatedAt:new Date().toISOString()
+    },
+    workflowStep:"extournes_n1",
+    updatedAt:serverTimestamp()
+  };
+
+  if(isSoloClosure()){
+    payload.soloClosureLocked = true;
+    payload.soloClosureLockedAt = serverTimestamp();
+    payload.soloClosureLockedStep = "extournes";
+  }
+
+  await setDoc(closureRef(), payload, { merge:true });
+
+  currentClosure = {
+    ...currentClosure,
+    extournesN1: payload.extournesN1,
+    workflowStep:"extournes_n1",
+    soloClosureLocked: isSoloClosure() ? true : currentClosure?.soloClosureLocked,
+    soloClosureLockedStep: isSoloClosure() ? "extournes" : currentClosure?.soloClosureLockedStep
+  };
+
+  const scoreUrl = `score-qualite.html?id=${closureId}${ownerQueryParam()}`;
+  $("scoreBtn").href = scoreUrl;
+  $("modalScoreBtn").href = scoreUrl;
+  unlockScore();
+
+  $("noticeBox").className="notice";
+  $("noticeBox").innerHTML =
+    '<b class="ok">Étape Extournes validée.</b><br>' +
+    'Aucune écriture ne nécessite de contrepassation au ' +
+    sanitize(isoToFr($("extourneDate").value)) +
+    '. Vous pouvez poursuivre le contrôle de clôture.';
+
+  $("exportBar").style.display="block";
+  $("printBtn").style.display="none";
+  $("csvBtn").style.display="none";
+  $("excelBtn").style.display="none";
+  $("saveBtn").style.display="none";
+  $("scoreBtn").textContent="Score qualité →";
+}
+async function generate(){
   extourneRows=computeExtournes();
   renderRows(extourneRows);
   updateMetrics();
   renderModules();
+  renderPrint();
+
+  if(!extourneRows.length){
+    $("saveBtn").disabled=true;
+    $("saveBtn").textContent="Enregistrer les extournes";
+    lockScore();
+    await validateNoExtournes();
+    return;
+  }
+
+  $("printBtn").style.display="";
+  $("csvBtn").style.display="";
+  $("excelBtn").style.display="";
+  $("saveBtn").style.display="";
   $("saveBtn").disabled=!includedRows().length;
   $("saveBtn").textContent="Enregistrer les extournes";
-  $("exportBar").style.display=extourneRows.length?"block":"none";
-  renderPrint();
+  $("exportBar").style.display="block";
   lockScore();
 }
 async function saveExtournes(){
@@ -382,6 +451,24 @@ async function loadClosure(user){
     $("exportBar").style.display="block";
     renderPrint();
     unlockScore();
+  }else if(saved && saved.status==="completed" && saved.noExtourneRequired===true){
+    set("extourneDate",saved.date || $("extourneDate").value);
+    set("journalCode",saved.journal || "OD");
+    extourneRows=[];
+    renderRows(extourneRows);
+    $("noticeBox").className="notice";
+    $("noticeBox").innerHTML =
+      '<b class="ok">Étape Extournes validée.</b><br>' +
+      'Aucune écriture ne nécessite de contrepassation au ' +
+      sanitize(isoToFr($("extourneDate").value)) +
+      '. Vous pouvez poursuivre le contrôle de clôture.';
+    $("exportBar").style.display="block";
+    $("printBtn").style.display="none";
+    $("csvBtn").style.display="none";
+    $("excelBtn").style.display="none";
+    $("saveBtn").style.display="none";
+    $("scoreBtn").textContent="Score qualité →";
+    unlockScore();
   }else{
     lockScore();
   }
@@ -390,7 +477,7 @@ async function loadClosure(user){
   updateMetrics();
 }
 
-$("generateBtn").addEventListener("click", generate);
+$("generateBtn").addEventListener("click",()=>generate().catch(e=>{console.error(e);alert("Erreur lors de la validation des extournes.")}));
 $("saveBtn").addEventListener("click",()=>saveExtournes().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 $("journalCode").addEventListener("input",()=>{ if(extourneRows.length) generate(); });
 $("extourneDate").addEventListener("input",()=>{ if(extourneRows.length) generate(); else updateMetrics(); });
