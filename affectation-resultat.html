@@ -75,10 +75,10 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 
     <div id="profitInputs">
       <div class="grid4">
-        <div><label>Réserve légale - 1061</label><input id="legalReserveAmount" type="number" step="0.01" value="0"></div>
-        <div><label>Autres réserves - 1068</label><input id="reserveAmount" type="number" step="0.01" value="0"></div>
-        <div><label>Report à nouveau créditeur - 110</label><input id="carryForwardAmount" type="number" step="0.01" value="0"></div>
-        <div><label>Dividendes à payer - 457</label><input id="dividendAmount" type="number" step="0.01" value="0"></div>
+        <div><label>Réserve légale - 1061</label><div class="grid" style="grid-template-columns:1fr 90px;gap:8px"><input id="legalReserveAmount" type="number" step="0.01" min="0" value="0"><input id="legalReservePct" type="number" step="0.01" min="0" max="100" value="0" title="% du résultat"></div><span class="muted" style="font-size:12px">Montant € / % du résultat</span></div>
+        <div><label>Autres réserves - 1068</label><div class="grid" style="grid-template-columns:1fr 90px;gap:8px"><input id="reserveAmount" type="number" step="0.01" min="0" value="0"><input id="reservePct" type="number" step="0.01" min="0" max="100" value="0" title="% du résultat"></div><span class="muted" style="font-size:12px">Montant € / % du résultat</span></div>
+        <div><label>Report à nouveau créditeur - 110</label><div class="grid" style="grid-template-columns:1fr 90px;gap:8px"><input id="carryForwardAmount" type="number" step="0.01" min="0" value="0"><input id="carryForwardPct" type="number" step="0.01" min="0" max="100" value="0" title="% du résultat"></div><span class="muted" style="font-size:12px">Montant € / % du résultat</span></div>
+        <div><label>Dividendes à payer - 457</label><div class="grid" style="grid-template-columns:1fr 90px;gap:8px"><input id="dividendAmount" type="number" step="0.01" min="0" value="0"><input id="dividendPct" type="number" step="0.01" min="0" max="100" value="0" title="% du résultat"></div><span class="muted" style="font-size:12px">Montant € / % du résultat</span></div>
       </div>
       <div class="cards3">
         <div class="choice" data-strategy-card="prudent"><b>Prudent</b><p>Ventilation prudentielle proposée par l’IA, à valider et adapter selon les réserves existantes, les statuts et la décision de l’Assemblée Générale. ✔ Renforce les capitaux propres.</p><button class="btn secondary small" type="button" data-strategy="prudent">Choisir</button></div>
@@ -93,14 +93,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <div class="choice" data-strategy-card="loss" style="margin-top:12px"><b>Perte détectée</b><p>La perte est affectée automatiquement en report à nouveau débiteur. Après application de la recommandation IA, vous pouvez générer les écritures.</p></div>
     </div>
 
-    <div id="allocationValidationBox" class="notice" style="margin-top:14px">
-      <b>Répartition à valider</b>
-      <p style="margin:7px 0 10px">Vérifiez et ajustez les montants proposés ci-dessus en fonction des réserves existantes, des statuts et de la décision de l’Assemblée Générale.</p>
-      <label style="display:flex;gap:9px;align-items:flex-start;font-weight:800;cursor:pointer">
-        <input id="allocationValidated" type="checkbox" style="width:auto;margin-top:3px">
-        <span>Je valide cette répartition pour l’affectation du résultat.</span>
-      </label>
-    </div>
+    <div class="notice" style="margin-top:14px"><b>Répartition libre</b><br>Vous pouvez saisir un <b>montant</b> ou un <b>pourcentage</b>. L’autre valeur se calcule automatiquement. Les écritures peuvent être générées dès que le résultat est réparti à 100 %.</div>
 
     <label>Date du PV d’Assemblée Générale</label>
     <input id="pvDate" type="date">
@@ -118,7 +111,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <button class="btn secondary" type="button" id="csvBtn">CSV</button>
       <button class="btn secondary" type="button" id="excelBtn">Excel</button>
        <button class="btn warn" type="button" id="saveBtn" disabled>Enregistrer l’affectation</button>
-  <button class="btn secondary" type="button" id="pvBtn" disabled>PV d’AG / PDF</button>
+  <button class="btn secondary" type="button" id="pvBtn" disabled>Télécharger le PV d’AG</button>
       <a class="btn" id="extournesExportBtn" href="extournes-automatiques.html">Extournes N+1</a>
     </div>
     <div class="notice">Après enregistrement de l’affectation, passer aux extournes N+1. Le score qualité final arrive seulement après les extournes.</div>
@@ -362,24 +355,26 @@ function totals(){
 }
 
 function updateGenerateAvailability(){
-  const cb=$("allocationValidated");
   const btn=$("generateBtn");
   if(!btn)return;
   const t=totals();
   const balanced=Math.abs(t.remaining)<=0.01;
-  btn.disabled=resultType==="zero" || resultAmount<=0 || !balanced || !(cb&&cb.checked);
+  btn.disabled=resultType==="zero" || resultAmount<=0 || !balanced;
 }
-function resetAllocationValidation(){
-  const cb=$("allocationValidated");
-  if(cb)cb.checked=false;
-  updateGenerateAvailability();
-}
+
+function round2(v){return Math.round((Number(v)||0)*100)/100}
+const allocationPairs=[["legalReserveAmount","legalReservePct"],["reserveAmount","reservePct"],["carryForwardAmount","carryForwardPct"],["dividendAmount","dividendPct"]];
+function syncPctFromAmount(amountId,pctId){const pct=resultAmount>0?round2((n(amountId)/resultAmount)*100):0;set(pctId,pct);}
+function syncAmountFromPct(amountId,pctId){let pct=Math.max(0,Math.min(100,n(pctId)));set(pctId,round2(pct));set(amountId,round2(resultAmount*pct/100));}
+function syncAllPercents(){allocationPairs.forEach(([a,p])=>syncPctFromAmount(a,p));}
 
 function updateSummary(){
   const t=totals();
   $("resultAmountLabel").textContent=euro(resultAmount);
-  $("allocatedLabel").textContent=euro(t.allocated);
-  $("remainingLabel").textContent=euro(t.remaining);
+  const allocatedPct=resultAmount?round2((t.allocated/resultAmount)*100):0;
+  const remainingPct=resultAmount?round2((t.remaining/resultAmount)*100):0;
+  $("allocatedLabel").textContent=`${euro(t.allocated)} · ${nf.format(allocatedPct)} %`;
+  $("remainingLabel").textContent=`${euro(t.remaining)} · ${nf.format(remainingPct)} %`;
   const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;
   $("progressBar").style.width=pct+"%";
 
@@ -445,18 +440,12 @@ function renderAllocationJustification(source="auto"){
   $("allocationJustificationBox").innerHTML = html;
 }
 
-["legalReserveAmount","reserveAmount","carryForwardAmount","dividendAmount","lossCarryForwardAmount"].forEach(id=>{
-  $(id).addEventListener("input",()=>{
-    resetAllocationValidation();
-    updateSummary();
-    renderAllocationJustification();
-  });
+allocationPairs.forEach(([amountId,pctId])=>{
+  $(amountId).addEventListener("input",()=>{syncPctFromAmount(amountId,pctId);updateSummary();renderAllocationJustification();});
+  $(pctId).addEventListener("input",()=>{syncAmountFromPct(amountId,pctId);updateSummary();renderAllocationJustification();});
 });
-$("pvDate").addEventListener("input",()=>{
-  updateSummary();
-  renderAllocationJustification();
-});
-$("allocationValidated").addEventListener("change",updateGenerateAvailability);
+$("lossCarryForwardAmount").addEventListener("input",()=>{updateSummary();renderAllocationJustification();});
+$("pvDate").addEventListener("input",()=>{updateSummary();renderAllocationJustification();});
 
 function clearStrategyVisuals(){
   document.querySelectorAll("[data-strategy-card]").forEach(card=>{
@@ -500,13 +489,13 @@ function strategyValues(strategy){
   return{legalReserveAmount:0,reserveAmount:otherReserve,carryForwardAmount:+(resultAmount-otherReserve).toFixed(2),dividendAmount:0,lossCarryForwardAmount:0};
 }
 function applyStrategy(strategy,values=null){
-  resetAllocationValidation();
   const v=values||strategyValues(strategy);
   set("legalReserveAmount",v.legalReserveAmount||0);
   set("reserveAmount",v.reserveAmount||0);
   set("carryForwardAmount",v.carryForwardAmount||0);
   set("dividendAmount",v.dividendAmount||0);
   set("lossCarryForwardAmount",v.lossCarryForwardAmount||0);
+  syncAllPercents();
   selectedStrategy=strategy;
   markStrategy(strategy,{recommended:!!(aiRecommendation&&aiRecommendation.strategy===strategy),selected:true});
   updateSummary();
@@ -618,9 +607,6 @@ function renderEntries(rows){
 
 $("generateBtn").addEventListener("click",()=>{
   try{
-    if(!$("allocationValidated").checked){
-      throw new Error("Validez la répartition retenue avant de générer les écritures.");
-    }
     generatedRows=buildEntries();
     renderEntries(generatedRows);
     $("saveBtn").disabled=false;
@@ -649,7 +635,6 @@ async function saveAffectation(){
     vatRegime:vatText(currentClosure),
     resultType,
     resultAmount,
-    allocationValidated:!!$("allocationValidated").checked,
     legalReserveAmount:n("legalReserveAmount"),
     reserveAmount:n("reserveAmount"),
     carryForwardAmount:n("carryForwardAmount"),
@@ -721,26 +706,7 @@ function docHtml(title="Affectation du résultat", subtitle="Écritures et déci
 function pvDocHtml(){
   const nature=resultType==="profit"?"bénéfice":"perte";
   const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;
-  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Procès-verbal d'Assemblée Générale Ordinaire</div><div class="docSub">Affectation du résultat</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date de l’assemblée</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${money(resultAmount)}</td></tr></table><h3>Première résolution — Affectation du résultat</h3><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Écritures comptables résultant de la décision</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div style="margin-top:28px;page-break-inside:avoid">
-  <p style="margin:0 0 26px">Fait à ________________________________ le ________________________________</p>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:8px">
-    <div>
-      <p style="margin:0 0 18px"><strong>Le représentant légal</strong></p>
-      <p style="margin:0 0 18px">Nom : ________________________________________</p>
-      <p style="margin:0 0 18px">Qualité : _____________________________________</p>
-      <p style="margin:0 0 8px">Signature :</p>
-      <div style="height:95px;border-bottom:1px solid #777"></div>
-    </div>
-    <div>
-      <p style="margin:0 0 18px"><strong>Associé / Président de séance</strong></p>
-      <p style="margin:0 0 18px">Nom : ________________________________________</p>
-      <p style="margin:0 0 18px">Qualité : _____________________________________</p>
-      <p style="margin:0 0 8px">Signature :</p>
-      <div style="height:95px;border-bottom:1px solid #777"></div>
-    </div>
-  </div>
-  <div style="height:46px"></div>
-</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
+  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Procès-verbal d'Assemblée Générale Ordinaire</div><div class="docSub">Affectation du résultat</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date de l’assemblée</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${money(resultAmount)}</td></tr></table><h3>Première résolution — Affectation du résultat</h3><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Écritures comptables résultant de la décision</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div style="margin-top:28px;line-height:1.9;page-break-inside:avoid"><p>Fait à ____________________________ le ____________________________</p><p><strong>Le représentant légal</strong></p><p>Nom : ____________________________ Qualité : ____________________________</p><p>Signature : ____________________________</p></div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 
 const printCss = `@page{size:A4;margin:12mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.25;color:#111;background:#fff;font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:12px;margin-bottom:18px}.docLogo{max-height:45px;margin-bottom:8px}.docTitle{font-size:20px;font-weight:800;text-transform:uppercase}.docSub{font-size:12px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:12px 0}.docInfo td{border:1px solid #c8d0da;padding:6px 8px;font-size:11px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{border:1px solid #c8d0da;padding:5px 6px;font-size:9.5px;vertical-align:top}th{background:#f3f6fa;color:#111;text-transform:uppercase}.amount,.num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:10px 12px;margin:14px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:10px 12px;margin:14px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:8px;font-size:10px;text-align:center;color:#555}h3{font-size:12pt;margin:14px 0 6px;color:#173f6f;text-transform:uppercase}`;
@@ -762,16 +728,7 @@ function csvContent(){const rows=getExportRows();const header=["Journal","Libell
 $("printBtn").addEventListener("click",openPrintDoc);
 $("csvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.csv`,"\ufeff"+csvContent(),"text/csv;charset=utf-8")}catch(e){alert(e.message)}});
 $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affectation-resultat-${cleanFile($("companyName").value)}.xls`,htmlPage(docHtml()),"application/vnd.ms-excel;charset=utf-8")}catch(e){alert(e.message)}});
-$("pvBtn").addEventListener("click",()=>{
-  try{
-    ensureGenerated();
-    const w=window.open("","_blank");
-    if(!w)throw new Error("Le navigateur a bloqué l’ouverture du PV.");
-    w.document.open();
-    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvDocHtml()}<script>window.onload=()=>{setTimeout(()=>window.print(),150)};<\/script></body></html>`);
-    w.document.close();
-  }catch(e){alert(e.message)}
-});
+$("pvBtn").addEventListener("click",()=>{try{ensureGenerated();download(`pv-ag-affectation-resultat-${cleanFile($("companyName").value)}.doc`,htmlPage(pvDocHtml()),"application/msword;charset=utf-8")}catch(e){alert(e.message)}});
 
 async function loadClosure(user){
   if(!closureId){
@@ -827,7 +784,7 @@ async function loadClosure(user){
     set("carryForwardAmount",saved.carryForwardAmount||0);
     set("dividendAmount",saved.dividendAmount||0);
     set("lossCarryForwardAmount",saved.lossCarryForwardAmount||0);
-    $("allocationValidated").checked=!!saved.allocationValidated;
+    syncAllPercents();
     setExtournesAccess(true);
     
 updateSummary();
@@ -848,7 +805,7 @@ if(generatedRows.length){
     const today=new Date();
     set("pvDate",`${today.getFullYear()}-06-30`);
     set("legalReserveAmount",0);set("reserveAmount",0);set("carryForwardAmount",0);set("dividendAmount",0);set("lossCarryForwardAmount",0);
-    $("allocationValidated").checked=false;
+    syncAllPercents();
     aiRecommendation=null;selectedStrategy=null;clearStrategyVisuals();$("autoBtn").disabled=true;
     updateSummary();
   }
