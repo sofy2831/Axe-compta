@@ -483,10 +483,9 @@ function strategyValues(strategy){
   if(strategy==="distribution")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:0,dividendAmount:resultAmount,lossCarryForwardAmount:0};
   if(strategy==="report")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:resultAmount,dividendAmount:0,lossCarryForwardAmount:0};
 
-  // Stratégie "Prudent" : une seule règle côté interface.
+  // Stratégie "Prudent" : règle unique côté interface.
   // 5 % en autres réserves (1068) + 95 % en report à nouveau (110).
-  // Cette ventilation reste une recommandation à valider : elle ne constitue
-  // ni une obligation de réserve légale, ni une règle statutaire automatique.
+  // Cette ventilation est indicative et ne constitue pas une obligation légale automatique.
   const otherReserve=round2(resultAmount*0.05);
   const carryForward=round2(resultAmount-otherReserve);
   return{
@@ -535,8 +534,6 @@ const AI_AFFECTATION_URL = "https://europe-west9-axe-compta.cloudfunctions.net/a
 
 $("autoBtn").addEventListener("click",()=>{
   if(!aiRecommendation)return;
-  // Utilise exactement la même règle que le bouton "Choisir" de la carte.
-  // Cela évite qu'une même stratégie "Prudent" produise deux répartitions différentes.
   applyStrategy(aiRecommendation.strategy);
 });
 document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
@@ -770,12 +767,31 @@ $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affe
 $("pvBtn").addEventListener("click",()=>{
   try{
     ensureGenerated();
-    const w=window.open("","_blank");
-    if(!w)throw new Error("Le navigateur a bloqué l’ouverture du PV.");
     const pvHtml=pvDocHtml();
-    w.document.open();
-    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}<script>window.onload=()=>{setTimeout(()=>window.print(),180)};<\/script></body></html>`);
-    w.document.close();
+
+    // Impression dans un iframe invisible : évite l'ouverture d'un onglet about:blank.
+    const iframe=document.createElement("iframe");
+    iframe.style.position="fixed";
+    iframe.style.right="0";
+    iframe.style.bottom="0";
+    iframe.style.width="0";
+    iframe.style.height="0";
+    iframe.style.border="0";
+    iframe.style.visibility="hidden";
+    document.body.appendChild(iframe);
+
+    const doc=iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}</body></html>`);
+    doc.close();
+
+    iframe.onload=()=>{
+      setTimeout(()=>{
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(()=>iframe.remove(),800);
+      },180);
+    };
   }catch(e){
     alert(e.message||"Impossible d’ouvrir le PV d’AG.");
   }
