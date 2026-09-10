@@ -194,12 +194,35 @@ function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?
 function formatAccount(v){const s=String(v??"").trim();return /^compte\s*à?\s*d[ée]terminer$/i.test(s.replace(/à/g,"à"))||/^compteàd[ée]terminer$/i.test(s)?"Compte à déterminer":s;}
 function rows(entries){return (Array.isArray(entries)?entries:[]).map(e=>`<tr><td>${sanitize(e.journal||"OD")}</td><td>${sanitize(e.label||e.libelle||"")}</td><td>${sanitize(formatAccount(e.debit))}</td><td>${sanitize(formatAccount(e.credit))}</td><td class="num">${euro(e.amount)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune ligne.</td></tr>';}
 function reviewRows(items){return (Array.isArray(items)?items:[]).map(i=>`<tr><td>${sanitize(i.label||"")}</td><td>${sanitize(i.status||"")}</td><td>${sanitize(i.document||"")}</td><td>${sanitize(i.comment||"")}</td></tr>`).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';}
+function definitiveClosingEntries(c){
+  const source=Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length
+    ? c.dossierRevision.items
+    : (Array.isArray(c?.entries)?c.entries:[]);
+  return source.filter(e=>{
+    const journal=String(e?.journal||"").trim().toUpperCase();
+    const status=String(e?.status||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    const debit=String(e?.debit||"").trim();
+    const credit=String(e?.credit||"").trim();
+    const montant=Math.abs(Number(String(e?.amount??e?.montant??0).replace(",", ".")))||0;
+    const isAnalysis=journal==="ANALYSE";
+    const isRetained=["revision validee","valide","validee","retenue","retenu"].includes(status);
+    const hasRealAccounts=debit && credit && !/compte\s*[àa]?\s*d[eé]terminer/i.test(debit+" "+credit);
+    return !isAnalysis && isRetained && hasRealAccounts && montant>0;
+  });
+}
+function definitiveRows(c){
+  const entries=definitiveClosingEntries(c);
+  if(!entries.length){
+    return '<tr><td colspan="5">Aucune OD de clôture supplémentaire à comptabiliser. Les points de contrôle ont été traités dans le dossier de révision.</td></tr>';
+  }
+  return rows(entries);
+}
 function docHtml(){
  const c=currentClosure||{}, s=scoreValue(c), valid=c.validated===true;
  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Rapport de clôture comptable</div><div class="docSub">Synthèse finale du dossier</div></div>
  <table class="docInfo"><tr><td>Société</td><td>${sanitize(c.companyName||"Société sans nom")}</td></tr><tr><td>Exercice</td><td>${sanitize(fiscalYear(c)||"—")}</td></tr><tr><td>Statut validation</td><td>${valid?"Validée définitivement":"Non validée"}</td></tr><tr><td>Score qualité</td><td>${s===null?"—":s+"/100"}</td></tr></table>
  <div class="${valid?"docOk":"docWarn"}">${valid?"Clôture validée définitivement.":"Clôture non validée définitivement."}</div>
- <h3>1. Écritures de clôture définitives</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.entries)}</tbody></table>
+ <h3>1. Écritures de clôture définitives</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${definitiveRows(c)}</tbody></table>
  <h3>2. Dossier de révision</h3><table><thead><tr><th>Point</th><th>Statut</th><th>Justificatif</th><th>Commentaire</th></tr></thead><tbody>${reviewRows(c.dossierRevision?.items)}</tbody></table>
  <h3>3. Affectation du résultat</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.affectationResult?.entries)}</tbody></table>
  <h3>4. Extournes N+1</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.extournesN1?.entries)}</tbody></table>
