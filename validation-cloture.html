@@ -79,7 +79,23 @@ function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?
 function hasEntries(c){return Array.isArray(c?.entries)&&c.entries.length>0;}
 function hasReview(c){return c?.dossierRevision?.status==="completed" || (Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length>0);}
 function hasAffect(c){return Array.isArray(c?.affectationResult?.entries)&&c.affectationResult.entries.length>0;}
-function hasExt(c){return Array.isArray(c?.extournesN1?.entries)&&c.extournesN1.entries.length>0;}
+function hasExt(c){
+  const ext=c?.extournesN1;
+  if(!ext)return false;
+
+  // Cas 1 : des écritures d'extourne existent réellement.
+  if(Array.isArray(ext.entries) && ext.entries.length>0) return true;
+
+  // Cas 2 : aucune extourne n'était nécessaire, mais l'étape a bien été validée.
+  if(
+    ext.status==="completed" &&
+    ext.noExtourneRequired===true &&
+    Array.isArray(ext.entries) &&
+    ext.entries.length===0
+  ) return true;
+
+  return false;
+}
 function hasScore(c){return typeof scoreValue(c)==="number";}
 function renderChecklist(){
  const items=[
