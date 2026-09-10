@@ -226,7 +226,7 @@ function docHtml(){
  <h3>2. Dossier de révision</h3><table><thead><tr><th>Point</th><th>Statut</th><th>Justificatif</th><th>Commentaire</th></tr></thead><tbody>${reviewRows(c.dossierRevision?.items)}</tbody></table>
  <h3>3. Affectation du résultat</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.affectationResult?.entries)}</tbody></table>
  <h3>4. Extournes N+1</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.extournesN1?.entries)}</tbody></table>
- <h3>5. Score qualité</h3><table><thead><tr><th>Contrôle</th><th>Score</th><th>Statut</th><th>Observation</th></tr></thead><tbody>${(c.scoreQualite?.items||c.scoreQuality?.items||[]).map(i=>`<tr><td>${sanitize(i.title||"")}</td><td>${sanitize((i.score??"")+" / "+(i.max??""))}</td><td>${sanitize(i.status||"")}</td><td>${sanitize(i.detail||"")}</td></tr>`).join("")||'<tr><td colspan="4">Score non enregistré.</td></tr>'}</tbody></table>
+ <h3>5. Score qualité</h3><table><thead><tr><th>Contrôle</th><th>Score</th><th>Statut</th><th>Observation</th></tr></thead><tbody>${(c.scoreQualite?.items||c.scoreQuality?.items||[]).map(i=>`<tr><td>${sanitize(i.title||"")}</td><td>${sanitize((i.score??"")+" / "+(i.max??""))}</td><td>${Number(i.score??0)<Number(i.max??10)?"À contrôler":"OK"}</td><td>${sanitize(i.detail||"")}</td></tr>`).join("")||'<tr><td colspan="4">Score non enregistré.</td></tr>'}</tbody></table>
  <h3>6. Commentaire final</h3><p>${sanitize(c.validation?.comment||"Aucun commentaire final renseigné.")}</p>
  <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
