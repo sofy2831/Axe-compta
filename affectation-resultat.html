@@ -482,11 +482,20 @@ function strategyValues(strategy){
   if(strategy==="loss")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:0,dividendAmount:0,lossCarryForwardAmount:resultAmount};
   if(strategy==="distribution")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:0,dividendAmount:resultAmount,lossCarryForwardAmount:0};
   if(strategy==="report")return{legalReserveAmount:0,reserveAmount:0,carryForwardAmount:resultAmount,dividendAmount:0,lossCarryForwardAmount:0};
-  // Proposition prudentielle : ne pas présenter 5 % comme une réserve légale automatique.
-  // En l'absence de données fiables sur la réserve légale existante, la proposition est ventilée
-  // entre autres réserves et report à nouveau, puis reste entièrement modifiable par le client.
-  const otherReserve=Math.round((resultAmount/2)*100)/100;
-  return{legalReserveAmount:0,reserveAmount:otherReserve,carryForwardAmount:+(resultAmount-otherReserve).toFixed(2),dividendAmount:0,lossCarryForwardAmount:0};
+
+  // Stratégie "Prudent" : une seule règle côté interface.
+  // 5 % en autres réserves (1068) + 95 % en report à nouveau (110).
+  // Cette ventilation reste une recommandation à valider : elle ne constitue
+  // ni une obligation de réserve légale, ni une règle statutaire automatique.
+  const otherReserve=round2(resultAmount*0.05);
+  const carryForward=round2(resultAmount-otherReserve);
+  return{
+    legalReserveAmount:0,
+    reserveAmount:otherReserve,
+    carryForwardAmount:carryForward,
+    dividendAmount:0,
+    lossCarryForwardAmount:0
+  };
 }
 function applyStrategy(strategy,values=null){
   const v=values||strategyValues(strategy);
@@ -526,7 +535,9 @@ const AI_AFFECTATION_URL = "https://europe-west9-axe-compta.cloudfunctions.net/a
 
 $("autoBtn").addEventListener("click",()=>{
   if(!aiRecommendation)return;
-  applyStrategy(aiRecommendation.strategy,aiRecommendation.values);
+  // Utilise exactement la même règle que le bouton "Choisir" de la carte.
+  // Cela évite qu'une même stratégie "Prudent" produise deux répartitions différentes.
+  applyStrategy(aiRecommendation.strategy);
 });
 document.querySelectorAll("[data-strategy]").forEach(b=>b.addEventListener("click",()=>applyStrategy(b.dataset.strategy)));
 
@@ -542,13 +553,22 @@ $("aiBtn").addEventListener("click", async ()=>{
     const data = await response.json().catch(()=>({}));
     if(!response.ok || !data.ok) throw new Error(data.error || "Erreur IA.");
     const strategy=inferAiStrategy(data);
-    aiRecommendation={strategy,values:{legalReserveAmount:Number(data.legalReserveAmount||0),reserveAmount:Number(data.reserveAmount||0),carryForwardAmount:Number(data.carryForwardAmount||0),dividendAmount:Number(data.dividendAmount||0),lossCarryForwardAmount:Number(data.lossCarryForwardAmount||0)},explanation:data.explanation||"",warnings:Array.isArray(data.warnings)?data.warnings:[]};
+    const normalizedValues=strategyValues(strategy);
+    aiRecommendation={
+      strategy,
+      values:normalizedValues,
+      explanation:data.explanation||"",
+      warnings:Array.isArray(data.warnings)?data.warnings:[]
+    };
     clearStrategyVisuals();
     markStrategy(strategy,{recommended:true,selected:false});
     $("autoBtn").disabled=false;
     const labels={prudent:"Prudent",report:"Report intégral",distribution:"Distribution",loss:"Report de la perte"};
     $("balanceBox").className="notice";
-    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}<br><br>${resultType==="loss"?"Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter automatiquement la perte en 119, puis générez les écritures.":"La carte correspondante est mise en évidence ci-dessous. Cette ventilation constitue une <b>recommandation à valider</b> : elle doit être adaptée aux réserves existantes, aux statuts et à la décision de l’Assemblée Générale. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez manuellement une autre stratégie."}${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
+    const prudentNote=strategy==="prudent"
+      ? `<br><br><b>Ventilation utilisée par la stratégie Prudent :</b> 5 % en autres réserves (1068) et 95 % en report à nouveau (110). Cette ventilation est indicative et ne remplace pas l'examen de la réserve légale, des statuts et de la décision de l'Assemblée Générale.`
+      : "";
+    $("balanceBox").innerHTML=`<b class="ok">Analyse de l'IA</b><br><br><b>Stratégie recommandée : ${sanitize(labels[strategy]||strategy)}</b><br>${sanitize(data.explanation||"")}${prudentNote}<br><br>${resultType==="loss"?"Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter automatiquement la perte en 119, puis générez les écritures.":"La carte correspondante est mise en évidence ci-dessous. Cette ventilation constitue une <b>recommandation à valider</b> : elle doit être adaptée aux réserves existantes, aux statuts et à la décision de l’Assemblée Générale. Cliquez sur <b>Appliquer la recommandation IA</b> pour reporter les montants, ou choisissez manuellement une autre stratégie."}${aiRecommendation.warnings.length?`<br><br><b>Points à vérifier :</b><br>${aiRecommendation.warnings.map(w=>`- ${sanitize(w)}`).join("<br>")}`:""}`;
   }catch(e){console.error(e);alert(e.message||"Erreur lors de l'appel IA.");}
   finally{btn.disabled=false;btn.textContent="Demander l'avis de l'IA";}
 });
@@ -750,31 +770,12 @@ $("excelBtn").addEventListener("click",()=>{try{ensureGenerated();download(`affe
 $("pvBtn").addEventListener("click",()=>{
   try{
     ensureGenerated();
+    const w=window.open("","_blank");
+    if(!w)throw new Error("Le navigateur a bloqué l’ouverture du PV.");
     const pvHtml=pvDocHtml();
-
-    // Impression dans un iframe invisible : évite l'ouverture d'un onglet about:blank.
-    const iframe=document.createElement("iframe");
-    iframe.style.position="fixed";
-    iframe.style.right="0";
-    iframe.style.bottom="0";
-    iframe.style.width="0";
-    iframe.style.height="0";
-    iframe.style.border="0";
-    iframe.style.visibility="hidden";
-    document.body.appendChild(iframe);
-
-    const doc=iframe.contentWindow.document;
-    doc.open();
-    doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}</body></html>`);
-    doc.close();
-
-    iframe.onload=()=>{
-      setTimeout(()=>{
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-        setTimeout(()=>iframe.remove(),800);
-      },180);
-    };
+    w.document.open();
+    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}<script>window.onload=()=>{setTimeout(()=>window.print(),180)};<\/script></body></html>`);
+    w.document.close();
   }catch(e){
     alert(e.message||"Impossible d’ouvrir le PV d’AG.");
   }
