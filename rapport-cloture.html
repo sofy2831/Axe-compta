@@ -193,7 +193,7 @@ function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/
 function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?? null;}
 function formatAccount(v){const s=String(v??"").trim();return /^compte\s*à?\s*d[ée]terminer$/i.test(s.replace(/à/g,"à"))||/^compteàd[ée]terminer$/i.test(s)?"Compte à déterminer":s;}
 function rows(entries){return (Array.isArray(entries)?entries:[]).map(e=>`<tr><td>${sanitize(e.journal||"OD")}</td><td>${sanitize(e.label||e.libelle||"")}</td><td>${sanitize(formatAccount(e.debit))}</td><td>${sanitize(formatAccount(e.credit))}</td><td class="num">${euro(e.amount)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune ligne.</td></tr>';}
-function reviewRows(items){return (Array.isArray(items)?items:[]).map(i=>`<tr><td>${sanitize(i.label||"")}</td><td>${sanitize(i.status||"")}</td><td>${sanitize(i.document||"")}</td><td>${sanitize(i.comment||"")}</td></tr>`).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';}
+function reviewRows(items){return (Array.isArray(items)?items:[]).map(i=>`<tr><td>${sanitize(i.label||"")}</td><td>${Number(i.score??0)<Number(i.max??10)?"À contrôler":sanitize(i.status||"ok")}</td><td>${sanitize(i.document||"")}</td><td>${sanitize(i.comment||"")}</td></tr>`).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';}
 function definitiveClosingEntries(c){
   const source=Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length
     ? c.dossierRevision.items
