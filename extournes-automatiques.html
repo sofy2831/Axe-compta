@@ -301,6 +301,7 @@ async function validateNoExtournes(){
       total:0,
       status:"completed",
       noExtourneRequired:true,
+      conclusion:`Aucune écriture ne nécessite de contrepassation au ${isoToFr($("extourneDate").value)}. Étape Extournes N+1 contrôlée et validée.`,
       generatedAfterAffectationAt:currentClosure?.affectationResult?.updatedAt || null,
       updatedAt:new Date().toISOString()
     },
