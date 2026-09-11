@@ -223,6 +223,16 @@ function latestClientRequest(c){const history=Array.isArray(c?.clientDocumentReq
 
 function formatAccount(v){const s=String(v??"").trim();return /^compte\s*à?\s*d[ée]terminer$/i.test(s.replace(/à/g,"à"))||/^compteàd[ée]terminer$/i.test(s)?"Compte à déterminer":s;}
 function rows(entries){return (Array.isArray(entries)?entries:[]).map(e=>`<tr><td>${sanitize(e.journal||"OD")}</td><td>${sanitize(e.label||e.libelle||"")}</td><td>${sanitize(formatAccount(e.debit))}</td><td>${sanitize(formatAccount(e.credit))}</td><td class="num">${euro(e.amount)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune ligne.</td></tr>';}
+function extournesRows(c){
+  const ext=c?.extournesN1||{};
+  const entries=Array.isArray(ext.entries)?ext.entries:[];
+  if(entries.length) return rows(entries);
+  if(ext.status==="completed" || ext.noExtourneRequired===true){
+    const conclusion=ext.conclusion || `Aucune écriture ne nécessite de contrepassation${ext.date ? " au "+formatDateFR(ext.date) : ""}. Étape Extournes N+1 contrôlée et validée.`;
+    return `<tr><td colspan="5">${sanitize(conclusion)}</td></tr>`;
+  }
+  return '<tr><td colspan="5">Étape Extournes N+1 non documentée.</td></tr>';
+}
 function normText(v){
   return String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
 }
@@ -293,7 +303,7 @@ function docHtml(){
  <h3>1. Écritures de clôture définitives</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${definitiveRows(c)}</tbody></table>
  <h3>2. Dossier de révision</h3><table><thead><tr><th>Point</th><th>Statut</th><th>Justificatif</th><th>Commentaire</th></tr></thead><tbody>${reviewRows(c.dossierRevision?.items)}</tbody></table>
  <h3>3. Affectation du résultat</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.affectationResult?.entries)}</tbody></table>
- <h3>4. Extournes N+1</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rows(c.extournesN1?.entries)}</tbody></table>
+ <h3>4. Extournes N+1</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${extournesRows(c)}</tbody></table>
  <h3>5. Score qualité</h3><table><thead><tr><th>Contrôle</th><th>Score</th><th>Statut</th><th>Observation</th></tr></thead><tbody>${(c.scoreQualite?.items||c.scoreQuality?.items||[]).map(i=>`<tr><td>${sanitize(i.title||"")}</td><td>${sanitize((i.score??"")+" / "+(i.max??""))}</td><td>${Number(i.score??0)<Number(i.max??10)?"À contrôler":"OK"}</td><td>${sanitize(i.detail||"")}</td></tr>`).join("")||'<tr><td colspan="4">Score non enregistré.</td></tr>'}</tbody></table>
  <h3>6. Commentaire final</h3><p>${sanitize(c.validation?.comment||"Aucun commentaire final renseigné.")}</p>
  <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
