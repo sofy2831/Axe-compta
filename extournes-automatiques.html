@@ -227,7 +227,8 @@ function renderWorkflowBox(){
 }
 function renderModules(){
   $("modulesList").innerHTML = modules.map(m => {
-    const count = entriesForModule(m.key).length;
+    const moduleEntries = entriesForModule(m.key);
+    const count = moduleEntries.length;
     const extournable = m.key !== "affectation";
     let status = "OK";
     let pill = "pill";
@@ -235,7 +236,10 @@ function renderModules(){
     if(count > 0){
       status = extournable ? "À contrôler" : "Contrôlé";
       pill = extournable ? "pill warn" : "pill";
-      text = extournable ? `${count} écriture(s) extournable(s). ${sanitize(m.desc)}` : `${count} écriture(s) non extournée(s). ${sanitize(m.desc)}`;
+      const moduleTotal = moduleEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);
+      text = extournable
+        ? `${count} écriture(s) extournable(s) — ${euro(moduleTotal)}. ${sanitize(m.desc)}`
+        : `${count} écriture(s) non extournée(s). ${sanitize(m.desc)}`;
     }
     return `<div class="moduleCard"><span class="${pill}">${status}</span><h3>${sanitize(m.title)}</h3><p>${text}</p><div class="actions"><button class="btn secondary small" type="button" data-view-module="${m.key}">Voir</button></div></div>`;
   }).join("");
