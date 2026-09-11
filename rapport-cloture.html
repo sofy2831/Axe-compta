@@ -301,18 +301,62 @@ function selectedShareItems(){
     .filter(Boolean)
     .map(i=>({key:i.key||"",title:i.title||"",detail:i.detail||"",score:Number(i.score??0),max:Number(i.max??10)}));
 }
+function clientDocumentRequests(items){
+  const requests=[];
+  const add=(label,detail)=>requests.push(`- ${label} : ${detail}`);
+
+  items.forEach(i=>{
+    const key=String(i.key||"").toLowerCase();
+    const title=String(i.title||"").toLowerCase();
+    const detail=String(i.detail||"").toLowerCase();
+    const haystack=`${key} ${title} ${detail}`;
+
+    if(haystack.includes("immobil") || haystack.includes("amort")){
+      add("Immobilisation cédée","justificatif de cession ou facture de vente mentionnant le prix de cession.");
+      return;
+    }
+    if(haystack.includes("455") || haystack.includes("compte courant")){
+      add("Compte courant d’associé","justificatifs permettant d’expliquer le solde du compte courant : apports, remboursements ou autres mouvements concernés.");
+      return;
+    }
+    if(haystack.includes("subvention") || haystack.includes("crédit-bail") || haystack.includes("credit-bail") || haystack.includes("leasing")){
+      if(haystack.includes("subvention")){
+        add("Subvention d’investissement","convention ou notification d’attribution de la subvention et, le cas échéant, tableau de reprise.");
+      }
+      if(haystack.includes("crédit-bail") || haystack.includes("credit-bail") || haystack.includes("leasing")){
+        add("Crédit-bail / leasing","contrat de crédit-bail ainsi que l’échéancier et les factures correspondantes.");
+      }
+      return;
+    }
+    if(haystack.includes("change") || haystack.includes("476") || haystack.includes("477")){
+      add("Écarts de change","éléments permettant de justifier les créances ou dettes en devises encore ouvertes à la clôture.");
+      return;
+    }
+
+    // Repli : formulation neutre, sans score ni jargon de contrôle.
+    add(i.title||"Élément complémentaire","merci de transmettre le justificatif ou document permettant de confirmer ce point.");
+  });
+
+  return [...new Set(requests)];
+}
+
 function buildShareEmailBody(items,message){
-  const company=currentClosure?.companyName||"votre dossier",s=scoreValue(currentClosure);
+  const company=currentClosure?.companyName||"votre dossier";
+  const requests=clientDocumentRequests(items);
   const lines=[
     "Bonjour,","",
-    `Dans le cadre de la clôture comptable de ${company}, certains éléments restent à nous transmettre ou à confirmer.`,
-    s!==null?`Score qualité actuel : ${s}/100.`:"",
-    "","Éléments demandés :",
-    ...items.map(i=>`- ${i.title}${i.detail?` : ${i.detail}`:""}`),
-    "",message?`Message complémentaire : ${message}`:"",
-    "","Merci de nous transmettre ces éléments afin de finaliser le dossier.","","Cordialement,"
+    `Dans le cadre de la finalisation de la clôture comptable de ${company}, certains éléments complémentaires sont nécessaires.`,
+    "",
+    "Documents et informations à nous transmettre :",
+    ...requests,
+    "",
+    message?`Précision complémentaire : ${message}`:"",
+    "",
+    "Merci de nous transmettre ces éléments afin de finaliser le dossier.",
+    "",
+    "Cordialement,"
   ];
-  return lines.join("\n");
+  return lines.filter((v,idx,arr)=>!(v==="" && arr[idx-1]==="")).join("\n");
 }
 let pendingShareRequest=null;
 $("shareBtn").addEventListener("click",openShareModal);
