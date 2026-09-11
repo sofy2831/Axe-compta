@@ -38,7 +38,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="box">
     <h2>Clôture</h2>
     <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Points de révision</span><b id="reviewCount">0</b></div></div>
-    <div class="notice">Chaque OD proposée et chaque point d’analyse à examiner doit être traité avant de poursuivre vers l’affectation du résultat : conclusion, justification, calcul ou pièce utile et statut.</div>
+    <div class="notice">Chaque OD proposée et chaque point d’analyse à examiner doit recevoir un statut. Les points restant à documenter ou à corriger peuvent être conservés : ils resteront signalés et seront pris en compte dans le score qualité final.</div>
   </section>
 
   <section class="box">
@@ -72,11 +72,11 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 
 <div class="modalBack" id="revisionIncompleteModal">
   <div class="modal">
-    <h2>Révision incomplète</h2>
+    <h2>Révision comportant des points en attente</h2>
     <p class="muted">
-      Avant d’enregistrer le dossier et de poursuivre, vérifiez le <strong style="font-size:1.18em;color:#fff;">STATUT</strong> de chaque point de révision.
+      Certains points de révision restent <b>à documenter</b> ou <b>à corriger</b>.
       <br><br>
-      Chaque point doit être <b>Révision validée</b> après contrôle de l’OD ou conclusion de l’analyse.
+      Vous pouvez enregistrer le dossier et poursuivre le workflow. Ces points resteront signalés et seront pris en compte dans le score qualité final.
     </p>
     <div class="actions">
       <button class="btn warn" type="button" id="closeIncompleteModalBtn">Retour à la révision</button>
@@ -115,7 +115,9 @@ function makeReviewItem(e,i){
   };
 }
 function updateAffectationAccess(){
-  const completed = revisionSaved === true && reviewItems.length > 0 && reviewItems.every(x => x.status === "Révision validée" || x.status === "Validé");
+  // L’accès à l’affectation dépend de l’enregistrement du dossier,
+  // pas de la validation individuelle de tous les points de révision.
+  const completed = revisionSaved === true && reviewItems.length > 0;
 
   [$("affectationBtn"), $("affectationTopBtn"), $("modalAffectationBtn")].forEach(btn=>{
     if(!btn)return;
@@ -154,8 +156,7 @@ function renderRows(){
 }
 
 async function saveReview(){
-  const invalidItems=reviewItems.filter(x => x.status!=="Révision validée" && x.status!=="Validé");
-  if(!reviewItems.length || invalidItems.length){
+  if(!reviewItems.length){
     $("revisionIncompleteModal").style.display="flex";
     return;
   }
