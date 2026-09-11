@@ -35,6 +35,9 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
   <section class="box">
     <h2>0. Contrôle préalable</h2>
     <div id="workflowBox" class="notice">Chargement du contrôle préalable...</div>
+    <div class="actions">
+      <a class="btn secondary" id="reanalyzeBtn" href="cloture-resultat.html">Corriger les fichiers / Relancer l'analyse</a>
+    </div>
   </section>
 
   <section class="box">
@@ -510,24 +513,31 @@ function applyStrategy(strategy,values=null){
   renderAllocationJustification(aiRecommendation&&aiRecommendation.strategy===strategy?"ia":"manual");
 }
 
-function revisionCompleted(){
+function revisionRecorded(){
   const revision=currentClosure?.dossierRevision;
   const items=Array.isArray(revision?.items)?revision.items:[];
-  return revision?.status==="completed" && items.length>0 && items.every(x=>x.status==="Révision validée"||x.status==="Validé");
+  return revision?.status==="completed" && items.length>0;
 }
-function hasBlockingWorkflowIssue(){return !revisionCompleted();}
+function hasBlockingWorkflowIssue(){return !revisionRecorded();}
 function renderWorkflowBox(){
   const revision=currentClosure?.dossierRevision;
   const items=Array.isArray(revision?.items)?revision.items:[];
   const valid=items.filter(x=>x.status==="Révision validée"||x.status==="Validé").length;
-  if(!revisionCompleted()){
-    const detail=!items.length?"Aucun dossier de révision enregistré.":`${valid}/${items.length} point(s) de révision validé(s).`;
+  const documented=items.filter(x=>x.status==="Documenté").length;
+  const toDocument=items.filter(x=>x.status==="À documenter").length;
+  const toCorrect=items.filter(x=>x.status==="À corriger").length;
+  const unresolved=toDocument+toCorrect;
+
+  if(!revisionRecorded()){
     $("workflowBox").className="notice warningBox";
-    $("workflowBox").innerHTML=`<b class="warnText">Dossier de révision à terminer.</b><br>${sanitize(detail)}<br><br>L’affectation peut être consultée, mais elle ne doit être enregistrée qu’après validation complète du dossier de révision.`;
-  }else{
-    $("workflowBox").className="notice";
-    $("workflowBox").innerHTML=`<b class="ok">Dossier de révision validé.</b><br>${valid} point(s) de révision contrôlé(s). Vous pouvez préparer l’affectation du résultat.`;
+    $("workflowBox").innerHTML=`<b class="warnText">Dossier de révision non enregistré.</b><br>Enregistrez d’abord le dossier de révision avant de poursuivre vers l’affectation.`;
+    return;
   }
+
+  $("workflowBox").className=unresolved>0?"notice warningBox":"notice";
+  $("workflowBox").innerHTML=unresolved>0
+    ? `<b class="warnText">Dossier de révision enregistré avec points en attente.</b><br>${unresolved} point(s) restent à documenter ou à corriger sur ${items.length}.<br><br>Vous pouvez poursuivre l’affectation. Ces points resteront signalés dans le dossier et seront pris en compte dans le score qualité final.`
+    : `<b class="ok">Dossier de révision enregistré.</b><br>${valid+documented}/${items.length} point(s) sont documentés ou validés. Vous pouvez poursuivre l’affectation du résultat.`;
 }
 
 const AI_AFFECTATION_URL = "https://europe-west9-axe-compta.cloudfunctions.net/aiAffectationResultat";
@@ -641,7 +651,7 @@ async function saveAffectation(){
   if(!generatedRows.length)generatedRows=buildEntries();
 
   if(hasBlockingWorkflowIssue()){
-    alert("Le dossier de révision doit être entièrement validé avant d’enregistrer l’affectation du résultat.");
+    alert("Le dossier de révision doit être enregistré avant d’enregistrer l’affectation du résultat.");
     return;
   }
 
@@ -806,6 +816,7 @@ async function loadClosure(user){
   currentOwnerUid=ownerParam||user.uid;
 
   $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
+  $("reanalyzeBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
   setExtournesAccess(false);
 
   const snap=await getDoc(closureRef());
