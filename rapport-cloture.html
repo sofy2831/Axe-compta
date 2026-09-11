@@ -159,7 +159,12 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <section class="box">
     <h2>Rapport final</h2>
     <div class="grid4"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Score</span><b id="scoreLabel">—</b></div><div class="metric"><span>Validation</span><b id="validationLabel">—</b></div></div>
-    <div class="actions"><button class="btn warn" id="printBtn" type="button">Imprimer / PDF</button><button class="btn secondary" id="saveReportBtn" type="button">Enregistrer</button></div>
+    <div class="actions">
+      <button class="btn warn" id="printBtn" type="button">Imprimer / PDF</button>
+      <button class="btn secondary" id="saveReportBtn" type="button">Enregistrer</button>
+      <button class="btn secondary" id="shareBtn" type="button">Partager</button>
+    </div>
+    <div id="shareTrace" class="notice" style="display:none"></div>
     <div id="reportPreview" class="notice">Le rapport sera généré après chargement.</div>
   </section>
 
@@ -179,6 +184,25 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   </div>
 </div>
   
+
+<div class="modalBack" id="shareModal">
+  <div class="modal">
+    <h2>Demander les éléments complémentaires</h2>
+    <p class="muted">Les contrôles dont le score est inférieur à 10/10 sont présélectionnés. Vous pouvez décocher les éléments que vous ne souhaitez pas demander.</p>
+    <div id="shareMissingItems"></div>
+    <label for="shareEmail">Email du client</label>
+    <input id="shareEmail" type="email" placeholder="client@entreprise.fr"/>
+    <label for="shareMessage">Message complémentaire</label>
+    <textarea id="shareMessage" placeholder="Ajoutez ici une précision éventuelle..."></textarea>
+    <div class="notice" id="shareStatus" style="display:none"></div>
+    <div class="actions">
+      <button class="btn warn" type="button" id="prepareEmailBtn">Ouvrir l’email</button>
+      <button class="btn" type="button" id="confirmSentBtn" style="display:none">Confirmer l’envoi</button>
+      <button class="btn secondary" type="button" id="closeShareModalBtn">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
@@ -191,6 +215,12 @@ function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
 function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?? null;}
+
+function scoreItems(c){return c?.scoreQualite?.items||c?.scoreQuality?.items||[];}
+function missingControlItems(c){return scoreItems(c).filter(i=>Number(i?.score??0)<Number(i?.max??10));}
+function formatDateFR(iso){if(!iso)return "";const d=new Date(iso);return Number.isNaN(d.getTime())?"":d.toLocaleDateString("fr-FR");}
+function latestClientRequest(c){const history=Array.isArray(c?.clientDocumentRequests)?c.clientDocumentRequests:[];return history.length?history[history.length-1]:null;}
+
 function formatAccount(v){const s=String(v??"").trim();return /^compte\s*à?\s*d[ée]terminer$/i.test(s.replace(/à/g,"à"))||/^compteàd[ée]terminer$/i.test(s)?"Compte à déterminer":s;}
 function rows(entries){return (Array.isArray(entries)?entries:[]).map(e=>`<tr><td>${sanitize(e.journal||"OD")}</td><td>${sanitize(e.label||e.libelle||"")}</td><td>${sanitize(formatAccount(e.debit))}</td><td>${sanitize(formatAccount(e.credit))}</td><td class="num">${euro(e.amount)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune ligne.</td></tr>';}
 function reviewRows(items){return (Array.isArray(items)?items:[]).map(i=>`<tr><td>${sanitize(i.label||"")}</td><td>${Number(i.score??0)<Number(i.max??10)?"À contrôler":sanitize(i.status||"ok")}</td><td>${sanitize(i.document||"")}</td><td>${sanitize(i.comment||"")}</td></tr>`).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';}
@@ -231,6 +261,105 @@ function docHtml(){
  <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 function renderReport(){$("printArea").innerHTML=docHtml();$("reportPreview").innerHTML='<b class="okText">Rapport prêt.</b><br>Utilisez « Imprimer / PDF » pour générer le rapport final.';}
+
+function renderShareTrace(){
+  const trace=$("shareTrace");
+  if(!trace||!currentClosure)return;
+  const last=latestClientRequest(currentClosure);
+  if(!last){trace.style.display="none";trace.innerHTML="";return;}
+  const count=Array.isArray(last.items)?last.items.length:0;
+  trace.style.display="block";
+  trace.innerHTML=`<b class="okText">Demande envoyée le ${sanitize(formatDateFR(last.sentAt)||"—")}</b>${last.email?` à ${sanitize(last.email)}`:""}<br>${count} élément(s) demandé(s).`;
+}
+function renderShareItems(){
+  const items=missingControlItems(currentClosure),box=$("shareMissingItems");
+  if(!items.length){
+    box.innerHTML='<div class="notice"><b class="okText">Aucun élément manquant.</b><br>Tous les contrôles du score qualité sont à 10/10.</div>';
+    return;
+  }
+  box.innerHTML=items.map((i,idx)=>`
+    <label style="display:flex;gap:10px;align-items:flex-start;font-weight:700;margin:10px 0">
+      <input type="checkbox" data-share-item="${idx}" checked style="width:auto;margin-top:3px">
+      <span><b>${sanitize(i.title||"Contrôle")}</b><br><span class="muted">${sanitize(i.detail||"")}</span></span>
+    </label>
+  `).join("");
+}
+function openShareModal(){
+  renderShareItems();
+  const last=latestClientRequest(currentClosure);
+  $("shareEmail").value=last?.email||currentClosure?.clientEmail||currentClosure?.emailClient||"";
+  $("shareMessage").value="";
+  $("shareStatus").style.display="none";
+  $("shareStatus").innerHTML="";
+  $("confirmSentBtn").style.display="none";
+  $("shareModal").style.display="flex";
+}
+function selectedShareItems(){
+  const source=missingControlItems(currentClosure);
+  return [...document.querySelectorAll("[data-share-item]:checked")]
+    .map(el=>source[Number(el.dataset.shareItem)])
+    .filter(Boolean)
+    .map(i=>({key:i.key||"",title:i.title||"",detail:i.detail||"",score:Number(i.score??0),max:Number(i.max??10)}));
+}
+function buildShareEmailBody(items,message){
+  const company=currentClosure?.companyName||"votre dossier",s=scoreValue(currentClosure);
+  const lines=[
+    "Bonjour,","",
+    `Dans le cadre de la clôture comptable de ${company}, certains éléments restent à nous transmettre ou à confirmer.`,
+    s!==null?`Score qualité actuel : ${s}/100.`:"",
+    "","Éléments demandés :",
+    ...items.map(i=>`- ${i.title}${i.detail?` : ${i.detail}`:""}`),
+    "",message?`Message complémentaire : ${message}`:"",
+    "","Merci de nous transmettre ces éléments afin de finaliser le dossier.","","Cordialement,"
+  ];
+  return lines.join("\n");
+}
+let pendingShareRequest=null;
+$("shareBtn").addEventListener("click",openShareModal);
+$("closeShareModalBtn").addEventListener("click",()=>{$("shareModal").style.display="none";pendingShareRequest=null;});
+$("shareModal").addEventListener("click",e=>{if(e.target===$("shareModal")){$("shareModal").style.display="none";pendingShareRequest=null;}});
+$("prepareEmailBtn").addEventListener("click",()=>{
+  const email=$("shareEmail").value.trim(),message=$("shareMessage").value.trim(),items=selectedShareItems(),status=$("shareStatus");
+  if(!email){status.style.display="block";status.innerHTML='<b class="errText">Renseignez l’adresse email du client.</b>';return;}
+  if(!items.length){status.style.display="block";status.innerHTML='<b class="errText">Sélectionnez au moins un élément à demander.</b>';return;}
+  const subject=`Éléments complémentaires - clôture ${currentClosure?.companyName||""}`.trim();
+  const body=buildShareEmailBody(items,message);
+  pendingShareRequest={email,message,items,subject,body};
+  window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  status.style.display="block";
+  status.innerHTML='L’email a été préparé dans votre messagerie. Après l’avoir envoyé, cliquez sur <b>Confirmer l’envoi</b> pour enregistrer la traçabilité.';
+  $("confirmSentBtn").style.display="inline-flex";
+});
+$("confirmSentBtn").addEventListener("click",async()=>{
+  if(!pendingShareRequest)return;
+  const btn=$("confirmSentBtn"),status=$("shareStatus");
+  try{
+    btn.disabled=true;btn.textContent="Enregistrement...";
+    const sentAt=new Date().toISOString();
+    const existing=Array.isArray(currentClosure?.clientDocumentRequests)?currentClosure.clientDocumentRequests:[];
+    const record={...pendingShareRequest,sentAt,source:"rapport-cloture",status:"sent"};
+    const updated=[...existing,record];
+    await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId),{
+      clientDocumentRequests:updated,
+      lastClientDocumentRequest:record,
+      updatedAt:serverTimestamp()
+    },{merge:true});
+    currentClosure.clientDocumentRequests=updated;
+    currentClosure.lastClientDocumentRequest=record;
+    renderShareTrace();
+    status.style.display="block";
+    status.innerHTML=`<b class="okText">Demande enregistrée comme envoyée le ${sanitize(formatDateFR(sentAt))}.</b><br>${record.items.length} élément(s) demandé(s) à ${sanitize(record.email)}.`;
+    btn.style.display="none";
+    pendingShareRequest=null;
+  }catch(e){
+    console.error(e);
+    status.style.display="block";
+    status.innerHTML='<b class="errText">Impossible d’enregistrer la traçabilité de l’envoi.</b>';
+  }finally{
+    btn.disabled=false;btn.textContent="Confirmer l’envoi";
+  }
+});
+
 $("printBtn").addEventListener("click",()=>{renderReport();window.print();});
 $("saveReportBtn").addEventListener("click", async () => {
   try {
@@ -273,6 +402,7 @@ async function loadClosure(user){
  $("validationLabel").textContent=currentClosure.validated?"Validée":"Non validée";
  $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
  renderReport();
+ renderShareTrace();
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
 </script>
