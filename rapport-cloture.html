@@ -262,19 +262,20 @@ function reviewRows(items){
   }).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';
 }
 function definitiveClosingEntries(c){
-  const source=Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length
-    ? c.dossierRevision.items
-    : (Array.isArray(c?.entries)?c.entries:[]);
+  // Les écritures définitives de clôture sont prises dans currentClosure.entries.
+  // Le dossier de révision reste une source de contrôle documentaire, pas la source comptable des OD.
+  const source=Array.isArray(c?.entries)?c.entries:[];
+
   return source.filter(e=>{
     const journal=String(e?.journal||"").trim().toUpperCase();
-    const status=String(e?.status||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     const debit=String(e?.debit||"").trim();
     const credit=String(e?.credit||"").trim();
     const montant=Math.abs(Number(String(e?.amount??e?.montant??0).replace(",", ".")))||0;
-    const isAnalysis=journal==="ANALYSE";
-    const isRetained=["revision validee","valide","validee","retenue","retenu"].includes(status);
+
+    const isRealOD=journal==="OD";
     const hasRealAccounts=debit && credit && !/compte\s*[àa]?\s*d[eé]terminer/i.test(debit+" "+credit);
-    return !isAnalysis && isRetained && hasRealAccounts && montant>0;
+
+    return isRealOD && hasRealAccounts && montant>0;
   });
 }
 function definitiveRows(c){
