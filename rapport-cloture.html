@@ -223,7 +223,44 @@ function latestClientRequest(c){const history=Array.isArray(c?.clientDocumentReq
 
 function formatAccount(v){const s=String(v??"").trim();return /^compte\s*à?\s*d[ée]terminer$/i.test(s.replace(/à/g,"à"))||/^compteàd[ée]terminer$/i.test(s)?"Compte à déterminer":s;}
 function rows(entries){return (Array.isArray(entries)?entries:[]).map(e=>`<tr><td>${sanitize(e.journal||"OD")}</td><td>${sanitize(e.label||e.libelle||"")}</td><td>${sanitize(formatAccount(e.debit))}</td><td>${sanitize(formatAccount(e.credit))}</td><td class="num">${euro(e.amount)}</td></tr>`).join("")||'<tr><td colspan="5">Aucune ligne.</td></tr>';}
-function reviewRows(items){return (Array.isArray(items)?items:[]).map(i=>`<tr><td>${sanitize(i.label||"")}</td><td>${Number(i.score??0)<Number(i.max??10)?"À contrôler":sanitize(i.status||"ok")}</td><td>${sanitize(i.document||"")}</td><td>${sanitize(i.comment||"")}</td></tr>`).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';}
+function normText(v){
+  return String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+function reviewKey(v){
+  const s=normText(v);
+  if(s.includes("471")||s.includes("472")||s.includes("attente")) return "waiting";
+  if(s.includes("455")||s.includes("compte courant")) return "current";
+  if(s.includes("immobil")||s.includes("amort")) return "fixed";
+  if(s.includes("subvention")||s.includes("credit-bail")||s.includes("leasing")) return "grantlease";
+  if(s.includes("ecart")||s.includes("change")||s.includes("476")||s.includes("477")) return "fx";
+  return s.replace(/[^a-z0-9]+/g," ").trim();
+}
+function finalScoreItemForReview(i){
+  const scores=scoreItems(currentClosure);
+  const hay=reviewKey(`${i?.key||""} ${i?.label||i?.title||""}`);
+  return scores.find(s=>reviewKey(`${s?.key||""} ${s?.title||s?.label||""}`)===hay) || null;
+}
+function reviewFinalStatus(i){
+  const scoreItem=finalScoreItemForReview(i);
+  if(scoreItem){
+    const score=Number(scoreItem.score??0), max=Number(scoreItem.max??10);
+    if(score>=max) return "OK";
+    if(score<=6) return "À corriger";
+    return "À contrôler";
+  }
+  const st=normText(i?.status);
+  if(["revision validee","valide","validee","retenue","retenu","ok","controle","controlee","justifie","justifiee","corrige","corrigee"].includes(st)) return "OK";
+  if(st.includes("corrig")) return "À corriger";
+  return "À contrôler";
+}
+function reviewRows(items){
+  return (Array.isArray(items)?items:[]).map(i=>{
+    const scoreItem=finalScoreItemForReview(i);
+    const documentFinal=i.document||i.justificatif||i.pieceControle||scoreItem?.document||scoreItem?.justificatif||"";
+    const commentFinal=i.comment||i.commentaire||i.conclusion||scoreItem?.comment||scoreItem?.commentaire||"";
+    return `<tr><td>${sanitize(i.label||i.title||"")}</td><td>${sanitize(reviewFinalStatus(i))}</td><td>${sanitize(documentFinal)}</td><td>${sanitize(commentFinal)}</td></tr>`;
+  }).join("")||'<tr><td colspan="4">Aucun point de révision.</td></tr>';
+}
 function definitiveClosingEntries(c){
   const source=Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length
     ? c.dossierRevision.items
