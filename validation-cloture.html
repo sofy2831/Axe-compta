@@ -43,7 +43,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
     <h2>Décision</h2>
     <label>Commentaire final</label>
     <textarea id="finalComment" placeholder="Ex : Dossier validé après contrôle des écritures et justificatifs."></textarea>
-    <label class="card" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px"><input id="confirmCheck" type="checkbox" style="width:auto;margin-top:4px"> <span>Je confirme que la clôture est revue, que les écritures définitives sont validées et que le dossier peut être figé.</span></label>
+    <label class="card" style="display:flex;gap:10px;align-items:flex-start;margin-top:14px"><input id="confirmCheck" type="checkbox" style="width:auto;margin-top:4px"> <span id="confirmText">Je confirme que la clôture est revue, que les écritures définitives sont validées et que le dossier peut être figé.</span></label>
   <div class="actions">
   <button class="btn warn" id="validateBtn" type="button">Valider définitivement</button>
   <a class="btn secondary" id="rapportBtn" href="rapport-cloture.html" style="display:none">Rapport de clôture</a>
@@ -142,7 +142,10 @@ async function validateClosure(){
       status: "validated",
       comment: $("finalComment").value || "",
       validatedAt: new Date().toISOString(),
-      validatedBy: currentUser.email || currentUser.uid
+      validatedBy: currentUser.email || currentUser.uid,
+       scoreAtValidation: scoreValue(currentClosure),
+       reservesAccepted: typeof scoreValue(currentClosure) === "number" && scoreValue(currentClosure) < 100
+    
     },
     validationDefinitive: {
       status: "validated",
@@ -223,7 +226,12 @@ async function loadClosure(user){
  $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
  $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
  const s=scoreValue(currentClosure); $("scoreLabel").textContent=s===null?"—":`${s}/100`;
- $("finalComment").value=currentClosure.validation?.comment||"";
+ // Adapter la confirmation au score final.
+  $("confirmText").textContent =
+    (typeof s === "number" && s < 100)
+      ? "Je confirme que la clôture est revue, que les écritures définitives sont validées et que j’accepte les réserves identifiées dans le score qualité final. Le dossier peut être figé."
+      : "Je confirme que la clôture est revue, que les écritures définitives sont validées et que le dossier peut être figé.";
+  $("finalComment").value=currentClosure.validation?.comment||"";
  $("statusLine").innerHTML=currentClosure.validated?'<span class="okText">Clôture déjà validée.</span>':'<span class="okText">Clôture chargée.</span>';
  renderChecklist();
   const rapportUrl = `rapport-cloture.html?id=${closureId}${ownerQuery}`;
