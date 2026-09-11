@@ -344,9 +344,12 @@ function revisionStatusSummary(items){
 }
 
 function computeScore(){if(!currentClosure)throw new Error("Clôture non chargée.");const items=[],affect=Array.isArray(currentClosure?.affectationResult?.entries),ext=!!currentClosure?.extournesN1&&Array.isArray(currentClosure?.extournesN1?.entries),entries=arr(currentClosure?.entries),revisionItems=arr(currentClosure?.dossierRevision?.items);
-const odReviewItems=(revisionItems.length?revisionItems:entries).filter(isActualOdReviewEntry);
-const validatedOdEntries=odReviewItems.filter(e=>isRevisionValidatedStatus(e?.status)).length;
-const allOdValidated=odReviewItems.length>0&&validatedOdEntries===odReviewItems.length;
+// Les OD réellement retenues/enregistrées sont prises dans currentClosure.entries.
+// Leur documentation dans le dossier de révision est évaluée séparément :
+// un statut « À documenter » ne doit donc pas pénaliser une seconde fois le contrôle OD.
+const odReviewItems=entries.filter(isActualOdReviewEntry);
+const validatedOdEntries=odReviewItems.length;
+const allOdValidated=true;
 items.push(item("files","Fichiers importés",(arr(currentClosure.balance).length&&arr(currentClosure.grandLivre).length)?10:4,10,arr(currentClosure.balance).length&&arr(currentClosure.grandLivre).length?"ok":"warning","Balance et grand livre indispensables. Amortissements et emprunts améliorent les contrôles avancés.",arr(currentClosure.balance).length&&arr(currentClosure.grandLivre).length?0:6,["Balance","Grand Livre"]));
 items.push(
   !odReviewItems.length
@@ -424,8 +427,9 @@ function rowsForKey(k){
   if(k==="extournes")return arr(currentClosure.extournesN1?.entries);
   if(k==="affectation")return arr(currentClosure.affectationResult?.entries);
   if(k==="od"){
-    const revision=arr(currentClosure?.dossierRevision?.items);
-    return (revision.length?revision:arr(currentClosure.entries)).filter(isActualOdReviewEntry);
+    // Afficher uniquement les OD effectivement retenues/enregistrées.
+    // Les points ANALYSE restent visibles dans le dossier de révision.
+    return arr(currentClosure.entries).filter(isActualOdReviewEntry);
   }
   if(k==="revision"){
     return arr(currentClosure?.dossierRevision?.items);
