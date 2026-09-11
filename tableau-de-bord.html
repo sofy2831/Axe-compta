@@ -162,7 +162,7 @@ function statusLabel(status){if(status==="completed")return"Terminée";if(status
 function hasFinalEntries(c){return Array.isArray(c.entries)&&c.entries.length>0}
 function hasRevision(c){return c.dossierRevision?.status==="completed"||c.dossierRevision?.status==="in_progress"||Array.isArray(c.dossierRevision?.items)}
 function hasAffectation(c){return c.affectationResult?.status==="generated"||(Array.isArray(c.affectationResult?.entries)&&c.affectationResult.entries.length>0)}
-function hasExtournes(c){return c.extournesN1?.status==="generated"||(Array.isArray(c.extournesN1?.entries)&&c.extournesN1.entries.length>0)}
+function hasExtournes(c){return c.extournesN1?.status==="generated"||c.extournesN1?.status==="completed"||c.extournesN1?.noExtourneRequired===true||(Array.isArray(c.extournesN1?.entries)&&c.extournesN1.entries.length>0)}
 function hasScore(c){return c.scoreQualite?.status==="generated"||c.scoreQuality?.status==="generated"||typeof c.scoreQualite?.score==="number"||typeof c.scoreQuality?.score==="number"}
 function hasValidation(c){return c.validated===true||c.validation?.status==="validated"||c.validationCloture?.status==="validated"||c.closureValidation?.status==="validated";}
 function hasReport(c){return c.rapportCloture?.status==="saved"||c.rapportCloture?.status==="generated"||c.rapportCloture?.status==="archived"||c.closureReport?.status==="saved"||c.closureReport?.status==="generated";}
