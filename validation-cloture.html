@@ -49,7 +49,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
   <a class="btn secondary" id="rapportBtn" href="rapport-cloture.html" style="display:none">Rapport de clôture</a>
   <button class="btn danger" id="unvalidateBtn" type="button">Déverrouiller la validation</button>
 </div>
-    <div id="validationMsg" class="notice">La validation définitive bloque le workflow métier : le rapport de clôture devient la pièce finale.</div>
+    <div id="validationMsg" class="notice" style="display:none"></div>
   </section>
 </div>
 <div class="modalBack" id="validationModal">
@@ -162,6 +162,7 @@ async function validateClosure(){
     validationDefinitive: payload.validationDefinitive
   };
 
+  $("validationMsg").style.display = "block";
   $("validationMsg").innerHTML =
     '<b class="okText">Validation définitive enregistrée.</b><br>Le rapport de clôture est disponible.';
 
@@ -185,6 +186,7 @@ async function unvalidateClosure(){
     updatedAt:serverTimestamp()
   });
 
+  $("validationMsg").style.display = "block";
   $("validationMsg").innerHTML =
     '<b class="warnText">Validation déverrouillée.</b><br>Le dossier peut être repris.';
 
