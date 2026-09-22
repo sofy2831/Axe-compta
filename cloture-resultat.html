@@ -422,8 +422,7 @@ Aucune écriture automatique fiable n'est proposée sans détail de paie suffisa
     const is455Analysis = isAnalysisEntry(ne) && (
       t.includes("455") ||
       t.includes("compte courant") ||
-      t.includes("comptes courants") ||
-      t.includes("associe")
+      t.includes("comptes courants")
     );
     const isGroupementContext = isGipContext(c) || txt(c?.activity||c?.activite||"").includes("association");
     if(is455Analysis && isGroupementContext){
