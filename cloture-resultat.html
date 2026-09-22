@@ -419,7 +419,14 @@ Aucune écriture automatique fiable n'est proposée sans détail de paie suffisa
     }
 
     // E — Qualification métier des 455 pour un GIP.
-    if(isAnalysisEntry(ne) && (t.includes("455")||t.includes("compte courant")) && (isGipContext(c)||txt(c?.activity||c?.activite||"").includes("association"))){
+    const is455Analysis = isAnalysisEntry(ne) && (
+      t.includes("455") ||
+      t.includes("compte courant") ||
+      t.includes("comptes courants") ||
+      t.includes("associe")
+    );
+    const isGroupementContext = isGipContext(c) || txt(c?.activity||c?.activite||"").includes("association");
+    if(is455Analysis && isGroupementContext){
       const closing=balanceClosingBalanceForPrefix(c,"455");
       const movements=Math.abs(amountNumber(ne.amount));
       ne.label="Comptes 455 — membres du groupement";
