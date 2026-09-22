@@ -351,7 +351,7 @@ function ensurePayrollAnalysis(c,entries){
   if(!hasPayrollRows(c)||already)return entries;
   const families=payrollSummaryRows(c);
   const summary=Object.entries(families).map(([k,v])=>`- ${k} : ${formatAmount(v)}`).join("\n");
-  return [...entries,{journal:"ANALYSE",label:"Analyse paie / charges sociales",debit:"—",credit:"—",amount:"À contrôler",justification:`Paie et charges sociales détectées.
+  return [...entries,{journal:"ANALYSE",label:"Analyse paie / charges sociales",debit:"—",credit:"—",amount:"—",justification:`Paie et charges sociales détectées.
 
 Synthèse par compte :
 ${summary}
@@ -406,7 +406,7 @@ function normalizeEntries(c,entries){
       const families=payrollSummaryRows(c);
       const summary=Object.entries(families).map(([k,v])=>`- ${k} : ${formatAmount(v)}`).join("\n");
       ne.label="Analyse paie / charges sociales";
-      ne.amount="À contrôler";
+      ne.amount="—";
       ne.justification=`Paie et charges sociales détectées.
 
 Synthèse par compte :
@@ -453,12 +453,13 @@ Contrôles à effectuer :
 function rowHtml(e,i){
   const analysis=isAnalysisEntry(e);
   const status=entryStatus(e);
+  const displayAmount=analysis && txt(e.amount).includes("a controler") ? "—" : e.amount;
   return `<tr>
     <td>${safe(entryJournal(e))}</td>
     <td>${safe(cleanDisplayLabel(e.label))}</td>
     <td>${safe(formatAccount(e.debit))}</td>
     <td>${safe(formatAccount(e.credit))}</td>
-    <td>${safe(formatAmount(e.amount))}</td>
+    <td>${safe(formatAmount(displayAmount))}</td>
     <td class="justificationShort">${compactJustification(e)}</td>
     <td><span class="statusBtn ${(!analysis||status==="OK")?"done":""}">${status}</span>${detailsButtonHtml(e,i)}</td>
   </tr>`;
@@ -485,7 +486,7 @@ async function saveEntriesStatus(showAlert=true,markProject=true){
   if(showAlert)openResultModal("✔ Projet enregistré","Le projet d’OD est enregistré.<br><br>Vous pouvez maintenant poursuivre vers le dossier de révision.",true);
 }
 function renderDetailCard(d,i){return `<div class="detailCard"><b>${i+1}. ${safe((d.compte||"—")+" "+(d.libelle||""))}</b><p><strong>Montant :</strong> ${formatAmount(d.amount)}</p>${d.caseLabel?`<p><strong>Cas détecté :</strong> ${safe(d.caseLabel)}</p>`:""}${d.recommendation?`<p><strong>Recommandation :</strong> ${safe(d.recommendation)}</p>`:""}</div>`}
-function openDetailsModal(e){if(!e)return;$("modalTitle").textContent=cleanDisplayLabel(e.label)||"Détail";$("modalSubtitle").textContent="Analyse détaillée";$("modalJournal").textContent=entryJournal(e);$("modalAmount").textContent=formatAmount(e.amount);$("modalStatus").textContent=entryStatus(e);$("modalJustification").textContent=stripUserContext(e.justification||"Aucune justification détaillée disponible.");if(hasDetails(e)){$("modalDetailsWrap").style.display="block";$("modalDetails").innerHTML=e.details.map(renderDetailCard).join("")}else{$("modalDetailsWrap").style.display="none";$("modalDetails").innerHTML=""}$("detailsModal").classList.add("open")}
+function openDetailsModal(e){if(!e)return;$("modalTitle").textContent=cleanDisplayLabel(e.label)||"Détail";$("modalSubtitle").textContent="Analyse détaillée";$("modalJournal").textContent=entryJournal(e);$("modalAmount").textContent=(isAnalysisEntry(e)&&txt(e.amount).includes("a controler"))?"—":formatAmount(e.amount);$("modalStatus").textContent=entryStatus(e);$("modalJustification").textContent=stripUserContext(e.justification||"Aucune justification détaillée disponible.");if(hasDetails(e)){$("modalDetailsWrap").style.display="block";$("modalDetails").innerHTML=e.details.map(renderDetailCard).join("")}else{$("modalDetailsWrap").style.display="none";$("modalDetails").innerHTML=""}$("detailsModal").classList.add("open")}
 function closeDetailsModal(){$("detailsModal").classList.remove("open")}
 function lockResult(){$("paymentBlock").style.display="block";$("entriesWrapper").classList.add("blur");$("accessStatus").textContent="Verrouillé"}
 function unlockResult(label="Actif"){$("paymentBlock").style.display="none";$("entriesWrapper").classList.remove("blur");$("accessStatus").textContent=label}
