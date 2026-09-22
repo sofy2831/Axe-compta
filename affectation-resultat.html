@@ -117,7 +117,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <button class="btn secondary" type="button" id="csvBtn">CSV</button>
       <button class="btn secondary" type="button" id="excelBtn">Excel</button>
        <button class="btn warn" type="button" id="saveBtn" disabled>Enregistrer l’affectation</button>
-  <button class="btn secondary" type="button" id="pvBtn" disabled>PV d’AG / PDF</button>
+  <button class="btn secondary" type="button" id="pvBtn" disabled>PV / PDF</button>
       <a class="btn" id="extournesExportBtn" href="extournes-automatiques.html">Extournes N+1</a>
     </div>
     <div class="notice">Après enregistrement de l’affectation, passer aux extournes N+1. Le score qualité final arrive seulement après les extournes.</div>
@@ -132,7 +132,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <p class="muted">
       L’affectation du résultat est enregistrée.
       <br><br>
-      Vous pouvez maintenant générer le PV d’AG en PDF ou passer aux extournes N+1.
+      Vous pouvez maintenant générer le PV en PDF ou passer aux extournes N+1.
     </p>
     <div class="actions">
       <button class="btn secondary" type="button" id="closeAffectationModalBtn">OK</button>
@@ -733,29 +733,27 @@ function docHtml(title="Affectation du résultat", subtitle="Écritures et déci
   return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">${sanitize(title)}</div><div class="docSub">${sanitize(subtitle)}</div></div>${docInfoRows()}<div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Répartition décidée</h3><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><h3>Écritures comptables</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus doivent être contrôlées avant comptabilisation définitive. Elles servent de base aux extournes N+1 et au score qualité final.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 
+
+function pvLegalContext(){
+  const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+  const joined=[
+    currentClosure?.legalForm,currentClosure?.formeJuridique,currentClosure?.legalStatus,
+    currentClosure?.statutJuridique,currentClosure?.companyType,currentClosure?.structureType,
+    currentClosure?.activity,currentClosure?.activite,currentClosure?.businessActivity,currentClosure?.companyActivity
+  ].map(norm).filter(Boolean).join(" | ");
+  const isGroupement=/(^|[\s|])gip([\s|]|$)/.test(joined)||joined.includes("groupement d interet public")||joined.includes("groupement");
+  return isGroupement
+    ? {title:"Procès-verbal de l'organe délibérant",nature:"Décision annuelle d'affectation du résultat",subject:"l’organe délibérant",rightSigner:"Président de séance / Représentant du groupement",dateLabel:"Date de la décision"}
+    : {title:"Procès-verbal d'Assemblée Générale Ordinaire",nature:"Assemblée Générale Ordinaire annuelle",subject:"l’Assemblée Générale",rightSigner:"Associé / Président de séance",dateLabel:"Date de l’assemblée"};
+}
+
 function pvDocHtml(){
   const nature=resultType==="profit"?"bénéfice":"perte";
-  const decision=resultType==="profit"?`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter ce résultat de la manière suivante :`:`Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${money(resultAmount)}</strong>, l’Assemblée Générale décide d’affecter cette perte de la manière suivante :`;
-  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Procès-verbal d'Assemblée Générale Ordinaire</div><div class="docSub">Affectation du résultat</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date de l’assemblée</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Nature</td><td>Assemblée Générale Ordinaire annuelle</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${money(resultAmount)}</td></tr></table><h3>Première résolution — Affectation du résultat</h3><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Écritures comptables résultant de la décision</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><p>La présente résolution a été adoptée par l’Assemblée Générale et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSignatureBlock" style="margin-top:28px;page-break-inside:avoid">
-  <p class="pvMadeAt">Fait à ________________________________ le ________________________________</p>
-  <div class="pvSignatures">
-    <div class="pvSignatureCol">
-      <p><strong>Le représentant légal</strong></p>
-      <p>Nom : ________________________________________</p>
-      <p>Qualité : _____________________________________</p>
-      <p class="pvSignatureLabel">Signature :</p>
-      <div class="pvSignatureSpace"></div>
-    </div>
-    <div class="pvSignatureCol">
-      <p><strong>Associé / Président de séance</strong></p>
-      <p>Nom : ________________________________________</p>
-      <p>Qualité : _____________________________________</p>
-      <p class="pvSignatureLabel">Signature :</p>
-      <div class="pvSignatureSpace"></div>
-    </div>
-  </div>
-  <div class="pvBottomSpace"></div>
-</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
+  const legal=pvLegalContext();
+  const decision=resultType==="profit"
+    ? `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice clos le ${sanitize(exerciceEndFr())} fait apparaître un bénéfice de <strong>${money(resultAmount)}</strong>, ${legal.subject} décide d’affecter ce résultat de la manière suivante :`
+    : `Après avoir entendu la lecture des comptes annuels et constaté que l’exercice fait apparaître une perte de <strong>${money(resultAmount)}</strong>, ${legal.subject} décide d’affecter cette perte de la manière suivante :`;
+  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">${sanitize(legal.title)}</div><div class="docSub">Affectation du résultat</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>${sanitize(legal.dateLabel)}</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Nature</td><td>${sanitize(legal.nature)}</td></tr><tr><td>Résultat constaté</td><td>${nature} de ${money(resultAmount)}</td></tr></table><h3>Première résolution — Affectation du résultat</h3><p>${decision}</p><table><thead><tr><th>Affectation</th><th>Compte</th><th class="amount">Montant</th></tr></thead><tbody>${allocationRowsHtml()}</tbody></table><div class="docOk">Total affecté : ${money(totalAllocated())}<br>Affectation équilibrée et conforme au résultat détecté.</div><h3>Écritures comptables résultant de la décision</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="amount">Montant</th></tr></thead><tbody>${accountingRowsHtml()}</tbody></table><p>La présente résolution a été adoptée par ${legal.subject} et servira de base à l’enregistrement comptable de l’affectation du résultat.</p><div class="pvSignatureBlock" style="margin-top:28px;page-break-inside:avoid"><p class="pvMadeAt">Fait à ________________________________ le ________________________________</p><div class="pvSignatures"><div class="pvSignatureCol"><p><strong>Le représentant légal</strong></p><p>Nom : ________________________________________</p><p>Qualité : _____________________________________</p><p class="pvSignatureLabel">Signature :</p><div class="pvSignatureSpace"></div></div><div class="pvSignatureCol"><p><strong>${sanitize(legal.rightSigner)}</strong></p><p>Nom : ________________________________________</p><p>Qualité : _____________________________________</p><p class="pvSignatureLabel">Signature :</p><div class="pvSignatureSpace"></div></div></div><div class="pvBottomSpace"></div></div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
 
 const printCss = `@page{size:A4;margin:10mm 12mm}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif}.doc{font-family:Arial,Helvetica,sans-serif;line-height:1.22;color:#111;background:#fff;font-size:10.5pt;min-height:277mm;display:flex;flex-direction:column}.docHeader{text-align:center;border-bottom:3px solid #163b66;padding-bottom:7px;margin-bottom:9px}.docLogo{max-height:38px;margin-bottom:4px}.docTitle{font-size:19px;font-weight:800;text-transform:uppercase}.docSub{font-size:11.5px;color:#333}.docInfo{width:100%;border-collapse:collapse;margin:7px 0 9px}.docInfo td{border:1px solid #c8d0da;padding:4px 7px;font-size:10.5px}.docInfo td:first-child{font-weight:700;background:#f3f6fa;width:32%}table{width:100%;border-collapse:collapse;margin:7px 0 9px}th,td{border:1px solid #c8d0da;padding:4px 6px;font-size:10px;vertical-align:top}th{background:#f3f6fa;color:#111;text-transform:uppercase}.amount,.num{text-align:right;white-space:nowrap}.docOk{border-left:5px solid #2fbf8f;background:#eefbf6;padding:7px 10px;margin:8px 0;font-weight:700}.docWarn{border-left:5px solid #173f6f;background:#f3f6fa;padding:7px 10px;margin:8px 0}.docFooter{margin-top:auto;border-top:1px solid #ccd3dc;padding-top:5px;font-size:9.5px;text-align:center;color:#555}h3{font-size:11.5pt;margin:9px 0 4px;color:#173f6f;text-transform:uppercase}p{margin:5px 0}.pvSignatureBlock{margin-top:12px!important;page-break-inside:avoid}.pvMadeAt{margin:0 0 10px}.pvSignatures{display:grid;grid-template-columns:1fr 1fr;gap:28px}.pvSignatureCol{min-height:108px}.pvSignatureCol p{margin:0 0 6px}.pvSignatureLabel{margin-top:8px!important;margin-bottom:4px!important}.pvSignatureSpace{height:58px;border-bottom:1px solid #777}.pvBottomSpace{height:12px}`;
@@ -795,7 +793,7 @@ $("pvBtn").addEventListener("click",()=>{
 
     const doc=iframe.contentWindow.document;
     doc.open();
-    doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV d’AG - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}</body></html>`);
+    doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>PV - Affectation du résultat</title><style>${printCss}</style></head><body>${pvHtml}</body></html>`);
     doc.close();
 
     iframe.onload=()=>{
@@ -806,7 +804,7 @@ $("pvBtn").addEventListener("click",()=>{
       },180);
     };
   }catch(e){
-    alert(e.message||"Impossible d’ouvrir le PV d’AG.");
+    alert(e.message||"Impossible d’ouvrir le PV.");
   }
 });
 
