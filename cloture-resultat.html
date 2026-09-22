@@ -432,7 +432,7 @@ Aucune écriture automatique fiable n'est proposée sans détail de paie suffisa
       ne.justification=`Comptes 455 détectés dans le dossier.
 
 Mouvements analysés : ${formatAmount(movements)}.
-Solde de clôture des comptes 455 calculé depuis la balance : ${formatAmount(closing)}.
+Solde de clôture des comptes 455 calculé depuis la balance : ${formatAmount(Math.abs(closing))} — ${closing > 0.005 ? "solde débiteur" : closing < -0.005 ? "solde créditeur" : "solde nul"}.
 
 Contrôles à effectuer :
 - identifier la nature des avances, remboursements ou autres mouvements ;
