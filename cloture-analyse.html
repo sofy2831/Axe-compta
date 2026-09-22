@@ -116,11 +116,14 @@ function renderQuestions(){
   }));
 }
 
+function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
+function activityDisplay(c){return c?.activity||c?.activite||c?.businessActivity||c?.companyActivity||"Non renseignée";}
+function vatDisplay(c){return c?.vatRegime||c?.regimeTva||c?.tvaRegime||c?.vat||"Non renseigné";}
 async function reloadClosure(){
   const snap=await getDoc(doc(db,"users",currentUser.uid,"closures",id));
   if(!snap.exists()){window.location.href="tableau-de-bord.html";return;}
   closure=snap.data();
-  closureInfo.textContent=`${closure.companyName||"Société"} — ${closure.startDate||"—"} → ${closure.endDate||"—"}`;
+  closureInfo.textContent=`${closure.companyName||"Société"} — ${closure.startDate||"—"} → ${closure.endDate||"—"} — ${legalFormDisplay(closure)} — ${activityDisplay(closure)} — TVA : ${vatDisplay(closure)}`;
   resultLink.href=`cloture-resultat.html?id=${id}`;
   refreshDisplay();
   renderQuestions();
