@@ -37,7 +37,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 
   <section class="box">
     <h2>Clôture</h2>
-    <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Points de révision</span><b id="reviewCount">0</b></div></div>
+    <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Forme juridique</span><b id="legalFormLabel">—</b></div><div class="metric"><span>Points de révision</span><b id="reviewCount">0</b></div></div>
     <div class="notice">Chaque OD proposée et chaque point d’analyse à examiner doit recevoir un statut. Les points restant à documenter ou à corriger peuvent être conservés : ils resteront signalés et seront pris en compte dans le score qualité final.</div>
   </section>
 
@@ -94,6 +94,7 @@ let currentUser=null,currentOwnerUid="",currentClosure=null,reviewItems=[],revis
 const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
+function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
 function ownerQuery(){return owner?`&owner=${encodeURIComponent(owner)}`:"";}
 function affectationUrl(){return `affectation-resultat.html?id=${closureId}${ownerQuery()}`;}
@@ -186,7 +187,7 @@ revisionSaved=true;
 }
 function docHtml(){
   return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Dossier de révision</div><div class="docSub">Justificatifs et révision des OD et analyses de clôture</div></div>
-  <table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyLabel").textContent)}</td></tr><tr><td>Exercice</td><td>${sanitize($("yearLabel").textContent)}</td></tr><tr><td>Points de révision</td><td>${reviewItems.length}</td></tr></table>
+  <table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyLabel").textContent)}</td></tr><tr><td>Exercice</td><td>${sanitize($("yearLabel").textContent)}</td></tr><tr><td>Forme juridique</td><td>${sanitize(legalFormDisplay(currentClosure))}</td></tr><tr><td>Points de révision</td><td>${reviewItems.length}</td></tr></table>
   <table class="reviewTable"><thead><tr><th>Écriture</th><th>Montant</th><th>Statut</th><th>Justificatif / commentaire</th></tr></thead><tbody>${reviewItems.map(r=>`<tr><td>${sanitize(r.label)}<br>${sanitize(r.debit||"—")} / ${sanitize(r.credit||"—")}</td><td class="num">${euro(r.amount)}</td><td>${sanitize(r.status)}</td><td>${sanitize(r.document||"")}<br>${sanitize(r.comment||"")}</td></tr>`).join("")}</tbody></table>
   <div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`;
 }
@@ -232,6 +233,7 @@ async function loadClosure(user){
   currentClosure=snap.data();
   $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
   $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
+  $("legalFormLabel").textContent=legalFormDisplay(currentClosure);
   const savedRaw=Array.isArray(currentClosure.dossierRevision?.items)?currentClosure.dossierRevision.items:null;
   const saved=(savedRaw&&savedRaw.length)?savedRaw:null;
   reviewItems=saved||((Array.isArray(currentClosure.entries)?currentClosure.entries:[])
