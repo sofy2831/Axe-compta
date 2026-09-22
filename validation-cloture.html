@@ -35,7 +35,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 
   <section class="box">
     <h2>Synthèse de validation</h2>
-    <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Score final</span><b id="scoreLabel">—</b></div></div>
+    <div class="grid3"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Forme juridique</span><b id="legalFormLabel">—</b></div><div class="metric"><span>Score final</span><b id="scoreLabel">—</b></div></div>
     <div id="checklistBox"></div>
   </section>
 
@@ -75,6 +75,7 @@ let currentUser=null,currentOwnerUid="",currentClosure=null;
 const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
+function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
 function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?? null;}
 function hasEntries(c){return Array.isArray(c?.entries)&&c.entries.length>0;}
 function hasReview(c){return c?.dossierRevision?.status==="completed" || (Array.isArray(c?.dossierRevision?.items)&&c.dossierRevision.items.length>0);}
@@ -225,6 +226,7 @@ async function loadClosure(user){
  currentClosure=snap.data();
  $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
  $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
+  $("legalFormLabel").textContent=legalFormDisplay(currentClosure);
  const s=scoreValue(currentClosure); $("scoreLabel").textContent=s===null?"—":`${s}/100`;
  // Adapter la confirmation au score final.
   $("confirmText").textContent =
