@@ -52,7 +52,8 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
       <button class="closeBtn" type="button" id="closeEditClosureBtn">Fermer</button>
     </div>
     <div class="field"><label>Nom de l’entreprise</label><input id="editCompanyName" type="text"></div>
-    <div class="field"><label>Activité</label><select id="editActivity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Association</option><option>Autre</option></select></div>
+    <div class="field"><label>Forme juridique</label><select id="editLegalForm"><option>Non renseignée</option><option>Société commerciale</option><option>Association</option><option>GIE / Groupement</option><option>Autre structure</option></select></div>
+    <div class="field"><label>Activité</label><select id="editActivity"><option>Prestations de services</option><option>Commerce</option><option>BTP</option><option>Location meublée</option><option>Autre</option></select></div>
     <div class="field"><label>Régime TVA</label><select id="editVatRegime"><option>Réel normal</option><option>Réel simplifié</option><option>Franchise en base</option><option>Non assujetti à la TVA</option><option>Non renseigné</option></select></div>
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
       <div class="field" style="margin-top:0"><label>Date de début d’exercice</label><input id="editStartDate" type="date"></div>
@@ -97,10 +98,13 @@ function isCabinetMember(){return currentUserData.cabinetMember===true||currentM
 function dashboardPlanLabel(data){if(isCabinetMember()&&!isCabinetOwner(data))return"Cabinet inclus";return planDisplay(data.plan);}
 function dashboardStatusLabel(data,active){if(isCabinetMember()&&!isCabinetOwner(data))return"Collaborateur Cabinet";if(data.cancelAtPeriodEnd===true)return"Résiliation programmée";return active?"Actif":"À activer";}
 function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabinetHeaderBtn.style.display=show?"inline-flex":"none";cabinetMenuCard.classList.toggle("hidden",!show);}
-function openEditClosure(id,ownerUid,companyName,activity,vatRegime,startDate,endDate){
+function openEditClosure(id,ownerUid,companyName,activity,vatRegime,startDate,endDate,legalForm){
   editingClosureId=id||"";
   editingClosureOwnerUid=ownerUid||currentUser?.uid||"";
   document.getElementById("editCompanyName").value=companyName||"";
+  const legalFormEl=document.getElementById("editLegalForm");
+  legalFormEl.value=legalForm||"Non renseignée";
+  if(![...legalFormEl.options].some(o=>o.value===legalFormEl.value))legalFormEl.value="Non renseignée";
   const activityEl=document.getElementById("editActivity");
   activityEl.value=activity||"Autre";
   if(![...activityEl.options].some(o=>o.value===activityEl.value))activityEl.value="Autre";
@@ -111,7 +115,7 @@ function openEditClosure(id,ownerUid,companyName,activity,vatRegime,startDate,en
   editingClosureEndDate=endDate||"";
   document.getElementById("editStartDate").value=editingClosureStartDate;
   document.getElementById("editEndDate").value=editingClosureEndDate;
-  document.getElementById("editClosureNotice").innerHTML="Vous pouvez corriger le nom, l’activité, le régime TVA et les dates de cette clôture. <b>Si les dates changent après analyse, rechargez et recalculez la clôture.</b>";
+  document.getElementById("editClosureNotice").innerHTML="Vous pouvez corriger le nom, la forme juridique, l’activité, le régime TVA et les dates de cette clôture. <b>Si les dates changent après analyse, rechargez et recalculez la clôture.</b>";
   document.getElementById("editClosureModal").classList.add("open");
 }
 function closeEditClosure(){
@@ -135,6 +139,7 @@ async function saveEditClosure(){
     btn.disabled=true;btn.textContent="Enregistrement...";
     const updatePayload={
       companyName,
+      legalForm:document.getElementById("editLegalForm").value,
       activity:document.getElementById("editActivity").value,
       vatRegime:document.getElementById("editVatRegime").value,
       startDate,
@@ -523,7 +528,7 @@ async function loadDashboard(user){
       const shareToCabinetButton=cabinetMember&&!cabinetOwner&&!item.shared&&paid&&!archived
         ?`<button class="btn small shareBtn" type="button" data-share-cabinet="${safe(item.id)}" data-company="${safe(c.companyName||"Société sans nom")}">Partager cabinet</button>`:"";
       const editButton=!item.shared
-        ?`<button class="btn small" type="button" data-edit-closure="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-company="${safe(c.companyName||"")}" data-activity="${safe(c.activity||"")}" data-vat="${safe(c.vatRegime||"Non renseigné")}" data-start="${safe(c.startDate||"")}" data-end="${safe(c.endDate||"")}">✎ Modifier</button>`
+        ?`<button class="btn small" type="button" data-edit-closure="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-company="${safe(c.companyName||"")}" data-activity="${safe(c.activity||"")}" data-legal-form="${safe(c.legalForm||c.formeJuridique||"")}" data-vat="${safe(c.vatRegime||"Non renseigné")}" data-start="${safe(c.startDate||"")}" data-end="${safe(c.endDate||"")}">✎ Modifier</button>`
         :"";
       const archiveBtn=!item.shared
         ?(paid?`<button class="btn small" type="button" data-archive="${safe(item.id)}" data-owner="${safe(item.ownerUid)}" data-state="${archived}">${archived?"Désarchiver":"Archiver"}</button>`:`<span class="btn small disabled" title="Disponible après paiement">Archiver</span>`)
@@ -559,7 +564,7 @@ async function loadDashboard(user){
     activeClosuresEl.textContent=String(activeCount);
     exportsCountEl.textContent=String(exports);
 
-    document.querySelectorAll("[data-edit-closure]").forEach(btn=>btn.addEventListener("click",()=>openEditClosure(btn.dataset.editClosure,btn.dataset.owner,btn.dataset.company,btn.dataset.activity,btn.dataset.vat,btn.dataset.start,btn.dataset.end)));
+    document.querySelectorAll("[data-edit-closure]").forEach(btn=>btn.addEventListener("click",()=>openEditClosure(btn.dataset.editClosure,btn.dataset.owner,btn.dataset.company,btn.dataset.activity,btn.dataset.vat,btn.dataset.start,btn.dataset.end,btn.dataset.legalForm)));
     document.querySelectorAll("[data-archive]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;try{await toggleArchive(btn.dataset.owner,btn.dataset.archive,btn.dataset.state==="true");}catch(e){alert(e.message||"Archivage impossible.");btn.disabled=false;}}));
     document.querySelectorAll("[data-share]").forEach(btn=>btn.addEventListener("click",()=>renderShareClosure(btn.dataset.share,btn.dataset.company||"Société sans nom")));
     document.querySelectorAll("[data-share-cabinet]").forEach(btn=>btn.addEventListener("click",()=>renderShareWithCabinet(btn.dataset.shareCabinet,btn.dataset.company||"Société sans nom")));
