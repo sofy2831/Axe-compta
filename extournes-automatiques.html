@@ -42,6 +42,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <p id="statusLine" class="muted">Chargement de la clôture...</p>
     <div class="grid">
       <div><label>Société</label><input id="companyName" readonly></div>
+      <div><label>Forme juridique</label><input id="legalFormLabel" readonly></div>
       <div><label>Exercice concerné</label><input id="fiscalYear" readonly></div>
     </div>
     <div class="grid4" style="margin-top:14px">
@@ -124,6 +125,7 @@ function amountNumber(v){ const n = Number(String(v ?? "").replace(/\s/g, "").re
 function sanitize(s){ return String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
 function set(id,v){ $(id).value = v ?? ""; }
 function fiscalYear(c){ if(c?.startDate && c?.endDate) return `${c.startDate} → ${c.endDate}`; if(c?.endDate) return String(c.endDate).slice(0,4); return c?.fiscalYear || c?.exercice || ""; }
+function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
 function isoToFr(v){ if(!v) return "—"; const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : v; }
 function nextDayAfterEnd(c){ if(!c?.endDate) return ""; const d = new Date(c.endDate); if(Number.isNaN(d.getTime())) return ""; d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
 function ownerQueryParam(){return currentOwnerUid&&currentUser&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
@@ -417,7 +419,7 @@ async function saveExtournes(){
   $("saveExtournesModal").style.display = "flex";
 }
 function rowsHtml(){ return includedRows().map(r=>`<tr><td>${isoToFr(r.date)}</td><td>${sanitize(r.journal)}</td><td>${sanitize(r.label)}</td><td>${sanitize(r.debit)}</td><td>${sanitize(r.credit)}</td><td class="num">${euro(r.amount)}</td></tr>`).join(""); }
-function docHtml(){ return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${includedRows().length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(includedRows()))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. L'affectation du résultat est contrôlée mais non contrepassée automatiquement.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`; }
+function docHtml(){ return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Extournes automatiques N+1</div><div class="docSub">Contrepassation des écritures de clôture</div></div><table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Forme juridique</td><td>${sanitize(legalFormDisplay(currentClosure))}</td></tr><tr><td>Date d’extourne</td><td>${isoToFr($("extourneDate").value)}</td></tr><tr><td>Journal</td><td>${sanitize($("journalCode").value||"OD")}</td></tr><tr><td>Nombre d’écritures</td><td>${includedRows().length}</td></tr></table><div class="docOk">Total des extournes proposées : ${euro(totalAmount(includedRows()))}</div><table><thead><tr><th>Date</th><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${rowsHtml()}</tbody></table><div class="docWarn">Les écritures ci-dessus correspondent aux contrepassations automatiques N+1 des écritures de clôture identifiées comme extournables. L'affectation du résultat est contrôlée mais non contrepassée automatiquement.</div><div class="docFooter"><b>AXE COMPTA IA</b><br>Assistant de clôture comptable</div></div>`; }
 function renderPrint(){ if(!extourneRows.length) return; $("printArea").innerHTML=docHtml(); }
 function download(name,content,type){ const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
 function fileBase(){ return `extournes-n1-${($("companyName").value||"societe").trim().replace(/\s+/g,"-").toLowerCase()}`; }
@@ -439,6 +441,7 @@ async function loadClosure(user){
   }
   currentClosure=snap.data();
   set("companyName",currentClosure.companyName || "Société sans nom");
+   set("legalFormLabel",legalFormDisplay(currentClosure));
   set("fiscalYear",fiscalYear(currentClosure));
   set("extourneDate", nextDayAfterEnd(currentClosure) || "");
   sourceEntries = reviewedClosureEntries();
