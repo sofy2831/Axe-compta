@@ -71,7 +71,7 @@ function legalFormText(c){
 }
 function isGipContext(c){
   const f=legalFormText(c);
-  return f.includes("gip") || f.includes("groupement d interet public") || f.includes("groupement d'interet public");
+  return f.includes("gip") || f.includes("groupement d interet public") || f.includes("groupement d'interet public") || txt(c?.companyName||"").startsWith("gip");
 }
 function accountFromDetail(d){
   return String(d?.compte||d?.Compte||"").replace(/\s/g,"");
@@ -308,31 +308,59 @@ function focusCorrectionFromScore(){
 function applySoloLock(c){const locked=isSoloClosureLocked(c);["balanceFile","grandLivreFile","amortissementsFile","empruntFile"].forEach(id=>{const el=$(id);if(el)el.disabled=locked});$("reparseBtn").disabled=locked;if(locked){$("filesIntro").innerHTML=`Clôture ponctuelle <b>99 €</b> terminée : les fichiers sont verrouillés après validation des extournes. Pour refaire une analyse complète, créez une nouvelle clôture ou passez à une formule mensuelle.`;$("fileMsg").style.display="block";$("fileMsg").className="notice warn";$("fileMsg").innerHTML=`<b class="warnText">Clôture verrouillée.</b><br>Le réimport et le recalcul sont désactivés sur cette clôture Solo.`}}
 function hasPayrollRows(c){
   const rows=[...(Array.isArray(c?.balance)?c.balance:[]),...(Array.isArray(c?.grandLivre)?c.grandLivre:[])];
-  return rows.some(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(421|428|431|437|438|641|645)/));
+  return rows.some(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(421|428|431|432|433|434|435|436|437|438|641|645)/));
+}
+function payrollAmount(r){
+  const debit=amountNumber(r?.Débit||r?.Debit||r?.debit||0);
+  const credit=amountNumber(r?.Crédit||r?.Credit||r?.credit||0);
+  if(debit||credit) return Math.abs(debit-credit);
+  return Math.abs(amountNumber(r?.Montant||r?.montant||r?.Solde||r?.solde||0));
+}
+function payrollSummaryRows(c){
+  const balance=Array.isArray(c?.balance)?c.balance:[];
+  const gl=Array.isArray(c?.grandLivre)?c.grandLivre:[];
+  const source=balance.length?balance:gl;
+  const fams={
+    "641 — Salaires":0,
+    "645 — Charges sociales":0,
+    "421 — Personnel":0,
+    "431-437 — Organismes sociaux":0,
+    "428-438 — Charges à payer":0
+  };
+  source.forEach(r=>{
+    const compte=String(r?.Compte||r?.compte||"").replace(/\s/g,"");
+    const fam=payrollFamily(compte);
+    if(Object.prototype.hasOwnProperty.call(fams,fam)) fams[fam]+=payrollAmount(r);
+  });
+  return fams;
+}
+function payrollGlDetails(c){
+  return (Array.isArray(c?.grandLivre)?c.grandLivre:[])
+    .filter(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(421|428|431|432|433|434|435|436|437|438|641|645)/))
+    .map(r=>({
+      compte:String(r?.Compte||r?.compte||""),
+      libelle:String(r?.["Libellé opération"]||r?.Libellé||r?.libelle||r?.Libelle||r?.["Intitulé compte"]||"Mouvement de paie"),
+      amount:payrollAmount(r)
+    }));
 }
 function ensurePayrollAnalysis(c,entries){
   const already=entries.some(e=>txt((e.label||"")+" "+(e.justification||"")).includes("paie")||txt(e.label).includes("conges payes")||txt(e.label).includes("charges sociales"));
   if(!hasPayrollRows(c)||already)return entries;
-  const rows=[...(Array.isArray(c.balance)?c.balance:[]),...(Array.isArray(c.grandLivre)?c.grandLivre:[])].filter(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").match(/^(421|428|431|437|438|641|645)/));
-  const families={};
-  rows.forEach(r=>{
-    const compte=String(r.Compte||r.compte||"").replace(/\s/g,"");
-    const fam=payrollFamily(compte);
-    families[fam]=(families[fam]||0)+amountNumber(r.Montant||r.montant||r.Solde||r.solde||r.Débit||r.Crédit||0);
-  });
+  const families=payrollSummaryRows(c);
   const summary=Object.entries(families).map(([k,v])=>`- ${k} : ${formatAmount(v)}`).join("\n");
-  return [...entries,{journal:"ANALYSE",label:"Analyse Paie / Charges sociales",debit:"—",credit:"—",amount:"À contrôler",justification:`Paie et charges sociales détectées.
+  return [...entries,{journal:"ANALYSE",label:"Analyse paie / charges sociales",debit:"—",credit:"—",amount:"À contrôler",justification:`Paie et charges sociales détectées.
 
-Synthèse par famille de comptes :
+Synthèse par compte :
 ${summary}
 
 Contrôles à effectuer :
 - rapprocher les salaires et charges sociales des bulletins et de la DSN ;
-- vérifier les comptes 421, 431 à 437 et, le cas échéant, 428/438 ;
-- documenter les soldes restant à payer et les charges rattachées à l'exercice.
+- vérifier les soldes des comptes de personnel et organismes sociaux ;
+- contrôler les éventuelles charges à payer 428/438 à la clôture.
 
-Aucune écriture automatique fiable n'est proposée sans détail de paie suffisant.`,confidence:0.72,source:"balance/grandLivre",status:"À examiner",details:rows.map(r=>({compte:String(r.Compte||r.compte||""),libelle:String(r.Libellé||r.libelle||r.Libelle||"Compte paie"),amount:amountNumber(r.Montant||r.montant||r.Solde||r.solde||r.Débit||r.Crédit||0)}))}];
+Aucune écriture automatique fiable n'est proposée sans détail de paie suffisant.`,confidence:0.72,source:"balance/grandLivre",status:"À examiner",details:payrollGlDetails(c)}];
 }
+
 function removeDuplicateFnpCreditBail(entries){
   return entries.filter((e,idx,arr)=>{
     const t=txt((e.label||"")+" "+(e.justification||""));
@@ -370,8 +398,28 @@ function normalizeEntries(c,entries){
       );
     }
 
+    // F — Présentation paie condensée : synthèse par famille, détail uniquement dans « Voir ».
+    if(isAnalysisEntry(ne) && (t.includes("paie")||t.includes("charges sociales")||t.includes("conges payes"))){
+      const families=payrollSummaryRows(c);
+      const summary=Object.entries(families).map(([k,v])=>`- ${k} : ${formatAmount(v)}`).join("\n");
+      ne.label="Analyse paie / charges sociales";
+      ne.amount="À contrôler";
+      ne.justification=`Paie et charges sociales détectées.
+
+Synthèse par compte :
+${summary}
+
+Contrôles à effectuer :
+- rapprocher les salaires et charges sociales des bulletins et de la DSN ;
+- vérifier les soldes des comptes de personnel et organismes sociaux ;
+- contrôler les éventuelles charges à payer 428/438 à la clôture.
+
+Aucune écriture automatique fiable n'est proposée sans détail de paie suffisant.`;
+      ne.details=payrollGlDetails(c);
+    }
+
     // E — Qualification métier des 455 pour un GIP.
-    if(isAnalysisEntry(ne) && (t.includes("455")||t.includes("compte courant")) && isGipContext(c)){
+    if(isAnalysisEntry(ne) && (t.includes("455")||t.includes("compte courant")) && (isGipContext(c)||txt(c?.activity||c?.activite||"").includes("association"))){
       const closing=balanceClosingBalanceForPrefix(c,"455");
       const movements=Math.abs(amountNumber(ne.amount));
       ne.label="Comptes 455 — membres du groupement";
