@@ -158,7 +158,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 
   <section class="box">
     <h2>Rapport final</h2>
-    <div class="grid4"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Score</span><b id="scoreLabel">—</b></div><div class="metric"><span>Validation</span><b id="validationLabel">—</b></div></div>
+    <div class="grid4"><div class="metric"><span>Société</span><b id="companyLabel">—</b></div><div class="metric"><span>Exercice</span><b id="yearLabel">—</b></div><div class="metric"><span>Forme juridique</span><b id="legalFormLabel">—</b></div><div class="metric"><span>Score</span><b id="scoreLabel">—</b></div><div class="metric"><span>Validation</span><b id="validationLabel">—</b></div></div>
     <div class="actions">
       <button class="btn warn" id="printBtn" type="button">Imprimer / PDF</button>
       <button class="btn secondary" id="saveReportBtn" type="button">Enregistrer</button>
@@ -213,6 +213,7 @@ let currentUser=null,currentOwnerUid="",currentClosure=null;
 const $=id=>document.getElementById(id);
 function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
+function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
 function scoreValue(c){return c?.scoreQualite?.score ?? c?.scoreQuality?.score ?? null;}
 
@@ -298,7 +299,7 @@ function definitiveRows(c){
 function docHtml(){
  const c=currentClosure||{}, s=scoreValue(c), valid=c.validated===true;
  return `<div class="doc"><div class="docHeader"><img src="images/axe-compta.png" class="docLogo" onerror="this.style.display='none'"><div class="docTitle">Rapport de clôture comptable</div><div class="docSub">Synthèse finale du dossier</div></div>
- <table class="docInfo"><tr><td>Société</td><td>${sanitize(c.companyName||"Société sans nom")}</td></tr><tr><td>Exercice</td><td>${sanitize(fiscalYear(c)||"—")}</td></tr><tr><td>Statut validation</td><td>${valid?"Validée définitivement":"Non validée"}</td></tr><tr><td>Score qualité</td><td>${s===null?"—":s+"/100"}</td></tr></table>
+ <table class="docInfo"><tr><td>Société</td><td>${sanitize(c.companyName||"Société sans nom")}</td></tr><tr><td>Exercice</td><td>${sanitize(fiscalYear(c)||"—")}</td></tr><tr><td>Forme juridique</td><td>${sanitize(legalFormDisplay(c))}</td></tr><tr><td>Statut validation</td><td>${valid?"Validée définitivement":"Non validée"}</td></tr><tr><td>Score qualité</td><td>${s===null?"—":s+"/100"}</td></tr></table>
  <div class="${valid?"docOk":"docWarn"}">${valid?"Clôture validée définitivement.":"Clôture non validée définitivement."}</div>
  <h3>1. Écritures de clôture définitives</h3><table><thead><tr><th>Journal</th><th>Libellé</th><th>Débit</th><th>Crédit</th><th class="num">Montant</th></tr></thead><tbody>${definitiveRows(c)}</tbody></table>
  <h3>2. Dossier de révision</h3><table><thead><tr><th>Point</th><th>Statut</th><th>Justificatif</th><th>Commentaire</th></tr></thead><tbody>${reviewRows(c.dossierRevision?.items)}</tbody></table>
@@ -490,6 +491,7 @@ async function loadClosure(user){
  const s=scoreValue(currentClosure);
  $("companyLabel").textContent=currentClosure.companyName||"Société sans nom";
  $("yearLabel").textContent=fiscalYear(currentClosure)||"—";
+  $("legalFormLabel").textContent=legalFormDisplay(currentClosure);
  $("scoreLabel").textContent=s===null?"—":`${s}/100`;
  $("validationLabel").textContent=currentClosure.validated?"Validée":"Non validée";
  $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
