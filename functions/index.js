@@ -374,6 +374,27 @@ function getRowText(row) {
   return normalizeText(Object.values(row || {}).join(" "));
 }
 
+function getLegalForm(closure = {}) {
+  return String(
+    closure.legalForm ||
+    closure.formeJuridique ||
+    closure.companyLegalForm ||
+    closure.juridicalForm ||
+    ""
+  ).trim();
+}
+
+function isGroupementLegalForm(closure = {}) {
+  const legalForm = normalizeText(getLegalForm(closure));
+  return (
+    legalForm === "gip" ||
+    legalForm === "gie" ||
+    legalForm.includes("groupement") ||
+    legalForm.includes("groupement d'interet public") ||
+    legalForm.includes("groupement d interet public")
+  );
+}
+
 function normalizeAccountCode(value) {
   if (value === null || value === undefined || value === "") return "";
 
@@ -1109,7 +1130,9 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   const details = closure.details || {};
   const usefulInfo = closure.notes || "";
   const userContext = "";
-  const activity = normalizeText(closure.activity || "");
+  const activity = normalizeText(closure.activity || closure.activite || "");
+  const legalForm = getLegalForm(closure);
+  const isGroupement = isGroupementLegalForm(closure);
   const allRows = [...balanceRows, ...grandLivreRows];
 
   const hasAcc = prefixes => hasAccount(allRows, prefixes);
@@ -1400,29 +1423,44 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   detectLeasing(balanceRows, grandLivreRows, entries, controls, details, usefulInfo);
   detectExchangeDifferences(balanceRows, grandLivreRows, entries, controls, details, usefulInfo);
 
-  // Comptes courants 455
+  // Comptes 455 — le libellé métier dépend désormais de la forme juridique,
+  // jamais de l'activité. Association seule ne signifie pas GIP/GIE/groupement.
   if (hasAcc(["455"])) {
     const associateRows = uniqueRows(allRows.filter(row => getCompte(row).startsWith("455")));
     const totalAssociate = associateRows.reduce((s, r) => s + getAmount(r), 0);
+    const label455 = isGroupement ? "Comptes 455 — membres du groupement" : "Comptes courants d'associés";
+    const intro455 = isGroupement ? "Comptes 455 des membres du groupement détectés." : "Comptes courants d'associés détectés.";
+    const controls455 = isGroupement
+      ? `- identifier la nature des avances, remboursements ou autres mouvements ;
+- confirmer les soldes de clôture par membre du groupement ;
+- vérifier les conventions ou décisions justificatives ;
+- documenter toute rémunération éventuelle.`
+      : `- vérifier que le solde est justifié ;
+- contrôler les apports et remboursements ;
+- vérifier les intérêts éventuellement comptabilisés ;
+- documenter tout solde débiteur.`;
+
     entries.push(makeAnalysisEntry({
-      label: "Comptes courants d'associés",
+      label: label455,
       amount: totalAssociate || "À contrôler",
       justification:
-`Comptes courants d'associés détectés.
+`${intro455}
 
+Forme juridique : ${legalForm || "Non renseignée"}
 Nombre de ligne(s) : ${associateRows.length}
 Montant cumulé : ${formatEuro(totalAssociate)}
 
 Contrôles à effectuer :
-- vérifier que le solde est justifié ;
-- contrôler les apports et remboursements ;
-- vérifier les intérêts éventuellement comptabilisés ;
-- documenter tout solde débiteur.${userContext}`,
-      confidence: 0.75,
+${controls455}${userContext}`,
+      confidence: 0.8,
       source: "balance/grandLivre",
       details: associateRows.map(row => ({ compte: getCompte(row), libelle: getLibelle(row), amount: getAmount(row) || 0 })),
     }));
-    controls.push({ type: "associate_current_account_detected", label: "Compte courant d'associé détecté", level: "info" });
+    controls.push({
+      type: "associate_current_account_detected",
+      label: isGroupement ? "Compte 455 de membre du groupement détecté" : "Compte courant d'associé détecté",
+      level: "info"
+    });
   }
 
   // Comptes d'attente 471/472
@@ -2235,7 +2273,8 @@ Données :
 - Nature du résultat : ${resultType === "loss" ? "perte" : "bénéfice"}
 - Montant : ${amount}
 - Affectation actuelle : ${JSON.stringify(currentAllocation || {})}
-- Activité : ${closure.activity || "Non renseignée"}
+- Forme juridique : ${getLegalForm(closure) || "Non renseignée"}
+- Activité : ${closure.activity || closure.activite || "Non renseignée"}
 - Régime TVA : ${closure.vatRegime || closure.regimeTva || "Non renseigné"}
 
 Contraintes :
@@ -2408,6 +2447,7 @@ exports.aiScoreQualite = onRequest(
       const aiPayload = {
         companyName: closure.companyName || "",
         exercice: `${closure.startDate || "?"} au ${closure.endDate || "?"}`,
+        legalForm: getLegalForm(closure),
         activity: closure.activity || closure.activite || "",
         vatRegime: closure.vatRegime || closure.regimeTva || "",
         score: Number(score || 0),
@@ -2437,7 +2477,7 @@ Règles :
 - Appuie-toi sur les comptes, écritures, anomalies et lignes sensibles fournies.
 - Pour chaque point perdu, donne une action concrète.
 - Si un compte 471/472 existe, propose le reclassement ou la justification attendue.
-- Si un compte 455 existe, demande la justification du solde et des mouvements.
+- Si un compte 455 existe, demande la justification du solde et des mouvements. Utilise la forme juridique fournie : pour un GIP/GIE/groupement, parle de membres du groupement ; sinon ne déduis jamais un groupement à partir de l'activité « Association ».
 - Si un compte 23 existe, demande mise en service, maintien justifié ou reclassement.
 - Si une immobilisation sort, demande contrôle VNC, prix de cession et écriture de sortie.
 - Si TVA, ICNE, provisions, crédit-bail ou écart de change : indique le contrôle métier à faire.
