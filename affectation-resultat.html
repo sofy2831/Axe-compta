@@ -102,7 +102,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 
     <div class="notice" style="margin-top:14px"><b>Répartition libre</b><br>Vous pouvez saisir un <b>montant</b> ou un <b>pourcentage</b>. L’autre valeur se calcule automatiquement. Les écritures peuvent être générées dès que le résultat est réparti à 100 %.</div>
 
-    <label>Date du PV d’Assemblée Générale</label>
+    <label id="pvDateLabel">Date du PV d’Assemblée Générale</label>
     <input id="pvDate" type="date">
 
     <div class="actions">
@@ -200,6 +200,31 @@ function exerciceEndFr(){const fy=$("fiscalYear").value||"";const dates=fy.match
 function activityText(c){return c?.activity||c?.activite||c?.businessActivity||c?.companyActivity||"Non renseignée"}
 function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée"}
 function vatText(c){return c?.vatRegime||c?.regimeTva||c?.tvaRegime||c?.vat||"Non renseigné"}
+
+function normalizedLegalForm(c=currentClosure){
+  return String(legalFormDisplay(c)||"")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g," ")
+    .trim();
+}
+function isGroupementLegalForm(c=currentClosure){
+  const f=normalizedLegalForm(c);
+  return /(^|\s)gip(\s|$)/.test(f)
+    || /(^|\s)gie(\s|$)/.test(f)
+    || f.includes("groupement d interet public")
+    || f.includes("groupement d interet economique")
+    || f.includes("groupement");
+}
+function updateDecisionDateLabel(){
+  const label=$("pvDateLabel");
+  if(!label)return;
+  label.textContent=isGroupementLegalForm()
+    ? "Date de la décision de l’organe délibérant"
+    : "Date du PV d’Assemblée Générale";
+}
+
 
 function resultPeriodNetAmount(row){
   if(!row)return 0;
@@ -729,7 +754,7 @@ function getExportRows(){
 }
 
 function docInfoRows(){
-  return `<table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Forme juridique</td><td>${sanitize(legalFormDisplay(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>Date du PV</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Résultat constaté</td><td>${resultType==="profit"?"Bénéfice":"Perte"} de ${money(resultAmount)}</td></tr><tr><td>Total affecté</td><td>${money(totalAllocated())}</td></tr></table>`;
+  return `<table class="docInfo"><tr><td>Société</td><td>${sanitize($("companyName").value)}</td></tr><tr><td>Activité</td><td>${sanitize(activityText(currentClosure))}</td></tr><tr><td>Forme juridique</td><td>${sanitize(legalFormDisplay(currentClosure))}</td></tr><tr><td>Régime TVA</td><td>${sanitize(vatText(currentClosure))}</td></tr><tr><td>Exercice concerné</td><td>${sanitize($("fiscalYear").value)}</td></tr><tr><td>${sanitize(isGroupementLegalForm()?"Date de la décision":"Date du PV")}</td><td>${sanitize(docDateFr($("pvDate").value))}</td></tr><tr><td>Résultat constaté</td><td>${resultType==="profit"?"Bénéfice":"Perte"} de ${money(resultAmount)}</td></tr><tr><td>Total affecté</td><td>${money(totalAllocated())}</td></tr></table>`;
 }
 
 function docHtml(title="Affectation du résultat", subtitle="Écritures et décision d'affectation"){
@@ -738,13 +763,7 @@ function docHtml(title="Affectation du résultat", subtitle="Écritures et déci
 
 
 function pvLegalContext(){
-  const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
-  const joined=[
-    currentClosure?.legalForm,currentClosure?.formeJuridique,currentClosure?.legalStatus,
-    currentClosure?.statutJuridique,currentClosure?.companyType,currentClosure?.structureType,
-    currentClosure?.activity,currentClosure?.activite,currentClosure?.businessActivity,currentClosure?.companyActivity
-  ].map(norm).filter(Boolean).join(" | ");
-  const isGroupement=/(^|[\s|])gip([\s|]|$)/.test(joined)||joined.includes("groupement d interet public")||joined.includes("groupement");
+  const isGroupement=isGroupementLegalForm(currentClosure);
   return isGroupement
     ? {title:"Procès-verbal de l'organe délibérant",nature:"Décision annuelle d'affectation du résultat",subject:"l’organe délibérant",rightSigner:"Président de séance / Représentant du groupement",dateLabel:"Date de la décision"}
     : {title:"Procès-verbal d'Assemblée Générale Ordinaire",nature:"Assemblée Générale Ordinaire annuelle",subject:"l’Assemblée Générale",rightSigner:"Associé / Président de séance",dateLabel:"Date de l’assemblée"};
@@ -834,6 +853,7 @@ async function loadClosure(user){
   set("fiscalYear",fiscalYear(currentClosure));
   set("activityLabel",activityText(currentClosure));
   set("legalFormLabel",legalFormDisplay(currentClosure));
+  updateDecisionDateLabel();
   set("vatRegimeLabel",vatText(currentClosure));
 
   const r=findResult(currentClosure);
