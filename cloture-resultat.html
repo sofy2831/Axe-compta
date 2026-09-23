@@ -389,6 +389,20 @@ function removeDuplicateFnpCreditBail(entries){
 function normalizeEntries(c,entries){
   let out=removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries));
 
+  // Une seule ligne d'analyse paie doit être affichée. Plusieurs contrôles backend
+  // peuvent converger vers la même famille (paie / charges sociales / congés payés).
+  // On conserve la première analyse et son détail sera reconstruit ci-dessous.
+  let payrollAnalysisSeen=false;
+  out=out.filter(e=>{
+    if(!isAnalysisEntry(e))return true;
+    const t=txt((e.label||"")+" "+(e.justification||""));
+    const isPayroll=t.includes("paie")||t.includes("charges sociales")||t.includes("conges payes");
+    if(!isPayroll)return true;
+    if(payrollAnalysisSeen)return false;
+    payrollAnalysisSeen=true;
+    return true;
+  });
+
   out=out.map(e=>{
     const ne={...e};
     const t=txt((ne.label||"")+" "+(ne.justification||""));
