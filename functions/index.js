@@ -1379,20 +1379,38 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
         level: "info",
       });
     } else if (tableAmortAmount && rawDifference > 0.01) {
-      // Seul le complément réellement manquant est proposé.
-      entries.push({
-        journal: "OD",
-        label: "Dotation amortissement à compléter",
-        debit: "681120",
-        credit: "Compte à déterminer",
-        amount: rawDifference,
-        justification: `Tableau d'amortissement : ${formatEuro(tableAmortAmount)}. Dotations 681 déjà comptabilisées : ${formatEuro(glAmortAmount)}. Seul l'écart restant de ${formatEuro(rawDifference)} est à comptabiliser. Ventiler le crédit sur le ou les comptes 28 correspondants à partir du tableau d'immobilisations.`,
-        confidence: 0.75,
-        source: "tableau amortissements/grandLivre",
-        status: "Proposée",
-        details: amortTableDetails,
-      });
-      controls.push({ type: "amortisation_difference", label: "Complément d'amortissement à comptabiliser", level: "warning" });
+      // Un écart entre le tableau d'immobilisations et des dotations 681 déjà comptabilisées
+      // n'est pas, à lui seul, la preuve qu'une OD complémentaire doit être passée.
+      // Le tableau peut notamment contenir une composante fiscale/dérogatoire ou un périmètre
+      // différent. On n'invente donc pas une OD à partir du seul écart.
+      if (glAmortAmount > 0.01) {
+        entries.push(makeAnalysisEntry({
+          label: "Analyse amortissements - rapprochement à contrôler",
+          amount: glAmortAmount,
+          justification: `Dotations 681 comptabilisées dans le FEC / grand livre : ${formatEuro(glAmortAmount)}. Montant exploitable issu du tableau d'immobilisations : ${formatEuro(tableAmortAmount)}. Écart de rapprochement : ${formatEuro(rawDifference)}. Cet écart ne constitue pas automatiquement une dotation manquante : contrôler le périmètre du tableau (économique, fiscal/dérogatoire, cessions et acquisitions) avant toute écriture complémentaire. Aucune OD automatique n'est générée.`,
+          confidence: 0.9,
+          source: "tableau amortissements/grandLivre",
+          status: "À examiner",
+          details: amortTableDetails,
+        }));
+        controls.push({ type: "amortisation_difference", label: "Écart d'amortissement à rapprocher", level: "warning" });
+      } else {
+        // Si aucune dotation 681 n'est comptabilisée alors que le tableau fournit une dotation
+        // explicite de l'exercice, le montant complet peut réellement correspondre à une OD manquante.
+        entries.push({
+          journal: "OD",
+          label: "Dotation amortissement à comptabiliser",
+          debit: "681120",
+          credit: "Compte à déterminer",
+          amount: tableAmortAmount,
+          justification: `Aucune dotation 681 n'est détectée dans le FEC / grand livre alors que le tableau d'immobilisations fait ressortir ${formatEuro(tableAmortAmount)} de dotation de l'exercice. Ventiler le crédit sur le ou les comptes 28 correspondants à partir du tableau avant validation.`,
+          confidence: 0.8,
+          source: "tableau amortissements/grandLivre",
+          status: "Proposée",
+          details: amortTableDetails,
+        });
+        controls.push({ type: "amortisation_missing", label: "Dotation d'amortissement absente du grand livre", level: "warning" });
+      }
     } else if (tableAmortAmount && rawDifference < -0.01) {
       // Une sur-dotations apparente ne doit jamais produire automatiquement une OD inverse.
       entries.push(makeAnalysisEntry({
