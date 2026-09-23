@@ -1790,6 +1790,58 @@ function parseFecText(content) {
 }
 
 
+
+function buildBalanceFromFec(fecRows = []) {
+  const byAccount = new Map();
+
+  for (const row of Array.isArray(fecRows) ? fecRows : []) {
+    const compte = getCompte(row);
+    if (!compte) continue;
+
+    const debit = toNumber(row.Debit ?? row.Débit ?? getCell(row, ["debit", "débit"]));
+    const credit = toNumber(row.Credit ?? row.Crédit ?? getCell(row, ["credit", "crédit"]));
+    const libelle = String(
+      row.CompteLib ||
+      row["Intitulé compte"] ||
+      row.Intitulé ||
+      row.Libellé ||
+      row.Libelle ||
+      ""
+    ).trim();
+
+    if (!byAccount.has(compte)) {
+      byAccount.set(compte, {
+        Compte: compte,
+        Intitulé: libelle,
+        MouvementDebit: 0,
+        MouvementCredit: 0,
+        SoldeDebit: 0,
+        SoldeCredit: 0,
+      });
+    }
+
+    const acc = byAccount.get(compte);
+    acc.MouvementDebit += debit;
+    acc.MouvementCredit += credit;
+    if (!acc.Intitulé && libelle) acc.Intitulé = libelle;
+  }
+
+  return [...byAccount.values()]
+    .map(acc => {
+      const net = +(acc.MouvementDebit - acc.MouvementCredit).toFixed(2);
+      acc.MouvementDebit = +acc.MouvementDebit.toFixed(2);
+      acc.MouvementCredit = +acc.MouvementCredit.toFixed(2);
+      acc.SoldeDebit = net > 0 ? net : 0;
+      acc.SoldeCredit = net < 0 ? Math.abs(net) : 0;
+      acc.Débit = acc.SoldeDebit;
+      acc.Crédit = acc.SoldeCredit;
+      acc.Montant = Math.abs(net);
+      return acc;
+    })
+    .sort((a, b) => String(a.Compte).localeCompare(String(b.Compte), "fr", { numeric: true }));
+}
+
+
 // Normalise les balances Excel à en-têtes complexes (ex. GIPSE/Oxygène)
 // vers un schéma interne stable utilisé par tout Axe Compta.
 
@@ -1934,6 +1986,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
     if (!closureSnap.exists) return res.status(404).json({ error: "Clôture introuvable." });
 
     const closure = closureSnap.data() || {};
+    const fecPath = closure.files?.fec?.storagePath;
     const balancePath = closure.files?.balance?.storagePath;
     const grandLivrePath = closure.files?.grandLivre?.storagePath;
     const amortissementsPath = closure.files?.amortissements?.storagePath;
@@ -1969,19 +2022,33 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   throw new Error("Format non pris en charge : " + ext);
 } 
 
-    const balanceRows = await parseFile(balancePath, "balance");
-    const grandLivreRows = await parseFile(grandLivrePath);
+    const fecRows = await parseFile(fecPath);
+    const importedBalanceRows = await parseFile(balancePath, "balance");
+    const importedGrandLivreRows = await parseFile(grandLivrePath);
+
+    // Deux parcours exclusifs :
+    // - FEC : le FEC constitue le grand livre et permet de reconstruire la balance de clôture ;
+    // - sans FEC : balance + grand livre importés séparément.
+    const usingFec = fecRows.length > 0;
+    const balanceRows = usingFec ? buildBalanceFromFec(fecRows) : importedBalanceRows;
+    const grandLivreRows = usingFec ? fecRows : importedGrandLivreRows;
+
     const amortissementRows = await parseFile(amortissementsPath);
     const empruntRows = await parseFile(empruntPath);
 
     let controls = [];
     let anomalies = [];
 
-    if (balanceRows.length) controls.push({ type: "balance_loaded", label: "Balance chargée", count: balanceRows.length });
-    else anomalies.push({ type: "missing_balance", label: "Balance absente ou non exploitable", level: "warning" });
+    if (usingFec) {
+      controls.push({ type: "fec_loaded", label: "FEC chargé", count: fecRows.length });
+      controls.push({ type: "balance_rebuilt_from_fec", label: "Balance reconstruite à partir du FEC", count: balanceRows.length });
+    } else {
+      if (balanceRows.length) controls.push({ type: "balance_loaded", label: "Balance chargée", count: balanceRows.length });
+      else anomalies.push({ type: "missing_balance", label: "Balance absente ou non exploitable", level: "warning" });
 
-    if (grandLivreRows.length) controls.push({ type: "grand_livre_loaded", label: "Grand livre chargé", count: grandLivreRows.length });
-    else anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
+      if (grandLivreRows.length) controls.push({ type: "grand_livre_loaded", label: "Grand livre chargé", count: grandLivreRows.length });
+      else anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
+    }
 
     if (amortissementRows.length) controls.push({ type: "amortissements_loaded", label: "Tableau d'amortissement chargé", count: amortissementRows.length });
     if (empruntRows.length) controls.push({ type: "emprunt_loaded", label: "Tableau d'emprunt chargé", count: empruntRows.length });
@@ -2008,6 +2075,8 @@ anomalies = [
 
     await closureRef.set(
       cleanFirestoreObject({
+        fec: fecRows,
+        importMode: usingFec ? "fec" : "balance_grand_livre",
         balance: balanceRows,
         grandLivre: grandLivreRows,
         amortissements: amortissementRows,
@@ -2031,6 +2100,8 @@ anomalies = [
 
     return res.json({
       ok: true,
+      importMode: usingFec ? "fec" : "balance_grand_livre",
+      fecRows: fecRows.length,
       balanceRows: balanceRows.length,
       grandLivreRows: grandLivreRows.length,
       amortissementRows: amortissementRows.length,
