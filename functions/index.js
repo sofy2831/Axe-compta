@@ -1348,11 +1348,14 @@ function detectAccountingEntries(balanceRows, grandLivreRows, amortissementRows 
   // Les dotations déjà comptabilisées et cohérentes avec le tableau servent au rapprochement
   // en arrière-plan mais ne sont pas affichées comme OD ni comme analyse à traiter.
   if ((hasAcc(["281", "681"]) || amortissementRows.length) && answers.immo === "yes") {
-    const glAmortRows = uniqueRows(grandLivreRows.filter(row => {
+    // Ne surtout pas dédupliquer les mouvements 681 du grand livre :
+    // plusieurs dotations mensuelles peuvent avoir le même compte, le même libellé
+    // et le même montant. uniqueRows() supprimerait alors des écritures réelles.
+    const glAmortRows = grandLivreRows.filter(row => {
       const compte = getCompte(row);
       const text = getRowText(row);
       return compte.startsWith("6811") || text.includes("dotation amortissement") || text.includes("dotation aux amortissements");
-    }));
+    });
 
     const glAmortAmount = glAmortRows.reduce((sum, row) => sum + (getMovementAmount(row) || 0), 0);
 
