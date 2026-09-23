@@ -31,16 +31,18 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <h2 style="margin-top:24px">2. Fichiers comptables</h2>
 <div class="notice" style="margin-bottom:14px">
   <b>Format recommandé : FEC</b><br>
-  Le FEC est le format à privilégier pour l’analyse comptable. Sa structure standardisée limite les erreurs de lecture liées aux formats Excel propres à chaque logiciel comptable.<br>
-  <span class="muted">Les fichiers Excel, CSV et PDF restent acceptés si le FEC n’est pas disponible.</span>
+  Importez de préférence le Fichier des Écritures Comptables exporté depuis votre logiciel comptable. Un FEC peut porter différents noms selon le logiciel ; avec Memsoft Oxygène, il peut notamment être généré sous le nom <b>ECRIT.TXT</b>.<br>
+  <span class="muted">Si vous ne disposez pas du FEC, importez à la place la balance générale et le grand livre.</span>
 </div>
-<label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Formats acceptés : FEC .txt/.fec recommandé, Excel .xlsx/.xls, CSV ou PDF.</div>
-<label>Grand livre</label><input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Formats acceptés : FEC .txt/.fec recommandé, Excel .xlsx/.xls, CSV ou PDF.</div>
+<label>FEC — recommandé</label><input id="fecFile" type="file" accept=".txt,.fec"><div class="hint">Formats : .txt ou .fec. Le nom du fichier n’est pas imposé (ex. ECRIT.TXT avec Memsoft Oxygène).</div>
+<div class="notice" style="margin-top:14px;margin-bottom:14px"><b>Alternative au FEC</b><br><span class="muted">Utilisez les deux fichiers ci-dessous uniquement si vous n’importez pas de FEC.</span></div>
+<label>Balance générale</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.pdf"><div class="hint">Formats acceptés : Excel .xlsx/.xls, CSV ou PDF.</div>
+<label>Grand livre</label><input id="ledgerFile" type="file" accept=".xlsx,.xls,.csv,.pdf"><div class="hint">Formats acceptés : Excel .xlsx/.xls, CSV ou PDF.</div>
 <label>Tableau des immobilisations / amortissements</label><input id="amortFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
 <label>Tableau d’amortissement de l’emprunt</label><input id="loanFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
 <label>Informations utiles</label><textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
 <div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="notice" id="saveMsg" style="display:none"></div></div>
-<aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import balance + grand livre</b><span>Les fichiers sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div></aside></div>
+<aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import FEC ou Balance + Grand livre</b><span>Le mode d’import choisi et les pièces complémentaires sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div></aside></div>
 </div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <script type="module">
 import { auth, db, storage } from "./firebase-config.js";
@@ -58,6 +60,7 @@ const endDateEl=document.getElementById("endDate");
 const legalFormEl=document.getElementById("legalForm");
 const activityEl=document.getElementById("activity");
 const vatEl=document.getElementById("vat");
+const fecFileEl=document.getElementById("fecFile");
 const balanceFileEl=document.getElementById("balanceFile");
 const ledgerFileEl=document.getElementById("ledgerFile");
 const amortFileEl=document.getElementById("amortFile");
@@ -121,17 +124,33 @@ saveBtnEl.addEventListener("click",async()=>{
   return;
 }
 
+  const fec=fecFileEl.files[0]||null;
   const balance=balanceFileEl.files[0]||null;
   const ledger=ledgerFileEl.files[0]||null;
   const amort=amortFileEl.files[0]||null;
   const loan=loanFileEl.files[0]||null;
 
-  if(!isAllowedFile(balance)||!isAllowedFile(ledger)||!isAllowedFile(amort)||!isAllowedFile(loan)){
-  saveMsgEl.textContent="Formats acceptés uniquement : XLSX, XLS, CSV, TXT/FEC ou PDF.";
+  if(!isAllowedFile(fec)||!isAllowedFile(balance)||!isAllowedFile(ledger)||!isAllowedFile(amort)||!isAllowedFile(loan)){
+  saveMsgEl.textContent="Format de fichier non accepté.";
   isSavingClosure=false;
   return;
 }
-if(!isAllowedSize(balance)||!isAllowedSize(ledger)||!isAllowedSize(amort)||!isAllowedSize(loan)){
+  if(fec && ![".txt",".fec"].some(ext => fec.name.toLowerCase().endsWith(ext))){
+    saveMsgEl.textContent="Le FEC doit être un fichier .txt ou .fec.";
+    isSavingClosure=false;
+    return;
+  }
+  if(!fec && (!balance || !ledger)){
+    saveMsgEl.textContent="Importez soit un FEC, soit la balance générale et le grand livre.";
+    isSavingClosure=false;
+    return;
+  }
+  if(fec && (balance || ledger)){
+    saveMsgEl.textContent="Choisissez un seul mode d’import : FEC seul, ou Balance + Grand livre.";
+    isSavingClosure=false;
+    return;
+  }
+if(!isAllowedSize(fec)||!isAllowedSize(balance)||!isAllowedSize(ledger)||!isAllowedSize(amort)||!isAllowedSize(loan)){
   saveMsgEl.textContent="Fichier trop lourd. Limite maximale : 12 Mo par fichier.";
   isSavingClosure=false;
   return;
@@ -206,7 +225,8 @@ cabinetOwnerUid:isCabinetMember ? currentUserData.cabinetOwnerUid : (isCabinetOw
 sharedWith:{},
 sharedWithEmails:[],
 cabinetShared:false,
-      files:{balance:null,grandLivre:null,amortissements:null,emprunt:null},
+      files:{fec:null,balance:null,grandLivre:null,amortissements:null,emprunt:null},
+      fec:[],
       balance:[],
       grandLivre:[],
       amortissements:[],
@@ -220,6 +240,12 @@ cabinetShared:false,
     });
 
     const updates={};
+
+    if(fec){
+      const fecPath=`closures/${currentUser.uid}/${docRef.id}/fec-${Date.now()}-${cleanFileName(fec.name)}`;
+      await uploadBytes(ref(storage,fecPath),fec);
+      updates["files.fec"]=fileInfo(fec,fecPath);
+    }
 
     if(balance){
       const balancePath=`closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;
