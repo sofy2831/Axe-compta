@@ -1775,16 +1775,22 @@ function parseFecText(content) {
       row[header] = values[i] || "";
     });
 
+    // On conserve uniquement les champs réellement exploités par Axe Compta.
+    // Cela évite de dupliquer les 18/23 colonnes du FEC dans Firestore et garde
+    // le document de clôture très en dessous de la limite de taille Firestore.
     return {
-      ...row,
       Compte: normalizeAccountCode(row.CompteNum || row.compte || row.Compte || ""),
+      CompteLib: row.CompteLib || row["Intitulé compte"] || "",
+      CompAuxNum: row.CompAuxNum || "",
+      CompAuxLib: row.CompAuxLib || "",
       Libellé: row.EcritureLib || row.Libellé || row.Libelle || "",
       Débit: row.Debit || row.Débit || "",
       Crédit: row.Credit || row.Crédit || "",
-      Montant: row.Montant || "",
       Date: row.EcritureDate || row.Date || "",
       Journal: row.JournalCode || row.Journal || "",
-      Pièce: row.PieceRef || row.Pièce || ""
+      JournalLib: row.JournalLib || "",
+      Pièce: row.PieceRef || row.Pièce || "",
+      EcritureNum: row.EcritureNum || ""
     };
   });
 }
@@ -2011,7 +2017,17 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
   }
 
   if (["txt", "fec"].includes(ext)) {
-    const content = buffer.toString("utf8");
+    // Les FEC français sont fréquemment exportés en ANSI / Windows-1252.
+    // buffer.toString("utf8") ne lève pas forcément d'erreur : il remplace les
+    // caractères invalides par �. On bascule alors explicitement en Windows-1252.
+    let content = buffer.toString("utf8");
+    if (content.includes("�")) {
+      try {
+        content = new TextDecoder("windows-1252").decode(buffer);
+      } catch (_) {
+        content = buffer.toString("latin1");
+      }
+    }
     return parseFecText(content).slice(0, 2000);
   }
 
@@ -2075,7 +2091,12 @@ anomalies = [
 
     await closureRef.set(
       cleanFirestoreObject({
-        fec: fecRows,
+        // Le fichier FEC brut reste dans Storage (files.fec).
+        // Les lignes normalisées sont stockées une seule fois dans grandLivre.
+        // Ne pas recopier fecRows ici : cela doublait les données et pouvait
+        // dépasser la limite de taille d'un document Firestore.
+        fec: [],
+        fecSummary: usingFec ? { rows: fecRows.length, parsed: true } : null,
         importMode: usingFec ? "fec" : "balance_grand_livre",
         balance: balanceRows,
         grandLivre: grandLivreRows,
