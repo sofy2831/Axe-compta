@@ -408,12 +408,18 @@ function signedClosingBalance(r){
   const sd=numValue(r?.["Solde Débit"]??r?.["Solde Debit"]??r?.SoldeDebit??r?.soldeDebit);
   const sc=numValue(r?.["Solde Crédit"]??r?.["Solde Credit"]??r?.SoldeCredit??r?.soldeCredit);
   if(Math.abs(sd)>0.000001||Math.abs(sc)>0.000001)return sd-sc;
+  // Sur une balance reconstruite depuis un FEC, Solde représente la position
+  // de clôture. Débit / Crédit peuvent représenter les mouvements cumulés :
+  // ils ne doivent donc pas être utilisés avant le solde.
+  const rawSolde=r?.Solde??r?.solde;
+  if(rawSolde!==undefined&&rawSolde!==null&&String(rawSolde).trim()!=="")return numValue(rawSolde);
   const d=numValue(r?.Débit??r?.Debit??r?.debit);
   const c=numValue(r?.Crédit??r?.Credit??r?.credit);
-  if(Math.abs(d)>0.000001||Math.abs(c)>0.000001)return d-c;
-  return numValue(r?.Solde??r?.solde);
+  return d-c;
 }
-const vatClosingBalance=vatClosingRows.reduce((total,r)=>total+signedClosingBalance(r),0);const vatFecCleared=currentClosure?.importMode==="fec"&&vatClosingRows.length>0&&Math.abs(vatClosingBalance)<0.01;const vatCorrectionDone=isCorrected("vat");const vatReviewDone=vatRevisionDone||vatManualReviewDone||vatFecCleared||vatCorrectionDone;items.push(item("vat","TVA",vatNotApplicable||vatReviewDone?10:hasControl(["vat_due_detected"])?9:8,10,vatNotApplicable||vatReviewDone?"ok":hasControl(["vat_due_detected"])?"ok":"warning",vatNotApplicable?"Non applicable : société déclarée non assujettie à la TVA.":vatRevisionDone?"TVA contrôlée et documentée dans le dossier de révision.":vatManualReviewDone?"TVA rapprochée et justifiée.":vatFecCleared?"FEC : aucun solde de TVA à décaisser à la clôture.":hasControl(["vat_due_detected"])?"TVA à décaisser détectée et contrôlée.":"TVA non significative ou non détectée : à confirmer selon le régime.",vatNotApplicable||vatReviewDone?0:hasControl(["vat_due_detected"])?1:2,["Balance","Grand Livre","Dossier de révision","Justificatif"]));const revisionRecorded=currentClosure?.dossierRevision?.status==="completed"||currentClosure?.revisionDossier?.status==="ready"||!!currentClosure?.revisionFile;
+const vatClosingBalance=vatClosingRows.reduce((total,r)=>total+signedClosingBalance(r),0);
+const vatIsFec=currentClosure?.importMode==="fec"||!!currentClosure?.files?.fec||!!currentClosure?.fecSummary?.parsed;
+const vatFecCleared=vatIsFec&&vatClosingRows.length>0&&Math.abs(vatClosingBalance)<0.01;const vatCorrectionDone=isCorrected("vat");const vatReviewDone=vatRevisionDone||vatManualReviewDone||vatFecCleared||vatCorrectionDone;items.push(item("vat","TVA",vatNotApplicable||vatReviewDone?10:hasControl(["vat_due_detected"])?9:8,10,vatNotApplicable||vatReviewDone?"ok":hasControl(["vat_due_detected"])?"ok":"warning",vatNotApplicable?"Non applicable : société déclarée non assujettie à la TVA.":vatRevisionDone?"TVA contrôlée et documentée dans le dossier de révision.":vatManualReviewDone?"TVA rapprochée et justifiée.":vatFecCleared?"FEC : aucun solde de TVA à décaisser à la clôture.":hasControl(["vat_due_detected"])?"TVA à décaisser détectée et contrôlée.":"TVA non significative ou non détectée : à confirmer selon le régime.",vatNotApplicable||vatReviewDone?0:hasControl(["vat_due_detected"])?1:2,["Balance","Grand Livre","Dossier de révision","Justificatif"]));const revisionRecorded=currentClosure?.dossierRevision?.status==="completed"||currentClosure?.revisionDossier?.status==="ready"||!!currentClosure?.revisionFile;
 const revisionSummary=revisionStatusSummary(revisionItems);
 const revisionAllValidated=revisionSummary.total>0&&revisionSummary.validated===revisionSummary.total;
 const revisionAllDocumented=revisionSummary.total>0&&(revisionSummary.validated+revisionSummary.documented===revisionSummary.total);
