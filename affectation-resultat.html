@@ -254,6 +254,13 @@ function resultPeriodNetAmount(row){
     return sd-sc;
   }
 
+  // Compatibilité avec les dossiers déjà analysés : une ancienne normalisation
+  // pouvait ajouter SoldeDebit/SoldeCredit à 0 tout en conservant le vrai champ Solde.
+  const genericSolde=numFromValue(normalized.solde ?? normalized.soldeperiode ?? 0);
+  if(Math.abs(genericSolde)>0.000001){
+    return genericSolde;
+  }
+
   // Balance avec colonnes de mouvements de l'exercice.
   const md=numFromValue(
     normalized.mouvementdebit ??
@@ -291,7 +298,12 @@ function balanceNetAmount(row){
     if(key.includes("debit")){debit+=Math.abs(val);hasDebit=true;continue;}
     if(key.includes("credit")){credit+=Math.abs(val);hasCredit=true;}
   }
-  if(hasSoldeDebit||hasSoldeCredit)return soldeDebit-soldeCredit;
+  if(hasSoldeDebit||hasSoldeCredit){
+    const net=soldeDebit-soldeCredit;
+    if(Math.abs(net)>0.000001)return net;
+    if(solde!==null&&Math.abs(solde)>0.000001)return solde;
+    return net;
+  }
   if(solde!==null)return solde;
   if(hasDebit||hasCredit)return debit-credit;
   return signedAmount(row);
