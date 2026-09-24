@@ -332,9 +332,13 @@ function findResultFromClasses67(c){
     // au lieu d'attendre un signe débit/crédit qui n'existe pas dans le fichier.
     const normalizedKeys=Object.keys(row||{}).map(k=>String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""));
     const hasDetailedDC=normalizedKeys.some(k=>k.includes("debit")||k.includes("credit"));
-    const classAmount=hasDetailedDC?net:Math.abs(net);
+    // Pour une balance simplifiée (Compte / Libellé / Solde), le champ Solde
+    // peut déjà être signé : charges 6 positives, produits 7 négatifs.
+    // Le sens comptable est porté par la classe du compte, donc on retient
+    // toujours la valeur absolue pour totaliser charges et produits.
+    const classAmount=Math.abs(net);
     if(compte.startsWith("6")){charges+=classAmount;found=true;}
-    else if(compte.startsWith("7")){products+=hasDetailedDC?-net:classAmount;found=true;}
+    else if(compte.startsWith("7")){products+=classAmount;found=true;}
   }
   charges=Math.round(charges*100)/100;
   products=Math.round(products*100)/100;
