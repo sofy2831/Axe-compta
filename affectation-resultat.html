@@ -28,7 +28,6 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div class="navActions">
       <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
-      <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
   </div>
 
@@ -254,13 +253,6 @@ function resultPeriodNetAmount(row){
     return sd-sc;
   }
 
-  // Compatibilité avec les dossiers déjà analysés : une ancienne normalisation
-  // pouvait ajouter SoldeDebit/SoldeCredit à 0 tout en conservant le vrai champ Solde.
-  const genericSolde=numFromValue(normalized.solde ?? normalized.soldeperiode ?? 0);
-  if(Math.abs(genericSolde)>0.000001){
-    return genericSolde;
-  }
-
   // Balance avec colonnes de mouvements de l'exercice.
   const md=numFromValue(
     normalized.mouvementdebit ??
@@ -298,12 +290,7 @@ function balanceNetAmount(row){
     if(key.includes("debit")){debit+=Math.abs(val);hasDebit=true;continue;}
     if(key.includes("credit")){credit+=Math.abs(val);hasCredit=true;}
   }
-  if(hasSoldeDebit||hasSoldeCredit){
-    const net=soldeDebit-soldeCredit;
-    if(Math.abs(net)>0.000001)return net;
-    if(solde!==null&&Math.abs(solde)>0.000001)return solde;
-    return net;
-  }
+  if(hasSoldeDebit||hasSoldeCredit)return soldeDebit-soldeCredit;
   if(solde!==null)return solde;
   if(hasDebit||hasCredit)return debit-credit;
   return signedAmount(row);
@@ -327,15 +314,8 @@ function findResultFromClasses67(c){
     const compte=getCompte(row);
     if(!compte)continue;
     const net=resultPeriodNetAmount(row);
-    // Les balances simplifiées peuvent fournir un unique champ « Solde »
-    // avec des montants positifs aussi bien pour les charges que pour les produits.
-    // Dans ce cas, on raisonne par nature de compte (6 = charge, 7 = produit)
-    // au lieu d'attendre un signe débit/crédit qui n'existe pas dans le fichier.
-    const normalizedKeys=Object.keys(row||{}).map(k=>String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""));
-    const hasDetailedDC=normalizedKeys.some(k=>k.includes("debit")||k.includes("credit"));
-    const classAmount=hasDetailedDC?net:Math.abs(net);
-    if(compte.startsWith("6")){charges+=classAmount;found=true;}
-    else if(compte.startsWith("7")){products+=hasDetailedDC?-net:classAmount;found=true;}
+    if(compte.startsWith("6")){charges+=net;found=true;}
+    else if(compte.startsWith("7")){products+=-net;found=true;}
   }
   charges=Math.round(charges*100)/100;
   products=Math.round(products*100)/100;
@@ -425,8 +405,8 @@ function updateSummary(){
   $("resultAmountLabel").textContent=euro(resultAmount);
   const allocatedPct=resultAmount?round2((t.allocated/resultAmount)*100):0;
   const remainingPct=resultAmount?round2((t.remaining/resultAmount)*100):0;
-  $("allocatedLabel").textContent=`${euro(t.allocated)} · ${nf.format(allocatedPct)} %`;
-  $("remainingLabel").textContent=`${euro(t.remaining)} · ${nf.format(remainingPct)} %`;
+  $("allocatedLabel").innerHTML=`${euro(t.allocated)}<small style="display:block;margin-top:4px;font-size:12px;font-weight:700;color:var(--muted)">${nf.format(allocatedPct)} %</small>`;
+  $("remainingLabel").innerHTML=`${euro(t.remaining)}<small style="display:block;margin-top:4px;font-size:12px;font-weight:700;color:var(--muted)">${nf.format(remainingPct)} %</small>`;
   const pct=resultAmount?Math.max(0,Math.min(100,(t.allocated/resultAmount)*100)):0;
   $("progressBar").style.width=pct+"%";
 
@@ -857,7 +837,7 @@ async function loadClosure(user){
 
   currentOwnerUid=ownerParam||user.uid;
 
-  $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
+  if($("backClosureBtn")) $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
   $("reanalyzeBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
   setExtournesAccess(false);
 
