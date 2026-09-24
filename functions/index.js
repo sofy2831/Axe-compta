@@ -1930,11 +1930,15 @@ function computeAccountingResultSummary(balanceRows) {
     if (row?.SoldeDebit !== undefined || row?.SoldeCredit !== undefined) {
       const soldeNet = toNumber(row?.SoldeDebit) - toNumber(row?.SoldeCredit);
       const mouvementNet = toNumber(row?.MouvementDebit) - toNumber(row?.MouvementCredit);
+      const genericSolde = toNumber(row?.Solde ?? row?.solde);
 
-      // Certains exports à en-têtes fusionnés restituent ponctuellement
-      // un solde à 0 alors que les mouvements de période sont bien présents.
-      // Dans ce cas, les mouvements constituent le repli fiable.
-      net = Math.abs(soldeNet) > 0.000001 ? soldeNet : mouvementNet;
+      // Si SoldeDebit/SoldeCredit ont été ajoutés à 0 sur une ancienne balance
+      // simplifiée, ne pas laisser ces zéros masquer le vrai champ Solde.
+      net = Math.abs(soldeNet) > 0.000001
+        ? soldeNet
+        : Math.abs(mouvementNet) > 0.000001
+          ? mouvementNet
+          : genericSolde;
     } else if (row?.MouvementDebit !== undefined || row?.MouvementCredit !== undefined) {
       net = toNumber(row?.MouvementDebit) - toNumber(row?.MouvementCredit);
     } else {
@@ -2027,15 +2031,22 @@ function normalizeBalanceWorksheet(sheet) {
     .slice(0, 2000)
     .map(row => {
       const compte = normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || row["N° Compte"] || row["N° compte"] || "");
-      const debit = toNumber(getCell(row, ["solde debit", "solde débiteur", "debit", "débit"]));
-      const credit = toNumber(getCell(row, ["solde credit", "solde créditeur", "credit", "crédit"]));
-      return {
+      const keys = Object.keys(row || {});
+      const normalizedKeys = keys.map(k => normalizeText(k).replace(/[^a-z0-9]/g, ""));
+      const hasDebitColumn = normalizedKeys.some(k => k.includes("debit"));
+      const hasCreditColumn = normalizedKeys.some(k => k.includes("credit"));
+      const normalizedRow = {
         ...row,
         Compte: compte,
         Intitulé: getLibelle(row),
-        SoldeDebit: debit,
-        SoldeCredit: credit,
       };
+      // Ne pas créer artificiellement SoldeDebit/SoldeCredit à 0 sur une balance
+      // simplifiée Compte / Libellé / Solde : ces champs à 0 masqueraient le vrai Solde.
+      if (hasDebitColumn || hasCreditColumn) {
+        normalizedRow.SoldeDebit = toNumber(getCell(row, ["solde debit", "solde débiteur", "debit", "débit"]));
+        normalizedRow.SoldeCredit = toNumber(getCell(row, ["solde credit", "solde créditeur", "credit", "crédit"]));
+      }
+      return normalizedRow;
     });
 }
 
