@@ -2250,7 +2250,6 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         if (kind === "balance") return normalizeBalanceWorksheet(sheet);
         return XLSX.utils.sheet_to_json(sheet, { defval: "" })
-          .slice(0, 2000)
           .map(row => ({
             ...row,
             Compte: normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || ""),
@@ -2287,10 +2286,15 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
     let controls = [];
     let anomalies = [];
 
-    if (balanceRows.length) controls.push({ type: "balance_loaded", label: "Balance chargée", count: balanceRows.length });
-    else anomalies.push({ type: "missing_balance", label: "Balance absente ou non exploitable", level: "warning" });
+    if (usingFec) {
+      controls.push({ type: "fec_loaded", label: "FEC chargé", count: fecRows.length });
+      controls.push({ type: "balance_rebuilt_from_fec", label: "Balance reconstruite depuis le FEC", count: balanceRows.length });
+    }
 
-    if (grandLivreRows.length) controls.push({ type: "grand_livre_loaded", label: "Grand livre chargé", count: grandLivreRows.length });
+    if (balanceRows.length) controls.push({ type: "balance_loaded", label: usingFec ? "Balance reconstruite depuis le FEC" : "Balance chargée", count: balanceRows.length });
+    else anomalies.push({ type: "missing_balance", label: usingFec ? "FEC non exploitable pour reconstruire la balance" : "Balance absente ou non exploitable", level: "warning" });
+
+    if (grandLivreRows.length) controls.push({ type: "grand_livre_loaded", label: usingFec ? "Écritures FEC chargées" : "Grand livre chargé", count: grandLivreRows.length });
     else anomalies.push({ type: "missing_grand_livre", label: "Grand livre absent ou non exploitable", level: "warning" });
 
     if (amortissementRows.length) controls.push({ type: "amortissements_loaded", label: "Tableau d'amortissement chargé", count: amortissementRows.length });
@@ -2345,6 +2349,8 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
     return res.json({
       ok: true,
       correctionKey: correctionId,
+      importMode: usingFec ? "fec" : "balance_grand_livre",
+      fecRows: usingFec ? fecRows.length : 0,
       balanceRows: balanceRows.length,
       grandLivreRows: grandLivreRows.length,
       amortissementRows: amortissementRows.length,
