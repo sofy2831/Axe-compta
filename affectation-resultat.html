@@ -315,8 +315,15 @@ function findResultFromClasses67(c){
     const compte=getCompte(row);
     if(!compte)continue;
     const net=resultPeriodNetAmount(row);
-    if(compte.startsWith("6")){charges+=net;found=true;}
-    else if(compte.startsWith("7")){products+=-net;found=true;}
+    // Les balances simplifiées peuvent fournir un unique champ « Solde »
+    // avec des montants positifs aussi bien pour les charges que pour les produits.
+    // Dans ce cas, on raisonne par nature de compte (6 = charge, 7 = produit)
+    // au lieu d'attendre un signe débit/crédit qui n'existe pas dans le fichier.
+    const normalizedKeys=Object.keys(row||{}).map(k=>String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""));
+    const hasDetailedDC=normalizedKeys.some(k=>k.includes("debit")||k.includes("credit"));
+    const classAmount=hasDetailedDC?net:Math.abs(net);
+    if(compte.startsWith("6")){charges+=classAmount;found=true;}
+    else if(compte.startsWith("7")){products+=hasDetailedDC?-net:classAmount;found=true;}
   }
   charges=Math.round(charges*100)/100;
   products=Math.round(products*100)/100;
