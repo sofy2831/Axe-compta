@@ -174,7 +174,7 @@ function getCompte(row){
 }
 function numFromValue(v){if(v===null||v===undefined||v==="")return 0;if(typeof v==="number")return v;const raw=String(v).replace(/\u00a0/g,"").replace(/\s/g,"").replace(",",".").replace(/[^0-9.\-]/g,"");const x=Number(raw);return Number.isNaN(x)?0:x}
 function signedAmount(row){const keys=Object.keys(row||{});let debit=0,credit=0,solde=null,montant=null;for(const k of keys){const x=String(k).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");const val=numFromValue(row[k]);if(!val)continue;if(x.includes("debit"))debit+=Math.abs(val);else if(x.includes("credit"))credit+=Math.abs(val);else if(x.includes("solde"))solde=val;else if(x.includes("montant"))montant=val;}if(debit||credit)return debit-credit;if(solde!==null)return solde;if(montant!==null)return montant;return 0}
-function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||""}
+function fiscalYear(c){const start=c?.startDate||c?.exerciseStartDate||c?.exerciseStart||c?.fiscalYearStart||c?.dateDebut||c?.exerciceDebut||"";const end=c?.endDate||c?.exerciseEndDate||c?.exerciseEnd||c?.fiscalYearEnd||c?.dateFin||c?.exerciceFin||"";if(start&&end)return `${start} → ${end}`;if(c?.fiscalYear||c?.exercice)return c?.fiscalYear||c?.exercice;if(end)return String(end).slice(0,4);return ""}
 function ownerQueryParam(){return currentOwnerUid&&currentUser&&currentOwnerUid!==currentUser.uid?`&owner=${encodeURIComponent(currentOwnerUid)}`:""}
 function extournesUrl(){
   return `extournes-automatiques.html?id=${closureId}${ownerQueryParam()}`;
