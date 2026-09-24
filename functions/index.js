@@ -1778,42 +1778,86 @@ Aucune écriture automatique n'est proposée.
   return { entries: normalizedEntries, controls, anomalies };
 }
 
-function parseFecText(content) {
-  const lines = String(content || "")
-    .split(/\r?\n/)
-    .filter(line => line.trim());
+function normalizeFecHeader(value) {
+  return normalizeText(String(value || "").replace(/^\uFEFF/, ""))
+    .replace(/[^a-z0-9]/g, "");
+}
 
+function detectFecSeparator(headerLine) {
+  const candidates = ["\t", "|", ";"];
+  let best = "\t";
+  let bestCount = 0;
+
+  for (const sep of candidates) {
+    const count = String(headerLine || "").split(sep).length;
+    if (count > bestCount) {
+      best = sep;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+function parseFecText(content) {
+  const text = String(content || "").replace(/^\uFEFF/, "");
+  const lines = text.split(/\r\n|\n|\r/).filter(line => line.trim());
   if (lines.length < 2) return [];
 
-  const separator = lines[0].includes("|") ? "|" : "\t";
-  const headers = lines[0].split(separator).map(h => h.trim());
+  const separator = detectFecSeparator(lines[0]);
+  const rawHeaders = lines[0].split(separator).map(h => h.trim().replace(/^\uFEFF/, ""));
+  const normalizedHeaders = rawHeaders.map(normalizeFecHeader);
 
-  return lines.slice(1).map(line => {
-    const values = line.split(separator);
-    const row = {};
+  // Le FEC réglementaire comporte 18 champs obligatoires. Les logiciels peuvent
+  // ajouter des colonnes et varier sur la casse/accents, mais les champs clés
+  // doivent être reconnaissables. On détecte donc la structure, jamais le nom du fichier.
+  const aliases = {
+    journal: ["journalcode", "journal", "codejournal"],
+    ecritureNum: ["ecriturenum", "numeroecriture", "numecriture"],
+    date: ["ecrituredate", "dateecriture", "date"],
+    compte: ["comptenum", "compte", "numerocompte", "ncompte"],
+    compteLib: ["comptelib", "libellecompte", "intitulecompte"],
+    auxNum: ["compauxnum", "compteauxiliaire", "numcompteauxiliaire"],
+    auxLib: ["compauxlib", "libellecompteauxiliaire", "intitulecompteauxiliaire"],
+    piece: ["pieceref", "referencepiece", "piece", "numeropiece"],
+    libelle: ["ecriturelib", "libelleecriture", "libelle", "libelleoperation"],
+    debit: ["debit", "montantdebit"],
+    credit: ["credit", "montantcredit"]
+  };
 
-    headers.forEach((header, i) => {
-      row[header] = values[i] || "";
+  const findIndex = names => normalizedHeaders.findIndex(h => names.includes(h));
+  const idx = Object.fromEntries(Object.entries(aliases).map(([k, names]) => [k, findIndex(names)]));
+
+  const missing = ["journal", "ecritureNum", "date", "compte", "debit", "credit"].filter(k => idx[k] < 0);
+  if (missing.length) {
+    throw new Error(`Structure FEC non reconnue. Colonnes indispensables absentes : ${missing.join(", ")}.`);
+  }
+
+  const cell = (values, key) => idx[key] >= 0 ? String(values[idx[key]] ?? "").trim() : "";
+  const rows = [];
+
+  // Aucune limite arbitraire : le FEC complet est analysé en mémoire. Le fichier brut
+  // reste dans Storage et les milliers de lignes ne sont pas recopiées dans Firestore.
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(separator);
+    const compte = normalizeAccountCode(cell(values, "compte"));
+    if (!compte) continue;
+
+    rows.push({
+      Compte: compte,
+      CompteLib: cell(values, "compteLib"),
+      CompAuxNum: normalizeAccountCode(cell(values, "auxNum")),
+      CompAuxLib: cell(values, "auxLib"),
+      Libellé: cell(values, "libelle"),
+      Débit: cell(values, "debit"),
+      Crédit: cell(values, "credit"),
+      Date: cell(values, "date"),
+      Journal: cell(values, "journal"),
+      Pièce: cell(values, "piece"),
+      EcritureNum: cell(values, "ecritureNum")
     });
+  }
 
-    // On conserve uniquement les champs réellement exploités par Axe Compta.
-    // Cela évite de dupliquer les 18/23 colonnes du FEC dans Firestore et garde
-    // le document de clôture très en dessous de la limite de taille Firestore.
-    return {
-      Compte: normalizeAccountCode(row.CompteNum || row.compte || row.Compte || ""),
-      CompteLib: row.CompteLib || row["Intitulé compte"] || "",
-      CompAuxNum: row.CompAuxNum || "",
-      CompAuxLib: row.CompAuxLib || "",
-      Libellé: row.EcritureLib || row.Libellé || row.Libelle || "",
-      Débit: row.Debit || row.Débit || "",
-      Crédit: row.Credit || row.Crédit || "",
-      Date: row.EcritureDate || row.Date || "",
-      Journal: row.JournalCode || row.Journal || "",
-      JournalLib: row.JournalLib || "",
-      Pièce: row.PieceRef || row.Pièce || "",
-      EcritureNum: row.EcritureNum || ""
-    };
-  });
+  return rows;
 }
 
 
@@ -2049,7 +2093,7 @@ exports.parseClosureFiles = onRequest(async (req, res) => {
         content = buffer.toString("latin1");
       }
     }
-    return parseFecText(content).slice(0, 2000);
+    return parseFecText(content);
   }
 
   if (ext === "pdf") {
@@ -2120,7 +2164,10 @@ anomalies = [
         fecSummary: usingFec ? { rows: fecRows.length, parsed: true } : null,
         importMode: usingFec ? "fec" : "balance_grand_livre",
         balance: balanceRows,
-        grandLivre: grandLivreRows,
+        // En mode FEC, le grand livre complet peut contenir des dizaines ou centaines
+        // de milliers de lignes : il est analysé en mémoire mais reste dans Storage.
+        // Firestore conserve la balance reconstruite, les contrôles et les écritures détectées.
+        grandLivre: usingFec ? [] : grandLivreRows,
         amortissements: amortissementRows,
         emprunt: empruntRows,
         accountingResultSummary,
@@ -2184,19 +2231,43 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
     async function parseFile(storagePath, kind = "generic") {
       if (!storagePath) return [];
       const [buffer] = await bucket.file(storagePath).download();
-      const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      if (kind === "balance") return normalizeBalanceWorksheet(sheet);
-      return XLSX.utils.sheet_to_json(sheet, { defval: "" })
-      .slice(0, 2000)
-      .map(row => ({
-        ...row,
-        Compte: normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || ""),
-      }));
+      const ext = String(storagePath).split(".").pop().toLowerCase();
+
+      if (["txt", "fec"].includes(ext)) {
+        let content = buffer.toString("utf8");
+        if (content.includes("�")) {
+          try {
+            content = new TextDecoder("windows-1252").decode(buffer);
+          } catch (_) {
+            content = buffer.toString("latin1");
+          }
+        }
+        return parseFecText(content);
+      }
+
+      if (["xlsx", "xls", "csv"].includes(ext)) {
+        const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        if (kind === "balance") return normalizeBalanceWorksheet(sheet);
+        return XLSX.utils.sheet_to_json(sheet, { defval: "" })
+          .slice(0, 2000)
+          .map(row => ({
+            ...row,
+            Compte: normalizeAccountCode(row.Compte || row.compte || row.CompteNum || row.compteNum || ""),
+          }));
+      }
+
+      throw new Error("Format non pris en charge : " + ext);
     }
 
-    const balanceRows = await parseFile(closure.files?.balance?.storagePath, "balance");
-    const grandLivreRows = await parseFile(closure.files?.grandLivre?.storagePath);
+    const fecRows = await parseFile(closure.files?.fec?.storagePath);
+    const usingFec = fecRows.length > 0;
+    const balanceRows = usingFec
+      ? buildBalanceFromFec(fecRows)
+      : await parseFile(closure.files?.balance?.storagePath, "balance");
+    const grandLivreRows = usingFec
+      ? fecRows
+      : await parseFile(closure.files?.grandLivre?.storagePath);
 
     const amortissementRowsFromFile = await parseFile(closure.files?.amortissements?.storagePath);
     const empruntRowsFromFile = await parseFile(closure.files?.emprunt?.storagePath);
@@ -2249,7 +2320,10 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
 
     await closureRef.set(cleanFirestoreObject({
       balance: balanceRows,
-      grandLivre: grandLivreRows,
+      fec: [],
+      fecSummary: usingFec ? { rows: fecRows.length, parsed: true } : (closure.fecSummary || null),
+      importMode: usingFec ? "fec" : "balance_grand_livre",
+      grandLivre: usingFec ? [] : grandLivreRows,
       amortissements: amortissementRows,
       emprunt: empruntRows,
       accountingResultSummary,
