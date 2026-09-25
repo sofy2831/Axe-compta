@@ -28,7 +28,6 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
     <div class="navActions">
       <a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a>
       <a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a>
-      <a class="btn secondary" id="backClosureBtn" href="tableau-de-bord.html">Retour clôture</a>
     </div>
   </div>
 
@@ -155,11 +154,10 @@ function isExtournable(entry){
   const m = moduleForEntry(entry);
   if(!m) return false;
   if(m.key === "affectation") return false;
-  if(m.key === "provisions"){
-    const label = String(entry?.label || "").toLowerCase();
-    const isExchangeProvision = label.includes("perte de change") || label.includes("change latente") || label.includes("écart de change") || label.includes("ecart de change");
-    if(!isExchangeProvision) return false;
-  }
+  // Provisions et dépréciations restent au bilan jusqu'à une reprise justifiée :
+  // elles ne sont jamais extournées automatiquement au seul motif qu'elles ont
+  // été comptabilisées à la clôture.
+  if(m.key === "provisions" || m.key === "depreciations") return false;
   return true;
 }
 function makeExtourne(entry){
@@ -201,8 +199,15 @@ function computeExtournes(){
 }
 function totalAmount(rows){ return rows.reduce((t,r)=>t+amountNumber(r.amount),0); }
 function entriesForModule(moduleKey){
-  const source = moduleKey === "affectation" ? affectationEntries : sourceEntries;
-  return source.filter(e => moduleKey === "affectation" ? moduleForEntry(e)?.key === "affectation" : isExtournable(e) && moduleForEntry(e)?.key === moduleKey);
+  if(moduleKey === "affectation"){
+    return affectationEntries.filter(e => moduleForEntry(e)?.key === "affectation");
+  }
+  // Les provisions et dépréciations restent visibles comme points de contrôle,
+  // sans être proposées en extourne automatique.
+  if(moduleKey === "provisions" || moduleKey === "depreciations"){
+    return sourceEntries.filter(e => moduleForEntry(e)?.key === moduleKey);
+  }
+  return sourceEntries.filter(e => isExtournable(e) && moduleForEntry(e)?.key === moduleKey);
 }
 function includedRows(){ return extourneRows.filter(r => r.manualIncluded !== false); }
 function updateMetrics(){
@@ -231,17 +236,24 @@ function renderModules(){
   $("modulesList").innerHTML = modules.map(m => {
     const moduleEntries = entriesForModule(m.key);
     const count = moduleEntries.length;
-    const extournable = m.key !== "affectation";
+    const controlOnly = m.key === "provisions" || m.key === "depreciations";
+    const extournable = m.key !== "affectation" && !controlOnly;
     let status = "OK";
     let pill = "pill";
     let text = `Aucune écriture détectée. Aucune extourne N+1 nécessaire.`;
     if(count > 0){
-      status = extournable ? "À contrôler" : "Contrôlé";
-      pill = extournable ? "pill warn" : "pill";
       const moduleTotal = moduleEntries.reduce((sum,e)=>sum+amountNumber(e.amount),0);
-      text = extournable
-        ? `${count} écriture(s) extournable(s) — ${euro(moduleTotal)}. ${sanitize(m.desc)}`
-        : `${count} écriture(s) non extournée(s). ${sanitize(m.desc)}`;
+      if(controlOnly){
+        status = "Contrôle";
+        pill = "pill";
+        text = `${count} écriture(s) détectée(s) — ${euro(moduleTotal)}. Conservée(s) au bilan : aucune extourne automatique N+1. Une reprise doit être justifiée lorsqu'elle devient nécessaire.`;
+      }else{
+        status = extournable ? "À contrôler" : "Contrôlé";
+        pill = extournable ? "pill warn" : "pill";
+        text = extournable
+          ? `${count} écriture(s) extournable(s) — ${euro(moduleTotal)}. ${sanitize(m.desc)}`
+          : `${count} écriture(s) non extournée(s). ${sanitize(m.desc)}`;
+      }
     }
     return `<div class="moduleCard"><span class="${pill}">${status}</span><h3>${sanitize(m.title)}</h3><p>${text}</p><div class="actions"><button class="btn secondary small" type="button" data-view-module="${m.key}">Voir</button></div></div>`;
   }).join("");
@@ -431,7 +443,6 @@ async function loadClosure(user){
     return;
   }
   currentOwnerUid = ownerParam || user.uid;
-  $("backClosureBtn").href=`cloture-resultat.html?id=${closureId}${ownerQueryParam()}`;
   $("scoreBtn").href=`score-qualite.html?id=${closureId}${ownerQueryParam()}`;
   $("modalScoreBtn").href=`score-qualite.html?id=${closureId}${ownerQueryParam()}`;
   const snap = await getDoc(closureRef());
