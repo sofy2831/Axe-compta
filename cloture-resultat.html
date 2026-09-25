@@ -21,13 +21,13 @@
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" class="logoImg" alt="Axe Compta IA"></a><div class="navRight"><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a><a class="btn primary" href="nouvelle-cloture.html">Nouvelle clôture</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
+<header><div class="wrap nav"><a href="/"><img src="images/axe-compta.png" class="logoImg" alt="Axe Compta IA"></a><div class="navRight"><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn" href="tableau-de-bord.html">Tableau de bord</a></div></div></header>
 <main><div class="wrap">
   <div class="top"><div><h1>Résultat de clôture</h1><p class="muted" id="closureInfo">Chargement du dossier...</p></div><a class="btn" id="backLink" href="cloture-analyse.html">Modifier les réponses</a></div>
   <div class="stepper" id="workflowSteps"></div>
   <div class="box" id="filesBlock">
     <h2>Corrections utilisateur / nouvelle analyse</h2>
-    <p class="muted" id="filesIntro">Remplacez uniquement les fichiers corrigés, puis relancez l'analyse. Si cette clôture utilise un FEC, remplacez le FEC ; sinon utilisez la Balance + le Grand livre. Les fichiers d'immobilisations et d'emprunt restent complémentaires. Les OD seront recalculées. L'affectation, les extournes et le score final seront remis à zéro si le dossier avait déjà avancé.</p>
+    <p class="muted" id="filesIntro"></p>
     <div class="fileGrid">
       <div class="fileBox" id="fecFileBox"><label>FEC — recommandé</label><input id="fecFile" type="file" accept=".txt,.fec"><span id="currentFec">Fichier actuel : —</span></div>
       <div class="fileBox" id="balanceFileBox"><label>Balance générale — alternative au FEC</label><input id="balanceFile" type="file" accept=".xlsx,.xls,.csv,.pdf"><span id="currentBalance">Fichier actuel : —</span></div>
@@ -386,8 +386,48 @@ function removeDuplicateFnpCreditBail(entries){
     return !arr.some((o,j)=>j!==idx&&amountNumber(o.amount)===amount&&txt((o.label||"")+" "+(o.justification||"")).includes("credit-bail")&&txt(o.label).includes("fnp credit-bail"));
   });
 }
+function entryKeyForDuplicate(e){
+  return [
+    String(entryJournal(e)||"").toUpperCase(),
+    formatAccount(e?.debit),
+    formatAccount(e?.credit),
+    amountNumber(e?.amount).toFixed(2)
+  ].join("|");
+}
+function removeExactDuplicateOds(entries){
+  const seen=new Set();
+  return entries.filter(e=>{
+    if(isAnalysisEntry(e)) return true;
+    const key=entryKeyForDuplicate(e);
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function fixDisposalGrossValueText(e){
+  const ne={...e};
+  const t=txt((ne.label||"")+" "+(ne.justification||""));
+  if(!(t.includes("sortie immobilisation")||t.includes("vnc"))) return ne;
+  const debit=formatAccount(ne.debit), credit=formatAccount(ne.credit);
+  if(!(String(debit).startsWith("675") || String(credit).startsWith("218"))) return ne;
+  const details=Array.isArray(ne.details)?ne.details:[];
+  let gross=0, accum=0;
+  for(const d of details){
+    const a=Math.abs(amountNumber(d?.amount));
+    const acc=accountFromDetail(d);
+    if(/^2(0|1|2|3)/.test(acc) && !/^28/.test(acc)) gross=Math.max(gross,a);
+    if(/^28/.test(acc)) accum=Math.max(accum,a);
+  }
+  // If backend text contains a malformed huge gross value, derive a safe display value
+  // from VNC + accumulated depreciation when available.
+  if(!gross && accum>0 && amountNumber(ne.amount)>0) gross=accum+Math.abs(amountNumber(ne.amount));
+  if(gross>0){
+    ne.justification=String(ne.justification||"").replace(/Valeur brute\s*:\s*[^\/\n]+/i,`Valeur brute : ${formatAmount(gross)} `);
+  }
+  return ne;
+}
 function normalizeEntries(c,entries){
-  let out=removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries));
+  let out=removeExactDuplicateOds(removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries)));
 
   // Une seule ligne d'analyse paie doit être affichée. Plusieurs contrôles backend
   // peuvent converger vers la même famille (paie / charges sociales / congés payés).
@@ -404,7 +444,7 @@ function normalizeEntries(c,entries){
   });
 
   out=out.map(e=>{
-    const ne={...e};
+    const ne=fixDisposalGrossValueText(e);
     const t=txt((ne.label||"")+" "+(ne.justification||""));
 
     // C — Une analyse à zéro sans anomalie détectée est un contrôle OK.
@@ -731,7 +771,7 @@ $("payOneShotBtn").addEventListener("click",()=>startCheckout("solo"));
 $("payExpertBtn").addEventListener("click",()=>startCheckout("expert"));
 $("payCabinetBtn").addEventListener("click",()=>startCheckout("cabinet"));
 $("payExtraCollabBtn").addEventListener("click",()=>startCheckout("extra-collab"));
-$("logoutBtn").addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html"});
+$("logoutBtn")?.addEventListener("click",async()=>{await signOut(auth);location.href="connexion.html"});
 </script>
 </body>
 </html>
