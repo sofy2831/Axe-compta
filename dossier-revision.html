@@ -32,7 +32,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 <div class="wrap">
   <div class="topbar">
     <div><img src="images/axe-compta.png" class="logo" alt="Axe Compta IA" onerror="this.style.display='none'"><h1>Dossier de révision</h1><p class="muted">Justificatifs, commentaires, calculs et traitement des OD et points d’analyse de clôture.</p><p id="statusLine" class="muted">Chargement...</p></div>
-    <div class="navActions"><a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a><a class="btn secondary" id="backBtn" href="cloture-resultat.html">Retour clôture</a><a class="btn" id="affectationTopBtn" href="affectation-resultat.html">Affectation</a></div>
+    <div class="navActions"><a class="btn secondary" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a></div>
   </div>
 
   <section class="box">
@@ -96,6 +96,22 @@ function sanitize(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<
 function fiscalYear(c){if(c?.startDate&&c?.endDate)return `${c.startDate} → ${c.endDate}`;if(c?.endDate)return String(c.endDate).slice(0,4);return c?.fiscalYear||c?.exercice||"";}
 function legalFormDisplay(c){return c?.legalForm||c?.formeJuridique||c?.companyLegalForm||c?.juridicalForm||c?.legalStatus||c?.statutJuridique||c?.companyType||c?.structureType||"Non renseignée";}
 function euro(v){const n=Number(String(v??0).replace(",",".").replace(/[^0-9.-]/g,""));return Number.isNaN(n)?sanitize(v||"—"):n.toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";}
+function normalizeReviewWhy(item){
+  const label=String(item?.label||"").toLowerCase();
+  let why=String(item?.why||"");
+  if(label.includes("cession") && label.includes("ordinateur dell")){
+    // Corrige l'ancienne valeur brute aberrante enregistrée par le moteur.
+    // Pour une sortie, brut = amortissements repris + VNC lorsque ces deux OD sont disponibles.
+    const reprise=reviewItems.find(x=>String(x?.label||"").toLowerCase().includes("reprise amortissements") && String(x?.label||"").toLowerCase().includes("ordinateur dell"));
+    const vnc=reviewItems.find(x=>String(x?.label||"").toLowerCase().includes("vnc") && String(x?.label||"").toLowerCase().includes("ordinateur dell"));
+    const a=Number(reprise?.amount||0), v=Number(vnc?.amount||0);
+    if(a>0 && v>=0){
+      const brut=a+v;
+      why=why.replace(/Valeur brute\s*:\s*[0-9\s.,]+\s*€/i,`Valeur brute : ${euro(brut)}`);
+    }
+  }
+  return why;
+}
 function ownerQuery(){return owner?`&owner=${encodeURIComponent(owner)}`:"";}
 function affectationUrl(){return `affectation-resultat.html?id=${closureId}${ownerQuery()}`;}
 function makeReviewItem(e,i){
@@ -120,7 +136,7 @@ function updateAffectationAccess(){
   // pas de la validation individuelle de tous les points de révision.
   const completed = revisionSaved === true && reviewItems.length > 0;
 
-  [$("affectationBtn"), $("affectationTopBtn"), $("modalAffectationBtn")].forEach(btn=>{
+  [$("affectationBtn"), $("modalAffectationBtn")].forEach(btn=>{
     if(!btn)return;
     btn.style.pointerEvents = completed ? "auto" : "none";
     btn.style.opacity = completed ? "1" : ".45";
@@ -223,9 +239,7 @@ $("saveRevisionModal").addEventListener("click",e=>{if(e.target===$("saveRevisio
 async function loadClosure(user){
   if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
   currentOwnerUid=owner||user.uid;
-  $("backBtn").href=`cloture-resultat.html?id=${closureId}${ownerQuery()}`;
   const href=affectationUrl();
-  $("affectationTopBtn").href=href;
   $("affectationBtn").href=href;
   $("modalAffectationBtn").href=href;
   const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
@@ -258,6 +272,8 @@ async function loadClosure(user){
     })
     .map(makeReviewItem));
   $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
+  // Normalise les anciennes justifications avant affichage/enregistrement.
+  reviewItems.forEach(item=>{ item.why=normalizeReviewWhy(item); });
   revisionSaved = currentClosure.dossierRevision?.status === "completed";
 
 if(revisionSaved){
