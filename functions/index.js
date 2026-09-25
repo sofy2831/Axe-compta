@@ -1573,10 +1573,28 @@ Contrôles à effectuer :
       const bruteRow = balanceRows.find(row => accountStarts(row, ["21"]) && getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["21"]);
       const amortRow = balanceRows.find(row => accountStarts(row, ["28"]) && getRowText(row).includes(normalizeText(assetName))) || findBalanceRow(balanceRows, ["28"]);
 
-      const bruteAmount = getAssetValue(assetRow, ["brut", "valeur brute", "acquisition"]) || (bruteRow ? getAmount(bruteRow) : 0);
-      const amortAmount = getAssetValue(assetRow, ["amortissement", "amortissements cumulés", "cumule"]) || (amortRow ? getAmount(amortRow) : 0);
-      const calculatedVnc = getAssetValue(assetRow, ["vnc", "valeur nette"]) || (bruteAmount && amortAmount ? Math.max(0, bruteAmount - amortAmount) : 0);
-      const retainedVnc = vncAmount || calculatedVnc || "À contrôler";
+      // Sortie d'immobilisation : sécuriser la valeur brute issue du tableau.
+      // Certains exports Excel contiennent des colonnes dont le nom inclut « brut »
+      // mais qui ne représentent pas la valeur brute comptable du bien.
+      const rawBruteAmount = getAssetValue(assetRow, ["valeur brute", "brut", "acquisition"]) || (bruteRow ? getAmount(bruteRow) : 0);
+      const amortAmount = getAssetValue(assetRow, ["amortissements cumulés", "amortissement", "cumule"]) || (amortRow ? getAmount(amortRow) : 0);
+      const tableVncAmount = getAssetValue(assetRow, ["vnc", "valeur nette"]);
+      const retainedVnc = vncAmount || tableVncAmount ||
+        (rawBruteAmount && amortAmount ? Math.max(0, rawBruteAmount - amortAmount) : 0) || "À contrôler";
+
+      // Si VNC et amortissements sont connus, leur somme donne une valeur brute
+      // comptable fiable. On l'utilise aussi pour neutraliser une valeur brute
+      // manifestement aberrante provenant d'une mauvaise colonne Excel.
+      const reconstructedBrute =
+        typeof retainedVnc === "number" && amortAmount
+          ? +(retainedVnc + amortAmount).toFixed(2)
+          : 0;
+      const bruteLooksWrong =
+        rawBruteAmount && reconstructedBrute &&
+        (rawBruteAmount > reconstructedBrute * 100 || rawBruteAmount < reconstructedBrute * 0.01);
+      const bruteAmount = reconstructedBrute && (!rawBruteAmount || bruteLooksWrong)
+        ? reconstructedBrute
+        : rawBruteAmount;
 
       let resultLabel = "Plus/Moins-value à contrôler";
       let disposalResultAmount = "À contrôler";
