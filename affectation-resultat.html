@@ -336,8 +336,16 @@ function findResultFromClasses67(c){
     // Un compte 6 créditeur diminue les charges ; un compte 7 débiteur diminue les produits.
     // Ne jamais utiliser Math.abs(net) ici : cela transformerait une charge créditrice
     // en charge positive et doublerait son impact sur le résultat.
-    if(compte.startsWith("6")){charges+=net;found=true;}
-    else if(compte.startsWith("7")){products+=(-net);found=true;}
+    if(compte.startsWith("6")){
+      // Balance détaillée : net débit-crédit. Balance simplifiée : le Solde peut être
+      // fourni positif ou négatif sans porter à lui seul le sens comptable.
+      charges += hasDetailedDC ? net : Math.abs(net);
+      found=true;
+    }
+    else if(compte.startsWith("7")){
+      products += hasDetailedDC ? (-net) : Math.abs(net);
+      found=true;
+    }
   }
   charges=Math.round(charges*100)/100;
   products=Math.round(products*100)/100;
@@ -901,7 +909,11 @@ async function loadClosure(user){
 
   const saved=currentClosure.affectationResult;
 
-  if(saved){
+  const savedMatchesCurrentResult = saved
+    && saved.resultType===resultType
+    && Math.abs(Number(saved.resultAmount||0)-Number(resultAmount||0))<=0.01;
+
+  if(savedMatchesCurrentResult){
     set("pvDate",saved.pvDate||"");
     set("legalReserveAmount",saved.legalReserveAmount||0);
     set("reserveAmount",saved.reserveAmount||0);
