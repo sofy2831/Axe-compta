@@ -426,6 +426,40 @@ function fixDisposalGrossValueText(e){
   }
   return ne;
 }
+
+function leasingRowsFromClosure(c){
+  const balance=Array.isArray(c?.balance)?c.balance:[];
+  const gl=Array.isArray(c?.grandLivre)?c.grandLivre:[];
+  // Prefer the balance so the same lease is not counted once from Balance and once from GL.
+  const source=balance.length?balance:gl;
+  return source.filter(r=>String(r?.Compte||r?.compte||"").replace(/\s/g,"").startsWith("612"))
+    .map(r=>({
+      compte:String(r?.Compte||r?.compte||"").replace(/\s/g,""),
+      libelle:String(r?.["Libellé opération"]||r?.Libellé||r?.libelle||r?.Libelle||r?.["Intitulé compte"]||"Crédit-bail / leasing"),
+      amount:Math.abs(amountNumber(r?.Montant||r?.montant||r?.Solde||r?.solde||0))
+    })).filter(r=>r.amount>0);
+}
+function fixLeasingAnalysis(c,e){
+  if(!isAnalysisEntry(e)) return e;
+  const t=txt((e?.label||"")+" "+(e?.justification||""));
+  if(!(t.includes("credit-bail")||t.includes("leasing"))) return e;
+  const rows=leasingRowsFromClosure(c);
+  if(!rows.length) return e;
+  const total=rows.reduce((sum,r)=>sum+r.amount,0);
+  return {...e,amount:total,details:rows.map(r=>({compte:r.compte,libelle:r.libelle,amount:r.amount,caseLabel:"Loyer de crédit-bail / leasing constaté en charge",recommendation:"Aucune écriture de clôture automatique n'est proposée si le loyer concerne uniquement l'exercice. Contrôler le contrat, la période couverte et l'annexe."})),justification:`Crédit-bail / leasing détecté.\n\nMontant total des comptes 612 détectés : ${formatAmount(total)}.\n\nRègles appliquées :\n- loyer simple en 612 : aucune écriture de clôture si la période est correctement rattachée ;\n- CCA : débit 486 / crédit 612 ;\n- FNP : débit 612 / crédit 408 ;\n- levée d'option : débit 218 / crédit 404.\n\nContrôler le contrat, la période couverte, l'option d'achat et les informations à mentionner en annexe.`};
+}
+function fixDisposalFromSiblingEntries(entries){
+  const accum=entries.filter(e=>{const t=txt(e?.label||"");return !isAnalysisEntry(e)&&t.includes("sortie immobilisation")&&t.includes("reprise amort")}).reduce((s,e)=>s+Math.abs(amountNumber(e.amount)),0);
+  if(!accum) return entries;
+  return entries.map(e=>{
+    const t=txt((e?.label||"")+" "+(e?.justification||""));
+    if(isAnalysisEntry(e)||!t.includes("sortie immobilisation")||!t.includes("vnc")) return e;
+    const vnc=Math.abs(amountNumber(e.amount));
+    const gross=accum+vnc;
+    return {...e,justification:String(e.justification||"").replace(/Valeur brute\s*:\s*[^\/\n]+/i,`Valeur brute : ${formatAmount(gross)} `)};
+  });
+}
+
 function normalizeEntries(c,entries){
   let out=removeExactDuplicateOds(removeDuplicateFnpCreditBail(ensurePayrollAnalysis(c,entries)));
 
@@ -515,6 +549,10 @@ Contrôles à effectuer :
 
   // B — Une seule fiche lorsqu'une OD et son analyse décrivent la même opération.
   out=mergeOdAndAnalysis(out);
+  // Corrige la présentation des crédits-bails à partir d'une seule source comptable
+  // et reconstruit la valeur brute d'une sortie depuis amortissements repris + VNC.
+  out=out.map(e=>fixLeasingAnalysis(c,e));
+  out=fixDisposalFromSiblingEntries(out);
   return out;
 }
 function rowHtml(e,i){
