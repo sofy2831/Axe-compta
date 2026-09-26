@@ -53,7 +53,7 @@ let closure=null;
 const answers={};
 
 function formatDateFr(v){if(!v)return"";const[y,m,d]=v.split("-");return`${d}/${m}/${y}`;}
-function nextYear(endDate){return Number((endDate||"2022").slice(0,4))+1;}
+function nextYear(endDate){const y=String(endDate||"").slice(0,4);return y?Number(y)+1:"";}
 function hasAnswers(){return closure?.answers&&Object.keys(closure.answers).length>0;}
 function isParsed(){return closure?.status==="parsed"||closure?.status==="analysed"||(Array.isArray(closure?.fec)&&closure.fec.length>0)||(Array.isArray(closure?.balance)&&closure.balance.length>0)||(Array.isArray(closure?.grandLivre)&&closure.grandLivre.length>0);}
 
@@ -97,9 +97,12 @@ function refreshDisplay(){
 }
 
 function renderQuestions(){
-  const end=formatDateFr(closure.endDate);
-  const y=(closure.endDate||"2022").slice(0,4);
-  const n=nextYear(closure.endDate);
+  // Les questions doivent toujours suivre les dates réelles de la clôture.
+  // Aucun exercice de secours (2022/2023) n'est injecté dans les questions.
+  const endDate=String(closure?.endDate||"").trim();
+  const end=formatDateFr(endDate);
+  const y=endDate ? endDate.slice(0,4) : "";
+  const n=y ? Number(y)+1 : "";
   const previousAnswers=closure.answers||{};
   const previousDetails=closure.details||{};
 
