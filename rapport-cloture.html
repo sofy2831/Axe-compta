@@ -153,7 +153,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 <div class="wrap">
   <div class="topbar">
     <div><img src="images/axe-compta.png" class="logo" alt="Axe Compta IA" onerror="this.style.display='none'"><h1>Rapport de clôture</h1><p class="muted">Rapport final PDF : synthèse, OD définitives, révision, affectation, extournes, score et validation.</p><p id="statusLine" class="muted">Chargement...</p></div>
-    <div class="navActions"><a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a><a class="btn secondary" id="validationBtn" href="validation-cloture.html">Validation</a></div>
+    <div class="navActions"><a class="btn secondary" href="tableau-de-bord.html">← Tableau de bord</a></div>
   </div>
 
   <section class="box">
@@ -484,7 +484,6 @@ $("saveModal").addEventListener("click", e => {
 async function loadClosure(user){
  if(!closureId){$("statusLine").innerHTML='<span class="errText">Aucune clôture sélectionnée.</span>';return;}
  currentOwnerUid=owner||user.uid;
- $("validationBtn").href=`validation-cloture.html?id=${closureId}${owner?`&owner=${encodeURIComponent(owner)}`:""}`;
  const snap=await getDoc(doc(db,"users",currentOwnerUid,"closures",closureId));
  if(!snap.exists()){$("statusLine").innerHTML='<span class="errText">Clôture introuvable.</span>';return;}
  currentClosure=snap.data();
