@@ -2190,7 +2190,14 @@ anomalies = [
         // Ne pas recopier fecRows ici : cela doublait les données et pouvait
         // dépasser la limite de taille d'un document Firestore.
         fec: [],
-        fecSummary: usingFec ? { rows: fecRows.length, parsed: true } : null,
+        fecSummary: usingFec ? {
+          rows: fecRows.length,
+          fecRows: fecRows.length,
+          balanceRows: balanceRows.length,
+          grandLivreRows: grandLivreRows.length,
+          anomaliesCount: anomalies.length,
+          parsed: true
+        } : null,
         importMode: usingFec ? "fec" : "balance_grand_livre",
         balance: balanceRows,
         // En mode FEC, le grand livre complet peut contenir des dizaines ou centaines
@@ -2354,7 +2361,14 @@ exports.parseScoreCorrectionFiles = onRequest(async (req, res) => {
     await closureRef.set(cleanFirestoreObject({
       balance: balanceRows,
       fec: [],
-      fecSummary: usingFec ? { rows: fecRows.length, parsed: true } : (closure.fecSummary || null),
+      fecSummary: usingFec ? {
+        rows: fecRows.length,
+        fecRows: fecRows.length,
+        balanceRows: balanceRows.length,
+        grandLivreRows: grandLivreRows.length,
+        anomaliesCount: anomalies.length,
+        parsed: true
+      } : (closure.fecSummary || null),
       importMode: usingFec ? "fec" : "balance_grand_livre",
       grandLivre: usingFec ? [] : grandLivreRows,
       amortissements: amortissementRows,
