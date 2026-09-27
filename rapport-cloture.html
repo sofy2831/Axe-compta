@@ -494,7 +494,7 @@ async function loadClosure(user){
  $("scoreLabel").textContent=s===null?"—":`${s}/100`;
  $("validationLabel").textContent=currentClosure.validated?"Validée":"Non validée";
  $("statusLine").innerHTML='<span class="okText">Clôture chargée.</span>';
- renderReport();
+ $("reportPreview").innerHTML='<b class="okText">Rapport prêt.</b><br>Utilisez « Imprimer / PDF » pour générer le rapport final.';
  renderShareTrace();
 }
 onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;try{await loadClosure(user);}catch(e){console.error(e);$("statusLine").innerHTML='<span class="errText">Erreur de chargement.</span>';}});
