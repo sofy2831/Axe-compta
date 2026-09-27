@@ -169,7 +169,8 @@ function renderRows(){
   document.querySelectorAll("[data-doc]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.doc)].document=el.value;scheduleRenderPrint();}));
   document.querySelectorAll("[data-comment]").forEach(el=>el.addEventListener("input",()=>{reviewItems[Number(el.dataset.comment)].comment=el.value;scheduleRenderPrint();}));
   updateAffectationAccess();
-  renderPrint();
+  // Le document d'impression est généré à la demande (PDF/XLS) ou après modification.
+  // Cela évite de construire une seconde fois tout le dossier au chargement de la page.
 }
 
 async function saveReview(){
