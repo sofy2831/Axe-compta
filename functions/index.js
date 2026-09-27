@@ -30,7 +30,7 @@ exports.createCheckoutSession = onRequest(
 
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-      const { uid, closureId, plan, email } = req.body || {};
+      const { uid, closureId, plan, email, purchaseFlow } = req.body || {};
 
       if (!uid || !plan || !email) {
         return res.status(400).json({ error: "Paramètres manquants." });
@@ -65,15 +65,21 @@ exports.createCheckoutSession = onRequest(
         customer_email: existingCustomerId ? undefined : email,
         customer_creation: !existingCustomerId && plan === "solo" ? "always" : undefined,
         line_items: [{ price: priceMap[plan], quantity: 1 }],
-        success_url: `${ALLOWED_ORIGIN}/merci.html`,
+        success_url:
+          plan === "solo" && purchaseFlow === "new_closure"
+            ? `${ALLOWED_ORIGIN}/nouvelle-cloture.html?paidClosureId=${encodeURIComponent(closureId || "")}`
+            : `${ALLOWED_ORIGIN}/merci.html`,
         cancel_url:
-          plan === "solo"
-            ? `${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}`
-            : `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
+          plan === "solo" && purchaseFlow === "new_closure"
+            ? `${ALLOWED_ORIGIN}/tableau-de-bord.html?cancelSoloClosure=${encodeURIComponent(closureId || "")}`
+            : plan === "solo"
+              ? `${ALLOWED_ORIGIN}/cloture-resultat.html?id=${encodeURIComponent(closureId || "")}`
+              : `${ALLOWED_ORIGIN}/tableau-de-bord.html`,
         metadata: {
           uid,
           closureId: closureId || "",
           plan,
+          purchaseFlow: purchaseFlow || "",
         },
       });
 
