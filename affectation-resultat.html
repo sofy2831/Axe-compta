@@ -956,12 +956,17 @@ onAuthStateChanged(auth,async user=>{
   currentUser=user;
 
   try{
-    const userSnap=await getDoc(doc(db,"users",user.uid));
-    const userData=userSnap.exists()?userSnap.data():{};
+    // Le compte utilisateur et la clôture sont indépendants :
+    // on lance leur chargement simultanément pour réduire l'attente initiale.
+    const userDataPromise=getDoc(doc(db,"users",user.uid))
+      .then(userSnap=>userSnap.exists()?userSnap.data():{});
 
+    const closurePromise=loadClosure(user);
+
+    const userData=await userDataPromise;
     showAdminFeedbackIfAllowed(user,userData);
 
-    await loadClosure(user);
+    await closurePromise;
   }catch(e){
     console.error(e);
     $("statusLine").innerHTML='<span class="err">Erreur de chargement.</span>';
