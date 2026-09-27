@@ -179,7 +179,14 @@ saveAnswersBtn.addEventListener("click",async()=>{
 
     msg.textContent="Réponses enregistrées. Vous pouvez maintenant analyser les fichiers comptables.";
     msg.style.display="block";
-    await reloadClosure();
+
+    // Mise à jour locale : les données viennent d'être enregistrées,
+    // inutile de relire immédiatement le même document Firestore.
+    closure.answers={...answers};
+    closure.details={...details};
+    closure.status="questions_saved";
+    refreshDisplay();
+    renderQuestions();
   }catch(e){
     console.error(e);
     msg.textContent="Erreur lors de l’enregistrement.";
