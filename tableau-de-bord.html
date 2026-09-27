@@ -459,36 +459,37 @@ async function loadDashboard(user){
 
   let own=[],shared=[],ownError=null,sharedError=null;
 
-  const ownPromise=collectOwnClosures(user)
-    .then(v=>v)
-    .catch(e=>{ownError=e;console.error("Clôtures propres non chargées :",e);return[];});
-  const sharedPromise=showSharedBox
-    ? collectSharedClosures(user)
-        .then(v=>v)
-        .catch(e=>{sharedError=e;console.error("Clôtures partagées non chargées :",e);return[];})
-    : Promise.resolve([]);
+  // Le tableau principal ne doit pas attendre les recherches de partages/cabinet.
+  try{
+    own=await collectOwnClosures(user);
+  }catch(e){
+    ownError=e;
+    console.error("Clôtures propres non chargées :",e);
+  }
 
-  [own,shared]=await Promise.all([ownPromise,sharedPromise]);
-
+  // Les clôtures partagées se chargent séparément, sans bloquer "Mes clôtures".
   if(showSharedBox){
+    (async()=>{
+      try{
+        shared=await collectSharedClosures(user);
 
-    if(!shared.length && currentMemberships.length){
-      const fallbackShared=await collectSharedClosuresFallback(user);
-      if(fallbackShared.length){
-        shared=fallbackShared;
-        sharedError=null;
+        if(!shared.length && currentMemberships.length){
+          const fallbackShared=await collectSharedClosuresFallback(user);
+          if(fallbackShared.length)shared=fallbackShared;
+        }
+
+        if(!shared.length && cabinetOwner){
+          const receivedFromCollaborators=await collectCabinetReceivedClosures(user);
+          if(receivedFromCollaborators.length)shared=receivedFromCollaborators;
+        }
+
+        renderSharedRows(shared);
+      }catch(e){
+        sharedError=e;
+        console.error("Clôtures partagées non chargées :",e);
+        renderSharedRows([]);
       }
-    }
-
-    if(!shared.length && cabinetOwner){
-      const receivedFromCollaborators=await collectCabinetReceivedClosures(user);
-      if(receivedFromCollaborators.length){
-        shared=receivedFromCollaborators;
-        sharedError=null;
-      }
-    }
-
-    renderSharedRows(shared);
+    })();
   }
 
   const seen=new Set();
@@ -498,8 +499,7 @@ async function loadDashboard(user){
     if(!all.length){
       activeClosuresEl.textContent="0";
       exportsCountEl.textContent="0";
-      if(ownError&&sharedError)renderEmpty("Impossible de charger les clôtures propres et partagées. Vérifiez les Firestore rules.");
-      else if(sharedError)renderEmpty("Aucune clôture propre affichable. Les clôtures partagées sont encore bloquées par les Firestore rules collectionGroup.");
+      if(ownError)renderEmpty("Impossible de charger les clôtures propres. Vérifiez les Firestore rules.");
       else renderEmpty();
       return;
     }
