@@ -236,28 +236,15 @@ async function loadOwnCabinetCollaborators(user){
 
 
 async function sourceClosure(ownerUid,closureId,fallbackData={},sourceLabel="partage"){
-  try{
-    const snap=await getDoc(doc(db,"users",ownerUid,"closures",closureId));
-    if(snap.exists()){
-      const data=snap.data()||{};
-      return {
-        id:closureId,
-        ownerUid,
-        shared:true,
-        cabinetName:data.cabinetName||data.ownerCompanyName||fallbackData.cabinetName||fallbackData.ownerCompanyName||"Cabinet",
-        data:{...data,sharedByEmail:data.sharedByEmail||fallbackData.sharedByEmail||fallbackData.ownerEmail||"",sharedByName:data.sharedByName||fallbackData.sharedByName||fallbackData.ownerName||fallbackData.collaboratorName||"",ownerEmail:fallbackData.ownerEmail||"",_source:"clôture source"}
-      };
-    }
-  }catch(e){
-    console.warn("Lecture clôture source impossible",ownerUid,closureId,e);
-  }
-
+  // La requête qui appelle cette fonction contient déjà les données de la clôture
+  // (ou son résumé cabinet). Éviter une seconde lecture Firestore par dossier.
+  const data=fallbackData||{};
   return {
     id:closureId,
     ownerUid,
     shared:true,
-    cabinetName:fallbackData.cabinetName||fallbackData.ownerCompanyName||"Cabinet",
-    data:{...fallbackData,_source:sourceLabel+" / résumé"}
+    cabinetName:data.cabinetName||data.ownerCompanyName||"Cabinet",
+    data:{...data,sharedByEmail:data.sharedByEmail||data.ownerEmail||"",sharedByName:data.sharedByName||data.ownerName||data.collaboratorName||"",ownerEmail:data.ownerEmail||"",_source:sourceLabel}
   };
 }
 
@@ -471,10 +458,19 @@ async function loadDashboard(user){
   document.getElementById("sharedBox").classList.toggle("hidden", !showSharedBox);
 
   let own=[],shared=[],ownError=null,sharedError=null;
-  try{own=await collectOwnClosures(user);}catch(e){ownError=e;console.error("Clôtures propres non chargées :",e);}
+
+  const ownPromise=collectOwnClosures(user)
+    .then(v=>v)
+    .catch(e=>{ownError=e;console.error("Clôtures propres non chargées :",e);return[];});
+  const sharedPromise=showSharedBox
+    ? collectSharedClosures(user)
+        .then(v=>v)
+        .catch(e=>{sharedError=e;console.error("Clôtures partagées non chargées :",e);return[];})
+    : Promise.resolve([]);
+
+  [own,shared]=await Promise.all([ownPromise,sharedPromise]);
 
   if(showSharedBox){
-    try{shared=await collectSharedClosures(user);}catch(e){sharedError=e;console.error("Clôtures partagées non chargées :",e);}
 
     if(!shared.length && currentMemberships.length){
       const fallbackShared=await collectSharedClosuresFallback(user);
@@ -512,8 +508,8 @@ async function loadDashboard(user){
     hasPaidSoloPurchase=hasPaidSolo;
     if(currentPlanLabel==="À activer"&&hasPaidSolo){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}
 
-    rows.innerHTML="";
     let exports=0,activeCount=0,firstAccessible=null;
+    const ownRowsHtml=[];
 
     all.forEach(item=>{
       const c=item.data,archived=c.archived===true,paid=item.shared||isSoloActive(c)||subscriptionOk;
@@ -546,8 +542,9 @@ async function loadDashboard(user){
         shareButton,shareToCabinetButton,archiveBtn
       ].filter(Boolean).join(" ");
 
-      rows.innerHTML+=`<tr><td><b>${safe(c.companyName||"Société sans nom")}</b>${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:`<br>${editButton}${sharedCabinetBadge(c)}`}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`;
+      ownRowsHtml.push(`<tr><td><b>${safe(c.companyName||"Société sans nom")}</b>${item.shared?`<br><span class="muted">Partagé par : ${safe(item.cabinetName)}</span>`:`<br>${editButton}${sharedCabinetBadge(c)}`}</td><td>${safe(c.startDate||"—")} → ${safe(c.endDate||"—")}</td><td>${status}</td><td>${payment}</td><td>${scorePill(c)}</td><td><div class="actions inlineActions">${actionLinks}</div></td></tr>`);
     });
+    rows.innerHTML=ownRowsHtml.join("");
 
     if(firstAccessible){
       moduleLinks.result.href=linkFor("cloture-resultat.html",firstAccessible.id,firstAccessible.ownerUid);
