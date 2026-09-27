@@ -21,7 +21,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
 <div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
 <section class="box"><h2>Mes modules</h2><div class="modulesGrid">
-<div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" href="nouvelle-cloture.html">Ouvrir</a></div>
+<div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" id="newClosureBtn" href="nouvelle-cloture.html">Ouvrir</a></div>
 <div class="moduleCard"><b>📘 Résultat</b><span>Analyser, corriger, recharger les fichiers si besoin, puis valider les écritures de clôture.</span><a class="btn" id="resultModuleLink" href="#">Ouvrir</a></div>
 <div class="moduleCard"><b>📚 Dossier de révision</b><span>Documenter les OD : justificatif, calcul, commentaire et statut de validation.</span><a class="btn" id="revisionModuleLink" href="#">Ouvrir</a></div>
 <div class="moduleCard"><b>📊 Affectation du résultat</b><span>Préparer l’affectation 120/129 vers 1068, 110, 119 ou 457 à partir d’une clôture documentée.</span><a class="btn" id="affectationModuleLink" href="#">Ouvrir</a></div>
@@ -72,7 +72,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 import { auth, db } from "./firebase-config.js";
 import { showAdminFeedbackIfAllowed } from "./admin-access.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { doc, getDoc, collection, collectionGroup, query, orderBy, limit, getDocs, updateDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { doc, getDoc, collection, collectionGroup, query, orderBy, limit, getDocs, addDoc, deleteDoc, updateDoc, setDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const SUBMIT_FEEDBACK_URL="https://europe-west9-axe-compta.cloudfunctions.net/submitFeedback";
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
@@ -86,7 +86,7 @@ const sharedHead=document.getElementById("sharedHead");
 const sharedHelp=document.getElementById("sharedHelp");
 const moduleLinks={result:document.getElementById("resultModuleLink"),revision:document.getElementById("revisionModuleLink"),affectation:document.getElementById("affectationModuleLink"),extournes:document.getElementById("extournesModuleLink"),score:document.getElementById("scoreModuleLink"),validation:document.getElementById("validationModuleLink"),report:document.getElementById("reportModuleLink")};
 const userEmailEl=document.getElementById("userEmail"),activeClosuresEl=document.getElementById("activeClosures"),exportsCountEl=document.getElementById("exportsCount"),planLabelEl=document.getElementById("planLabel"),accountStatusEl=document.getElementById("accountStatus"),logoutBtnEl=document.getElementById("logoutBtn"),cabinetHeaderBtn=document.getElementById("cabinetHeaderBtn"),cabinetMenuCard=document.getElementById("cabinetMenuCard");
-let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[],currentCabinetCollaborators=[],editingClosureId="",editingClosureOwnerUid="",editingClosureStartDate="",editingClosureEndDate="";
+let currentUser=null,currentPlanLabel="À activer",currentUserData={},currentMemberships=[],currentCabinetCollaborators=[],editingClosureId="",editingClosureOwnerUid="",editingClosureStartDate="",editingClosureEndDate="",hasPaidSoloPurchase=false;
 
 function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
 function normEmail(v){return String(v||"").trim().toLowerCase();}
@@ -312,7 +312,7 @@ function renderEmpty(msg="Aucune clôture disponible."){
   Object.values(moduleLinks).forEach(el=>{el.href="#";el.classList.add("disabled")});
 }
 async function toggleArchive(ownerUid,closureId,archived){await updateDoc(doc(db,"users",ownerUid,"closures",closureId),{archived:!archived,updatedAt:serverTimestamp()});await loadDashboard(currentUser);}
-async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),limit(100)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}})).sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));}
+async function collectOwnClosures(user){const snap=await getDocs(query(collection(db,"users",user.uid,"closures"),limit(100)));return snap.docs.map(d=>({id:d.id,ownerUid:user.uid,shared:false,data:d.data()||{}})).filter(x=>x.data.status!=="payment_pending").sort((a,b)=>(b.data.createdAt?.seconds||0)-(a.data.createdAt?.seconds||0));}
 
 async function collectSharedClosures(user){
   const email=normEmail(user.email);
@@ -508,7 +508,8 @@ async function loadDashboard(user){
       return;
     }
 
-    const hasPaidSolo=all.some(x=>!x.shared&&x.data.archived!==true&&isSoloActive(x.data));
+    const hasPaidSolo=currentUserData.hasSoloPurchase===true||all.some(x=>!x.shared&&isSoloActive(x.data));
+    hasPaidSoloPurchase=hasPaidSolo;
     if(currentPlanLabel==="À activer"&&hasPaidSolo){currentPlanLabel="Solo 99 €";planLabelEl.textContent=currentPlanLabel;accountStatusEl.textContent="Actif";}
 
     rows.innerHTML="";
@@ -573,6 +574,80 @@ async function loadDashboard(user){
     console.error("Chargement dashboard impossible :",e);
     activeClosuresEl.textContent="0";exportsCountEl.textContent="0";
     renderEmpty("Impossible de charger les clôtures.");
+  }
+}
+
+
+async function cleanupCanceledSoloClosure(){
+  const params=new URLSearchParams(location.search);
+  const closureId=params.get("cancelSoloClosure");
+  if(!closureId||!currentUser)return;
+  try{
+    const ref=doc(db,"users",currentUser.uid,"closures",closureId);
+    const snap=await getDoc(ref);
+    if(snap.exists()){
+      const data=snap.data()||{};
+      if(data.status==="payment_pending"&&data.paid!==true)await deleteDoc(ref);
+    }
+  }catch(e){
+    console.warn("Nettoyage clôture Solo annulée impossible :",e);
+  }finally{
+    history.replaceState({},document.title,"tableau-de-bord.html");
+  }
+}
+
+async function startNewClosure(){
+  if(!currentUser)return;
+
+  if(hasPaidAccess()){
+    location.assign("nouvelle-cloture.html");
+    return;
+  }
+
+  if(!hasPaidSoloPurchase&&currentUserData.hasSoloPurchase!==true){
+    location.assign("nouvelle-cloture.html");
+    return;
+  }
+
+  const btn=document.getElementById("newClosureBtn");
+  if(btn){btn.classList.add("disabled");btn.textContent="Paiement...";}
+
+  let pendingRef=null;
+  try{
+    pendingRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
+      companyName:"",
+      status:"payment_pending",
+      paid:false,
+      paymentMode:null,
+      planSource:"solo",
+      ownerUid:currentUser.uid,
+      ownerEmail:currentUser.email||"",
+      files:{fec:null,balance:null,grandLivre:null,amortissements:null,emprunt:null},
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+
+    const r=await fetch(CREATE_CHECKOUT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        uid:currentUser.uid,
+        closureId:pendingRef.id,
+        plan:"solo",
+        email:currentUser.email,
+        purchaseFlow:"new_closure"
+      })
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.url)throw new Error(d.error||"Paiement Stripe indisponible.");
+    location.href=d.url;
+  }catch(e){
+    console.error(e);
+    if(pendingRef){
+      try{await deleteDoc(pendingRef);}catch(_){}
+    }
+    alert(e.message||"Impossible de lancer le paiement.");
+    if(btn){btn.classList.remove("disabled");btn.textContent="Ouvrir";}
   }
 }
 
@@ -775,11 +850,12 @@ function renderSubscription(){
 
 document.querySelectorAll("[data-menu-action]").forEach(card=>card.addEventListener("click",()=>{const a=card.dataset.menuAction;if(a==="suggest")renderSuggestForm("suggestion");if(a==="mySuggestions")renderMySuggestions();if(a==="bug")renderSuggestForm("bug");if(a==="news")renderNews();if(a==="subscription")renderSubscription();if(a==="cabinet")location.assign("cabinet-espace.html");}));
 document.getElementById("footerSubscriptionLink")?.addEventListener("click",e=>{e.preventDefault();renderSubscription();});
+document.getElementById("newClosureBtn")?.addEventListener("click",e=>{e.preventDefault();startNewClosure();});
 cabinetHeaderBtn?.addEventListener("click",e=>{e.preventDefault();location.assign("cabinet-espace.html");});
 Object.values(moduleLinks).forEach(el=>el?.addEventListener("click",e=>{if(el.classList.contains("disabled")){e.preventDefault();alert("Module disponible après paiement d'une clôture.");}}));
 document.getElementById("closeModalBtn").addEventListener("click",closeModal);
 document.getElementById("menuModal").addEventListener("click",e=>{if(e.target===document.getElementById("menuModal"))closeModal();});
-onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;await syncStripeBeforeDashboard(user);await loadDashboard(user);});
+onAuthStateChanged(auth,async user=>{if(!user){location.href="connexion.html";return;}currentUser=user;await cleanupCanceledSoloClosure();await syncStripeBeforeDashboard(user);await loadDashboard(user);});
 document.getElementById("closeEditClosureBtn").addEventListener("click",closeEditClosure);
 document.getElementById("cancelEditClosureBtn").addEventListener("click",closeEditClosure);
 document.getElementById("saveEditClosureBtn").addEventListener("click",saveEditClosure);
