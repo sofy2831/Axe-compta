@@ -157,23 +157,21 @@ if(!isAllowedSize(fec)||!isAllowedSize(balance)||!isAllowedSize(ledger)||!isAllo
   saveBtnEl.textContent="Enregistrement...";
 
   try{
-   const beforeSyncSnap=await getDoc(doc(db,"users",currentUser.uid));
-currentUserData=beforeSyncSnap.exists()?beforeSyncSnap.data():currentUserData;
-
-if(currentUserData.stripeSubscriptionId){
-  try{
-    await fetch(SYNC_STRIPE_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({uid:currentUser.uid})
-    });
-  }catch(e){
-    console.warn("Sync Stripe non bloquante",e);
-  }
-}
-
-const freshUserSnap=await getDoc(doc(db,"users",currentUser.uid));
-currentUserData=freshUserSnap.exists()?freshUserSnap.data():currentUserData;
+    // Données utilisateur déjà chargées à l'ouverture.
+    // Une seule relecture est nécessaire après une éventuelle synchronisation Stripe.
+    if(currentUserData.stripeSubscriptionId){
+      try{
+        await fetch(SYNC_STRIPE_URL,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({uid:currentUser.uid})
+        });
+      }catch(e){
+        console.warn("Sync Stripe non bloquante",e);
+      }
+      const freshUserSnap=await getDoc(doc(db,"users",currentUser.uid));
+      currentUserData=freshUserSnap.exists()?freshUserSnap.data():currentUserData;
+    }
     
     const isExpert=
   currentUserData.plan==="expert"
@@ -252,41 +250,29 @@ const paymentMode=isExpert
     }
 
     const updates={};
+    const uploadJobs=[];
 
-    if(fec){
-      const fecPath=`closures/${currentUser.uid}/${docRef.id}/fec-${Date.now()}-${cleanFileName(fec.name)}`;
-      await uploadBytes(ref(storage,fecPath),fec);
-      updates["files.fec"]=fileInfo(fec,fecPath);
+    function queueUpload(file,prefix,fieldName){
+      if(!file)return;
+      const storagePath=`closures/${currentUser.uid}/${docRef.id}/${prefix}-${Date.now()}-${cleanFileName(file.name)}`;
+      uploadJobs.push(
+        uploadBytes(ref(storage,storagePath),file).then(()=>{
+          updates[`files.${fieldName}`]=fileInfo(file,storagePath);
+        })
+      );
     }
 
-    if(balance){
-      const balancePath=`closures/${currentUser.uid}/${docRef.id}/balance-${Date.now()}-${cleanFileName(balance.name)}`;
-      await uploadBytes(ref(storage,balancePath),balance);
-      updates["files.balance"]=fileInfo(balance,balancePath);
-    }
+    queueUpload(fec,"fec","fec");
+    queueUpload(balance,"balance","balance");
+    queueUpload(ledger,"grand-livre","grandLivre");
+    queueUpload(amort,"amortissements","amortissements");
+    queueUpload(loan,"emprunt","emprunt");
 
-    if(ledger){
-      const ledgerPath=`closures/${currentUser.uid}/${docRef.id}/grand-livre-${Date.now()}-${cleanFileName(ledger.name)}`;
-      await uploadBytes(ref(storage,ledgerPath),ledger);
-      updates["files.grandLivre"]=fileInfo(ledger,ledgerPath);
-    }
-
-    if(amort){
-      const amortPath=`closures/${currentUser.uid}/${docRef.id}/amortissements-${Date.now()}-${cleanFileName(amort.name)}`;
-      await uploadBytes(ref(storage,amortPath),amort);
-      updates["files.amortissements"]=fileInfo(amort,amortPath);
-    }
-
-    if(loan){
-      const loanPath=`closures/${currentUser.uid}/${docRef.id}/emprunt-${Date.now()}-${cleanFileName(loan.name)}`;
-      await uploadBytes(ref(storage,loanPath),loan);
-      updates["files.emprunt"]=fileInfo(loan,loanPath);
-    }
-
-    if(Object.keys(updates).length){
+    // Envoi simultané des fichiers indépendants.
+    if(uploadJobs.length){
+      await Promise.all(uploadJobs);
       updates.updatedAt=serverTimestamp();
       await updateDoc(doc(db,"users",currentUser.uid,"closures",docRef.id),updates);
-      
     }
 
    window.location.replace(`cloture-analyse.html?id=${docRef.id}`);
