@@ -69,6 +69,7 @@ const saveBtnEl=document.getElementById("saveBtn");
 const saveMsgEl=document.getElementById("saveMsg");
 const periodLabelEl=document.getElementById("periodLabel");
 const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncStripeSubscription";
+const prepaidClosureId=new URLSearchParams(location.search).get("paidClosureId")||"";
 
 function formatDateFr(v){if(!v)return"";const [y,m,d]=v.split("-");return `${d}/${m}/${y}`;}
 function updatePeriod(){periodLabelEl.textContent=`Exercice analysé : ${formatDateFr(startDateEl.value)} → ${formatDateFr(endDateEl.value)}`;}
@@ -199,7 +200,7 @@ const paymentMode=isExpert
   ? "expert"
   : (isCabinetMember || isCabinetOwner ? "cabinet" : null);
     
-    const docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
+    const closurePayload={
       companyName,
       startDate:startDateEl.value,
       endDate:endDateEl.value,
@@ -208,20 +209,18 @@ const paymentMode=isExpert
       vatRegime:vatEl.value,
       notes:notesEl.value,
       status:"draft",
-      paid:includedBySubscription ? true : false,
-paymentMode,
-planSource,
-
-initialFilesLocked: planSource === "solo",
-initialFilesLockedAt: planSource === "solo" ? new Date().toISOString() : null,
-initialFilesLockedStep: planSource === "solo" ? "creation" : "",
-      
-ownerUid:currentUser.uid,
-ownerEmail:currentUser.email || "",
-cabinetOwnerUid:isCabinetMember ? currentUserData.cabinetOwnerUid : (isCabinetOwner ? currentUser.uid : ""),
-sharedWith:{},
-sharedWithEmails:[],
-cabinetShared:false,
+      paid:prepaidClosureId ? true : (includedBySubscription ? true : false),
+      paymentMode:prepaidClosureId ? "solo" : paymentMode,
+      planSource,
+      initialFilesLocked: planSource === "solo",
+      initialFilesLockedAt: planSource === "solo" ? new Date().toISOString() : null,
+      initialFilesLockedStep: planSource === "solo" ? "creation" : "",
+      ownerUid:currentUser.uid,
+      ownerEmail:currentUser.email || "",
+      cabinetOwnerUid:isCabinetMember ? currentUserData.cabinetOwnerUid : (isCabinetOwner ? currentUser.uid : ""),
+      sharedWith:{},
+      sharedWithEmails:[],
+      cabinetShared:false,
       files:{fec:null,balance:null,grandLivre:null,amortissements:null,emprunt:null},
       fec:[],
       balance:[],
@@ -232,9 +231,25 @@ cabinetShared:false,
       controls:[],
       anomalies:[],
       aiAnalysis:{status:"not_started",model:null,generatedAt:null,summary:"",warnings:[]},
-      createdAt:serverTimestamp(),
       updatedAt:serverTimestamp()
-    });
+    };
+
+    let docRef;
+    if(prepaidClosureId){
+      docRef=doc(db,"users",currentUser.uid,"closures",prepaidClosureId);
+      const prepaidSnap=await getDoc(docRef);
+      if(!prepaidSnap.exists())throw new Error("Paiement Solo introuvable.");
+      const prepaidData=prepaidSnap.data()||{};
+      if(prepaidData.paid!==true||prepaidData.paymentMode!=="solo"){
+        throw new Error("Le paiement Stripe est encore en cours de validation. Patientez quelques secondes puis réessayez.");
+      }
+      await updateDoc(docRef,closurePayload);
+    }else{
+      docRef=await addDoc(collection(db,"users",currentUser.uid,"closures"),{
+        ...closurePayload,
+        createdAt:serverTimestamp()
+      });
+    }
 
     const updates={};
 
@@ -277,7 +292,7 @@ cabinetShared:false,
    window.location.replace(`cloture-analyse.html?id=${docRef.id}`);
   }catch(e){
     console.error(e);
-    saveMsgEl.textContent="Erreur lors de l’enregistrement du dossier.";
+    saveMsgEl.textContent=e?.message||"Erreur lors de l’enregistrement du dossier.";
     saveBtnEl.disabled=false;
     saveBtnEl.textContent="Enregistrer et continuer";
      isSavingClosure=false;
