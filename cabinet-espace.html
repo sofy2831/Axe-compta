@@ -167,14 +167,30 @@ function renderCollaborators(){
       <td><div class="actions inlineActions">
         <button class="btn small" type="button" data-suspend="${safe(c.id)}">Suspendre</button>
         <button class="btn small danger" type="button" data-remove="${safe(c.id)}">Retirer</button>
-        ${c.inviteLink?`<button class="btn small" type="button" data-copy-invite="${safe(c.inviteLink)}">Copier</button><a class="btn small" href="${mailLink}">Envoyer par mail</a>`:""}
+        ${c.inviteLink?`<button class="btn small" type="button" data-copy-invite="${safe(c.inviteLink)}">Copier</button><a class="btn small" href="${mailLink}" data-mail-invite="${safe(c.id)}">${c.emailSendStartedAt?"✓ Envoi lancé":"Envoyer par mail"}</a>`:""}
       </div></td>
     </tr>`;
   }).join("");
   document.querySelectorAll("[data-suspend]").forEach(btn=>btn.addEventListener("click",()=>suspendCollaborator(btn.dataset.suspend)));
   document.querySelectorAll("[data-remove]").forEach(btn=>btn.addEventListener("click",()=>removeCollaborator(btn.dataset.remove)));
   document.querySelectorAll("[data-copy-invite]").forEach(btn=>btn.addEventListener("click",()=>copyText(btn.dataset.copyInvite)));
+  document.querySelectorAll("[data-mail-invite]").forEach(btn=>btn.addEventListener("click",()=>markInviteMailStarted(btn.dataset.mailInvite,btn)));
   updateMetrics();
+}
+
+async function markInviteMailStarted(id,btn){
+  if(!id||!currentUser)return;
+  try{
+    await updateDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",id),{
+      emailSendStartedAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    });
+    const c=collaborators.find(x=>x.id===id);
+    if(c)c.emailSendStartedAt=new Date();
+    if(btn)btn.textContent="✓ Envoi lancé";
+  }catch(e){
+    console.warn("Statut d’envoi du mail non enregistré :",e);
+  }
 }
 
 function renderSentRights(){
@@ -281,8 +297,8 @@ async function createInvitation(){
   await setDoc(doc(db,"users",currentUser.uid,"cabinetCollaborators",inviteId),data,{merge:true});
   await createCabinetInviteDoc({token,inviteId,email,name,note});
   const bodyText=buildInviteMailBody({name,email,inviteLink,note});
-  showMsg(`<b class="okText">Invitation créée.</b><br><button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button><button class="btn small" type="button" id="shareInviteBtn">Partager</button><a class="btn small" href="${mailtoInvite(email,name,inviteLink,note)}">Envoyer par mail</a>`);
-  setTimeout(()=>{$("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));$("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));},0);
+  showMsg(`<b class="okText">Invitation créée.</b><br><button class="btn small" type="button" id="copyInviteBtn">Copier le lien</button><button class="btn small" type="button" id="shareInviteBtn">Partager</button><a class="btn small" id="mailInviteBtn" href="${mailtoInvite(email,name,inviteLink,note)}">Envoyer par mail</a>`);
+  setTimeout(()=>{$("copyInviteBtn")?.addEventListener("click",()=>copyText(inviteLink));$("shareInviteBtn")?.addEventListener("click",()=>shareInvite(inviteLink,bodyText));$("mailInviteBtn")?.addEventListener("click",()=>markInviteMailStarted(inviteId,$("mailInviteBtn")));},0);
   $("inviteEmail").value="";$("inviteName").value="";$("inviteNote").value="";
   await loadCabinetPage(currentUser);
 }
