@@ -147,6 +147,14 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
     margin-top:auto;
   }
 }
+
+.processingBox{display:none;margin-top:14px;padding:14px;border-radius:14px;background:rgba(74,163,255,.10);border:1px solid rgba(114,224,197,.22)}
+.processingBox.show{display:block}
+.processingText{font-weight:850;margin-bottom:9px}
+.processingTrack{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden}
+.processingBar{height:100%;width:38%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2));animation:processingMove 1.05s ease-in-out infinite}
+@keyframes processingMove{0%{transform:translateX(-110%)}100%{transform:translateX(365%)}}
+
 </style>
 </head>
 <body>
@@ -164,6 +172,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
       <button class="btn secondary" id="saveReportBtn" type="button">Enregistrer</button>
       <button class="btn secondary" id="shareBtn" type="button">Partager</button>
     </div>
+    <div id="saveProcessing" class="processingBox" aria-live="polite"><div class="processingText">Enregistrement du rapport en cours…</div><div class="processingTrack"><div class="processingBar"></div></div></div>
     <div id="shareTrace" class="notice" style="display:none"></div>
     <div id="reportPreview" class="notice">Le rapport sera généré après chargement.</div>
   </section>
@@ -455,7 +464,13 @@ $("confirmSentBtn").addEventListener("click",async()=>{
 
 $("printBtn").addEventListener("click",()=>{renderReport();window.print();});
 $("saveReportBtn").addEventListener("click", async () => {
+  const btn=$("saveReportBtn"), loader=$("saveProcessing");
+  const originalText=btn.textContent;
   try {
+    btn.disabled=true;
+    btn.textContent="Enregistrement…";
+    loader.classList.add("show");
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     await setDoc(doc(db,"users",currentOwnerUid,"closures",closureId), {
       rapportCloture: {
         status: "saved",
@@ -470,6 +485,10 @@ $("saveReportBtn").addEventListener("click", async () => {
   } catch(e) {
     console.error(e);
     alert("Erreur lors de l’enregistrement du rapport.");
+  } finally {
+    loader.classList.remove("show");
+    btn.disabled=false;
+    btn.textContent=originalText;
   }
 });
 
