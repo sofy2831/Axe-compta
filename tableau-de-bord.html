@@ -19,7 +19,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 <header><div class="wrap nav"><a href="/" aria-label="Axe Compta IA"><img src="images/axe-compta.png" alt="Axe Compta IA" class="logoImg"></a><div class="navRight"><a class="btn" href="assistant-cloture-comptable.html">Site</a><a class="btn" id="adminFeedbackBtn" href="admin-feedback.html" style="display:none">Admin feedback</a><a class="btn" id="cabinetHeaderBtn" href="cabinet-espace.html" style="display:none">Espace Cabinet</a><button class="btn danger" type="button" id="logoutBtn">Déconnexion</button></div></div></header>
 <main><div class="wrap">
 <div class="top"><div><h1>Tableau de bord</h1><p class="muted">Retrouvez vos clôtures, vos analyses et vos exports comptables.</p><p class="muted" id="userEmail">Chargement du compte...</p></div></div>
-<div class="grid"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div></div>
+<div class="grid" id="dashboardMetrics"><div class="metric"><b id="activeClosures">0</b><span>clôtures actives</span></div><div class="metric"><b id="exportsCount">0</b><span>exports disponibles</span></div><div class="metric"><b id="planLabel">—</b><span>formule</span></div><div class="metric"><b id="accountStatus">Actif</b><span>statut du compte</span></div><div class="metric hidden" id="pilotDaysMetric"><b id="pilotDaysRemaining">—</b><span>accès pilote</span></div></div>
 <section class="box"><h2>Mes modules</h2><div class="modulesGrid">
 <div class="moduleCard"><b>📁 Nouvelle clôture</b><span>Créer un nouveau dossier : balance, grand livre, tableaux annexes et analyse automatique.</span><a class="btn primary" id="newClosureBtn" href="nouvelle-cloture.html">Ouvrir</a></div>
 <div class="moduleCard"><b>📘 Résultat</b><span>Analyser, corriger, recharger les fichiers si besoin, puis valider les écritures de clôture.</span><a class="btn" id="resultModuleLink" href="#">Ouvrir</a></div>
@@ -92,11 +92,25 @@ function safe(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&
 function normEmail(v){return String(v||"").trim().toLowerCase();}
 function uniqueEmails(arr){return [...new Set(arr.map(normEmail).filter(Boolean))];}
 function uniqueValues(arr){return [...new Set(arr.filter(Boolean))];}
-function planDisplay(plan){if(plan==="solo")return"Solo 99 €";if(plan==="expert"||plan==="monthly")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
+function planDisplay(plan){if(plan==="pilot")return"Pilote 30 jours";if(plan==="solo")return"Solo 99 €";if(plan==="expert"||plan==="monthly")return"Expert 149 €/mois";if(plan==="cabinet")return"Cabinet 399 €/mois";if(plan==="extra-collab")return"Collaborateur 129 €/mois";if(plan==="developer")return"Développeur";if(plan==="one-shot")return"Solo 99 €";return"À activer";}
 function isCabinetOwner(data){return data.developerAccess===true||data.role==="admin"||data.cabinetOwner===true||data.plan==="cabinet"||data.planRequested==="cabinet"||data.cabinetSetup?.status==="active"||data.cabinetSetup?.status==="pending_payment";}
 function isCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0;}
-function dashboardPlanLabel(data){if(isCabinetMember()&&!isCabinetOwner(data))return"Cabinet inclus";return planDisplay(data.plan);}
-function dashboardStatusLabel(data,active){if(isCabinetMember()&&!isCabinetOwner(data))return"Collaborateur Cabinet";if(data.cancelAtPeriodEnd===true)return"Résiliation programmée";return active?"Actif":"À activer";}
+function isPilotAccount(data){return data.pilot===true||data.role==="pilot"||data.plan==="pilot";}
+function timestampMillis(v){if(!v)return 0;if(typeof v.toMillis==="function")return v.toMillis();if(typeof v.seconds==="number")return v.seconds*1000;const n=new Date(v).getTime();return Number.isFinite(n)?n:0;}
+function pilotEndMillis(data){return timestampMillis(data.pilotEndsAt||data.endsAt);}
+function pilotDaysRemaining(data){const end=pilotEndMillis(data);if(!end)return null;return Math.max(0,Math.ceil((end-Date.now())/86400000));}
+function isPilotAccessActive(data){const days=pilotDaysRemaining(data);return isPilotAccount(data)&&data.active!==false&&(days===null||days>0);}
+function dashboardPlanLabel(data){if(isCabinetMember()&&!isCabinetOwner(data))return"Cabinet inclus";if(isPilotAccount(data))return"Pilote 30 jours";return planDisplay(data.plan);}
+function dashboardStatusLabel(data,active){if(isCabinetMember()&&!isCabinetOwner(data))return"Collaborateur Cabinet";if(isPilotAccount(data))return isPilotAccessActive(data)?"Actif":"Expiré";if(data.cancelAtPeriodEnd===true)return"Résiliation programmée";return active?"Actif":"À activer";}
+function refreshPilotMetric(data){
+  const metric=document.getElementById("pilotDaysMetric");
+  const value=document.getElementById("pilotDaysRemaining");
+  if(!metric||!value)return;
+  if(!isPilotAccount(data)){metric.classList.add("hidden");return;}
+  metric.classList.remove("hidden");
+  const days=pilotDaysRemaining(data);
+  value.textContent=days===null?"30 jours":days===0?"Expiré":`${days} jour${days>1?"s":""} restant${days>1?"s":""}`;
+}
 function refreshCabinetAccess(){const show=isCabinetOwner(currentUserData);cabinetHeaderBtn.style.display=show?"inline-flex":"none";cabinetMenuCard.classList.toggle("hidden",!show);}
 function openEditClosure(id,ownerUid,companyName,activity,vatRegime,startDate,endDate,legalForm){
   editingClosureId=id||"";
@@ -161,7 +175,7 @@ async function saveEditClosure(){
   }
 }
 function isSubscriptionActive(data){return data.developerAccess===true||data.role==="admin"||data.subscriptionActive===true||(data.active!==false&&["expert","cabinet","extra-collab","monthly"].includes(data.plan));}
-function hasPaidAccess(){return isSubscriptionActive(currentUserData)||isCabinetMember();}
+function hasPaidAccess(){return isSubscriptionActive(currentUserData)||isCabinetMember()||isPilotAccessActive(currentUserData);}
 function isSoloActive(c){return c.paid===true||c.paymentMode==="solo"||c.plan==="solo";}
 function statusLabel(status){if(status==="completed")return"Terminée";if(status==="analysed")return"Analysée";if(status==="parsed")return"Résultat à valider";if(status==="paid")return"Activée";if(status==="shared")return"Partagée";return"À compléter";}
 function hasFinalEntries(c){return Array.isArray(c.entries)&&c.entries.length>0}
@@ -452,6 +466,7 @@ async function loadDashboard(user){
   refreshCabinetAccess();
   planLabelEl.textContent=currentPlanLabel;
   accountStatusEl.textContent=dashboardStatusLabel(currentUserData,active);
+  refreshPilotMetric(currentUserData);
   const subscriptionOk=hasPaidAccess();
 
   const showSharedBox = cabinetOwner || cabinetMember;
@@ -826,6 +841,12 @@ function renderMySuggestions(){openModal("Mes suggestions","Demandes enregistré
 function renderNews(){openModal("Nouveautés","Historique des améliorations.",`<div class="notice"><b>Partage cabinet/collaborateur stabilisé.</b><br>Les clôtures partagées affichent maintenant la clôture source, pas la copie résumé.</div>`);}
 async function openCustomerPortal(){try{const r=await fetch(CUSTOMER_PORTAL_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid:currentUser.uid,email:currentUser.email,returnUrl:location.href})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.url)throw new Error(d.error||"Portail Stripe non disponible.");location.href=d.url;}catch(e){alert(e.message||"Portail Stripe non disponible.");}}
 function renderSubscription(){
+  if(isPilotAccount(currentUserData)){
+    const days=pilotDaysRemaining(currentUserData);
+    const remaining=days===null?"30 jours":days===0?"expiré":`${days} jour${days>1?"s":""} restant${days>1?"s":""}`;
+    openModal("Accès pilote","Votre accès d’essai Axe Compta.",`<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:0"><div class="metric"><span>Formule actuelle</span><b>Pilote 30 jours</b></div><div class="metric"><span>Accès pilote</span><b>${safe(remaining)}</b></div></div><div class="notice"><b>Statut : ${isPilotAccessActive(currentUserData)?"Actif":"Expiré"}</b><br>Aucun abonnement ni paiement Stripe n’est associé à votre accès pilote.</div><div class="actions"><a class="btn" href="support.html">Support</a></div>`);
+    return;
+  }
   const isMember=isCabinetMember()&&!isCabinetOwner(currentUserData);
   const monthlyPlan=["expert","monthly","cabinet","extra-collab"].includes(String(currentUserData.plan||""));
   const hasStripeCustomer=!!currentUserData.stripeCustomerId;
