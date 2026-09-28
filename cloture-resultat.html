@@ -725,7 +725,7 @@ async function reparseFiles(){
 }
 async function loadCabinetMemberships(user){const email=normEmail(user.email);try{const snap=await getDocs(query(collectionGroup(db,"cabinetCollaborators"),where("email","==",email),limit(50)));return snap.docs.map(d=>({id:d.id,path:d.ref.path,...(d.data()||{})})).filter(c=>c.status!=="removed"&&c.status!=="suspended"&&c.cabinetOwnerUid)}catch(e){console.warn("Membership non chargé",e);return[]}}
 function isOwnCabinetMember(){return currentUserData.cabinetMember===true||currentMemberships.length>0}
-function userHasSubscription(u){return u.developerAccess===true||u.role==="admin"||u.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(u.plan)}
+function userHasSubscription(u){return u.developerAccess===true||u.pilotAccess===true||u.role==="admin"||u.subscriptionActive===true||["expert","cabinet","extra-collab","developer","monthly"].includes(u.plan)}
 function closureSharedWithMe(c,user){const email=normEmail(user.email);return (Array.isArray(c.sharedWithEmails)&&c.sharedWithEmails.map(normEmail).includes(email))||(Array.isArray(c.sharedEmails)&&c.sharedEmails.map(normEmail).includes(email))||c.sharedWith?.[email]?.active===true||Object.values(c.sharedWith||{}).some(x=>normEmail(x?.email)===email&&x?.active===true)}
 async function canAccessClosure(user,c,ownerUid,u){if(ownerUid===user.uid)return c.paid===true||userHasSubscription(u)||isOwnCabinetMember();return closureSharedWithMe(c,user)}
 async function loadPage(user,userData={}){
