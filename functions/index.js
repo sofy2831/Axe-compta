@@ -2886,6 +2886,7 @@ exports.activatePilotAccess = onRequest(async (req, res) => {
         await userRef.set({
           active: false,
           pilot: false,
+          pilotAccess: false,
           pilotExpired: true,
           paymentStatus: "pilot_expired",
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -2948,6 +2949,7 @@ exports.activatePilotAccess = onRequest(async (req, res) => {
         plan: "pilot",
         role: "pilot",
         pilot: true,
+        pilotAccess: true,
         pilotId: pilotDoc.id,
         pilotNumber,
         pilotStartedAt: admin.firestore.Timestamp.fromDate(startedAt),
@@ -3013,6 +3015,7 @@ exports.syncStripeSubscription = onRequest(
         await userRef.set({
           active: false,
           pilot: false,
+          pilotAccess: false,
           pilotExpired: true,
           paymentStatus: "pilot_expired",
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
