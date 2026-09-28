@@ -26,6 +26,14 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 .modalBack{position:fixed;inset:0;background:rgba(3,10,20,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}.modal{width:min(640px,100%);background:#102847;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.45)}
 @media(max-width:900px){.grid,.grid3,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable),.modalBack{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column;width:100%;max-width:100%;overflow:visible!important}.doc table{display:table!important;width:100%!important;max-width:100%!important;table-layout:fixed!important;overflow:visible!important;white-space:normal!important}.doc th,.doc td{white-space:normal!important;overflow-wrap:anywhere!important}.docFooter{margin-top:auto}@page{size:A4 portrait;margin:12mm}}
+
+.processingBox{display:none;margin-top:14px;padding:14px;border-radius:14px;background:rgba(74,163,255,.10);border:1px solid rgba(114,224,197,.22)}
+.processingBox.show{display:block}
+.processingText{font-weight:850;margin-bottom:9px}
+.processingTrack{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden}
+.processingBar{height:100%;width:38%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2));animation:processingMove 1.05s ease-in-out infinite}
+@keyframes processingMove{0%{transform:translateX(-110%)}100%{transform:translateX(365%)}}
+
 </style>
 </head>
 <body>
@@ -49,7 +57,7 @@ input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.16);border-r
 <button class="btn secondary" type="button" id="excelBtn">XLSX</button>
 <button class="btn secondary" type="button" id="csvBtn">CSV</button>
 <button class="btn warn" type="button" id="saveBtn">Enregistrer le dossier de révision</button>
-<a class="btn primary" id="affectationBtn" href="affectation-resultat.html">Affectation</a></div>
+<a class="btn primary" id="affectationBtn" href="affectation-resultat.html">Affectation</a></div><div id="saveProcessing" class="processingBox" aria-live="polite"><div class="processingText">Enregistrement du dossier de révision et préparation de l’affectation…</div><div class="processingTrack"><div class="processingBar"></div></div></div>
   </section>
 
   <section class="printArea printable" id="printArea"></section>
@@ -216,7 +224,25 @@ function scheduleRenderPrint(){
   printTimer=setTimeout(renderPrint,300);
 }
 function download(name,content,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
-$("saveBtn").addEventListener("click",()=>saveReview().catch(e=>{console.error(e);alert("Erreur enregistrement dossier de révision.");}));
+$("saveBtn").addEventListener("click",async()=>{
+  const btn=$("saveBtn"),loader=$("saveProcessing"),originalText=btn.textContent;
+  try{
+    btn.disabled=true;
+    btn.textContent="Enregistrement…";
+    loader.classList.add("show");
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    await saveReview();
+  }catch(e){
+    console.error(e);
+    alert("Erreur enregistrement dossier de révision.");
+  }finally{
+    loader.classList.remove("show");
+    if(!revisionSaved){
+      btn.disabled=false;
+      btn.textContent=originalText;
+    }
+  }
+});
 $("printBtn").addEventListener("click",()=>{renderPrint();window.print();});
 $("excelBtn").addEventListener("click",()=>download(
   "dossier-revision.xls",
