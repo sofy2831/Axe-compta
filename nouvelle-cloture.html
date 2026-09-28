@@ -20,6 +20,7 @@ table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:16px;bor
 label{display:block;margin:14px 0 7px;color:#dbe6f4;font-size:13px;font-weight:800}input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:rgba(13,41,75,.82);color:var(--text);padding:13px 14px;font:inherit;outline:none}textarea{min-height:94px;resize:vertical}.inline{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:12px;margin-top:6px}
 .qBtns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.qBtns button{border:1px solid var(--line);border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.06);color:var(--text);font-weight:850;cursor:pointer}.qBtns button.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#06121e;border-color:transparent}
 .confidence{color:var(--ok);font-weight:850}.warning{color:var(--warning);font-weight:850}.dangerText{color:var(--danger);font-weight:850}
+.saveProgress{display:none;margin-top:10px;height:9px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.10);border:1px solid var(--line)}.saveProgress.active{display:block}.saveProgressBar{height:100%;width:35%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2));animation:saveProgressMove 1.15s ease-in-out infinite}@keyframes saveProgressMove{0%{transform:translateX(-110%)}100%{transform:translateX(310%)}}
 footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
 @media(max-width:960px){.grid,.layout{grid-template-columns:1fr}.top{flex-direction:column}.navRight .btn:not(.primary):not(.danger){display:none}}
 @media(max-width:640px){table{display:block;overflow-x:auto;white-space:nowrap}.grid{grid-template-columns:1fr 1fr}.inline{grid-template-columns:1fr}.nav{height:76px}.logoImg{height:44px}}
@@ -40,7 +41,7 @@ footer{padding:28px 0;color:var(--muted);font-size:14px;border-top:1px solid var
 <label>Tableau des immobilisations / amortissements</label><input id="amortFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler les dotations, sorties d’immobilisations, VNC et plus ou moins-values.</div>
 <label>Tableau d’amortissement de l’emprunt</label><input id="loanFile" type="file" accept=".xlsx,.xls,.csv,.txt,.fec,.pdf"><div class="hint">Facultatif, mais utile pour contrôler le capital restant dû, les intérêts, les ICNE et les échéances d’emprunt.</div>
 <label>Informations utiles</label><textarea id="notes" placeholder="Ex : assurance annuelle, emprunt en cours, stock au 31/12, factures reçues après clôture..."></textarea>
-<div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="notice" id="saveMsg" style="display:none"></div></div>
+<div class="actions"><button class="btn primary" type="button" id="saveBtn">Enregistrer et continuer</button><a class="btn" href="tableau-de-bord.html">Annuler</a></div><div class="saveProgress" id="saveProgress" role="progressbar" aria-label="Enregistrement en cours"><div class="saveProgressBar"></div></div><div class="notice" id="saveMsg" style="display:none"></div></div>
 <aside class="box"><h2>Parcours de contrôle</h2><div class="steps"><div class="step"><b>Paramètres de clôture</b><span id="periodLabel">Exercice analysé : 01/01/2022 → 31/12/2022</span></div><div class="step"><b>Import FEC ou Balance + Grand livre</b><span>Le mode d’import choisi et les pièces complémentaires sont enregistrés et rattachés au dossier.</span></div><div class="step"><b>Analyse comptable</b><span>La prochaine étape exploitera balance, grand livre, réponses et IA.</span></div></div></aside></div>
 </div></main><footer><div class="wrap">© Axe Compta IA — Assistant de préparation de clôture comptable.</div></footer>
 <script type="module">
@@ -67,6 +68,7 @@ const loanFileEl=document.getElementById("loanFile");
 const notesEl=document.getElementById("notes");
 const saveBtnEl=document.getElementById("saveBtn");
 const saveMsgEl=document.getElementById("saveMsg");
+const saveProgressEl=document.getElementById("saveProgress");
 const periodLabelEl=document.getElementById("periodLabel");
 const SYNC_STRIPE_URL="https://europe-west9-axe-compta.cloudfunctions.net/syncStripeSubscription";
 const prepaidClosureId=new URLSearchParams(location.search).get("paidClosureId")||"";
@@ -155,6 +157,7 @@ if(!isAllowedSize(fec)||!isAllowedSize(balance)||!isAllowedSize(ledger)||!isAllo
 }
   saveBtnEl.disabled=true;
   saveBtnEl.textContent="Enregistrement...";
+  saveProgressEl.classList.add("active");
 
   try{
     // Données utilisateur déjà chargées à l'ouverture.
@@ -281,6 +284,7 @@ const paymentMode=isExpert
     saveMsgEl.textContent=e?.message||"Erreur lors de l’enregistrement du dossier.";
     saveBtnEl.disabled=false;
     saveBtnEl.textContent="Enregistrer et continuer";
+     saveProgressEl.classList.remove("active");
      isSavingClosure=false;
   }
 });
