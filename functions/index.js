@@ -2850,6 +2850,132 @@ exports.submitFeedback = onRequest(async (req, res) => {
   }
 });
 
+// Active ou vérifie un accès pilote préautorisé dans /pilots.
+// Le pilote est lié au premier compte Firebase qui utilise l'email autorisé.
+exports.activatePilotAccess = onRequest(async (req, res) => {
+  setCors(res);
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const authHeader = String(req.headers.authorization || "");
+    const match = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!match) return res.status(401).json({ error: "Authentification requise." });
+
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    const uid = decoded.uid;
+    const email = String(decoded.email || "").trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: "Email utilisateur introuvable." });
+
+    const db = admin.firestore();
+    const userRef = db.collection("users").doc(uid);
+    const now = new Date();
+
+    // Si ce compte est déjà pilote, on vérifie simplement sa date de fin.
+    const existingUserSnap = await userRef.get();
+    const existingUser = existingUserSnap.exists ? existingUserSnap.data() || {} : {};
+    if (existingUser.pilot === true && existingUser.pilotId) {
+      const endValue = existingUser.pilotEndsAt;
+      const endDate = endValue?.toDate ? endValue.toDate() : (endValue ? new Date(endValue) : null);
+      const stillActive = !!endDate && endDate.getTime() > now.getTime();
+
+      if (!stillActive) {
+        await userRef.set({
+          active: false,
+          pilot: false,
+          pilotExpired: true,
+          paymentStatus: "pilot_expired",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+        return res.json({ ok: true, pilot: false, expired: true });
+      }
+
+      return res.json({ ok: true, pilot: true, pilotId: existingUser.pilotId, alreadyActivated: true });
+    }
+
+    const pilotQuery = await db.collection("pilots")
+      .where("email", "==", email)
+      .where("active", "==", true)
+      .limit(1)
+      .get();
+
+    if (pilotQuery.empty) {
+      return res.json({ ok: true, pilot: false });
+    }
+
+    const pilotDoc = pilotQuery.docs[0];
+    const pilotRef = pilotDoc.ref;
+
+    const result = await db.runTransaction(async tx => {
+      const freshPilotSnap = await tx.get(pilotRef);
+      if (!freshPilotSnap.exists) return { pilot: false };
+
+      const pilot = freshPilotSnap.data() || {};
+      const pilotEmail = String(pilot.email || "").trim().toLowerCase();
+      if (pilot.active !== true || pilotEmail !== email) return { pilot: false };
+
+      // Une place déjà activée ne peut appartenir qu'au UID qui l'a activée.
+      if (pilot.status === "activated" && pilot.uid && pilot.uid !== uid) {
+        return { pilot: false, unavailable: true };
+      }
+
+      let startedAt = pilot.startedAt?.toDate ? pilot.startedAt.toDate() : null;
+      let endsAt = pilot.endsAt?.toDate ? pilot.endsAt.toDate() : null;
+
+      if (!startedAt || !endsAt) {
+        const durationDays = Math.max(1, Number(pilot.durationDays) || 30);
+        startedAt = now;
+        endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      }
+
+      if (endsAt.getTime() <= now.getTime()) {
+        tx.set(pilotRef, {
+          active: false,
+          status: "expired",
+          expiredAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+        return { pilot: false, expired: true };
+      }
+
+      const pilotNumber = Number(pilot.pilotNumber) || null;
+      tx.set(userRef, {
+        email,
+        active: true,
+        plan: "pilot",
+        role: "pilot",
+        pilot: true,
+        pilotId: pilotDoc.id,
+        pilotNumber,
+        pilotStartedAt: admin.firestore.Timestamp.fromDate(startedAt),
+        pilotEndsAt: admin.firestore.Timestamp.fromDate(endsAt),
+        subscriptionActive: false,
+        paymentStatus: "pilot",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      tx.set(pilotRef, {
+        uid,
+        status: "activated",
+        startedAt: admin.firestore.Timestamp.fromDate(startedAt),
+        endsAt: admin.firestore.Timestamp.fromDate(endsAt),
+        activatedAt: pilot.activatedAt || admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+
+      return { pilot: true, pilotId: pilotDoc.id, pilotNumber, endsAt: endsAt.toISOString() };
+    });
+
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    console.error("activatePilotAccess error:", error);
+    return res.status(500).json({ error: "Erreur activation accès pilote." });
+  }
+});
+
 exports.syncStripeSubscription = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
   async (req, res) => {
@@ -2873,6 +2999,28 @@ exports.syncStripeSubscription = onRequest(
       }
 
       const user = userSnap.data() || {};
+
+      // Un pilote actif n'a pas d'abonnement Stripe : ne jamais écraser ses droits.
+      if (user.pilot === true && user.plan === "pilot") {
+        const endValue = user.pilotEndsAt;
+        const endDate = endValue?.toDate ? endValue.toDate() : (endValue ? new Date(endValue) : null);
+        const stillActive = !!endDate && endDate.getTime() > Date.now();
+
+        if (stillActive) {
+          return res.json({ ok: true, synced: false, pilot: true, reason: "Accès pilote actif." });
+        }
+
+        await userRef.set({
+          active: false,
+          pilot: false,
+          pilotExpired: true,
+          paymentStatus: "pilot_expired",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+
+        return res.json({ ok: true, synced: false, pilot: false, expired: true, reason: "Accès pilote expiré." });
+      }
+
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
       const customerId = user.stripeCustomerId;
