@@ -8,10 +8,10 @@ const XLSX = require("xlsx");
 admin.initializeApp();
 setGlobalOptions({ region: "europe-west9", maxInstances: 10 });
 
-const PRICE_SOLO_99 = "price_1TiAwkRDM80msH4WqJAFRL8K";
-const PRICE_EXPERT_149 = "price_1TiAzmRDM80msH4WG6H7FTAI";
-const PRICE_CABINET_399 = "price_1TiB1KRDM80msH4WmQO4gh7K";
-const PRICE_EXTRA_COLLAB_129 = "price_1TiB2DRDM80msH4Wu6rhGaVv";
+const PRICE_SOLO_99 = "price_1UKfKqEr1ODH6SbgVW5Bd3l7";
+const PRICE_EXPERT_149 = "price_1UKfKoEr1ODH6SbgIQUQ5NvB";
+const PRICE_CABINET_399 = "price_1UKfKkEr1ODH6SbgPTXwVivz";
+const PRICE_EXTRA_COLLAB_129 = "price_1UKfKYEr1ODH6Sbgo3zbgWtZ";
 const ALLOWED_ORIGIN = "https://compta.axe-dossier.fr";
 
 function setCors(res, headers = "Content-Type, Authorization") {
