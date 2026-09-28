@@ -15,6 +15,14 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
 .modalBack{position:fixed;inset:0;background:rgba(3,10,20,.72);display:none;align-items:center;justify-content:center;z-index:120;padding:20px}.saveModal{width:min(640px,100%);background:#102847;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 30px 90px rgba(0,0,0,.45)}
 @media(max-width:900px){.grid,.grid4{grid-template-columns:1fr}.topbar{flex-direction:column}.navActions{padding-top:0}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media print{body{background:#fff!important;color:#111!important}.wrap{width:100%!important;padding:0!important}.topbar,.box:not(.printable),.exportBar,.modalOverlay,.modalBack{display:none!important}.printArea{display:block!important;background:#fff!important;color:#111!important}.doc{font-size:10pt;min-height:267mm;display:flex;flex-direction:column}.docFooter{margin-top:auto}.doc table{page-break-inside:auto}.doc tr{page-break-inside:avoid;page-break-after:auto}@page{size:A4;margin:12mm}}
+
+.processingBox{display:none;margin-top:14px;padding:14px;border-radius:14px;background:rgba(74,163,255,.10);border:1px solid rgba(114,224,197,.22)}
+.processingBox.show{display:block}
+.processingText{font-weight:850;margin-bottom:9px}
+.processingTrack{height:8px;border-radius:999px;background:rgba(255,255,255,.10);overflow:hidden}
+.processingBar{height:100%;width:38%;border-radius:999px;background:linear-gradient(90deg,var(--primary),var(--primary2));animation:processingMove 1.05s ease-in-out infinite}
+@keyframes processingMove{0%{transform:translateX(-110%)}100%{transform:translateX(365%)}}
+
 </style>
 </head>
 <body>
@@ -67,6 +75,7 @@ a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 36px));m
       <button class="btn warn" type="button" id="generateBtn">Générer les extournes</button>
     </div>
     <div id="noticeBox" class="notice">Générez les extournes N+1 à partir des OD de clôture révisées et retenues.</div>
+    <div id="generateProcessing" class="processingBox" aria-live="polite"><div class="processingText">Finalisation des extournes et préparation du score qualité…</div><div class="processingTrack"><div class="processingBar"></div></div></div>
     <div id="entriesBox"></div>
   </section>
 
@@ -495,7 +504,24 @@ async function loadClosure(user){
   updateMetrics();
 }
 
-$("generateBtn").addEventListener("click",()=>generate().catch(e=>{console.error(e);alert("Erreur lors de la validation des extournes.")}));
+$("generateBtn").addEventListener("click", async ()=>{
+  const btn=$("generateBtn"), loader=$("generateProcessing");
+  const originalText=btn.textContent;
+  try{
+    btn.disabled=true;
+    btn.textContent="Traitement en cours…";
+    loader.classList.add("show");
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    await generate();
+  }catch(e){
+    console.error(e);
+    alert("Erreur lors de la validation des extournes.");
+  }finally{
+    loader.classList.remove("show");
+    btn.disabled=false;
+    btn.textContent=originalText;
+  }
+});
 $("saveBtn").addEventListener("click",()=>saveExtournes().catch(e=>{console.error(e);alert("Erreur lors de l’enregistrement.")}));
 $("journalCode").addEventListener("input",()=>{ if(extourneRows.length) generate(); });
 $("extourneDate").addEventListener("input",()=>{ if(extourneRows.length) generate(); else updateMetrics(); });
