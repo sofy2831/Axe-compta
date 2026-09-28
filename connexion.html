@@ -23,6 +23,7 @@ const inviteEmail = (params.get("email") || "").trim().toLowerCase();
 let cabinetInviteData = null;
 const allowedPlans = ["solo", "expert", "cabinet", "extra-collab"];
 const CREATE_CHECKOUT_URL="https://europe-west9-axe-compta.cloudfunctions.net/createCheckoutSession";
+const ACTIVATE_PILOT_URL="https://europe-west9-axe-compta.cloudfunctions.net/activatePilotAccess";
 
 const msg = document.getElementById("msg");
 const planBox = document.getElementById("planBox");
@@ -94,6 +95,22 @@ async function ensureUserDoc(user,extra={}){
   const base={email:user.email||extra.email||"",active:previous.active===true,plan:previous.plan||"",subscriptionActive:previous.subscriptionActive===true,updatedAt:serverTimestamp(),...extra};
   if(!snap.exists())base.createdAt=serverTimestamp();
   await setDoc(userRef,base,{merge:true});
+}
+
+async function activatePilotIfEligible(user){
+  const idToken = await user.getIdToken();
+  const r = await fetch(ACTIVATE_PILOT_URL,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+idToken
+    },
+    body:JSON.stringify({})
+  });
+
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.error || "Impossible de vérifier l’accès pilote.");
+  return d;
 }
 
 async function findInvitation(ownerUid,collabId,email){
@@ -228,6 +245,17 @@ async function afterAuth(user){
       return;
     }
     await ensureUserDoc(user);
+
+    // Un email préautorisé dans /pilots active ici sa période pilote de 30 jours.
+    // Les parcours commerciaux explicites (Expert/Cabinet/Solo) restent prioritaires.
+    if(!hasPlan() && !next){
+      const pilotResult = await activatePilotIfEligible(user);
+      if(pilotResult?.pilot === true){
+        window.location.href="tableau-de-bord.html";
+        return;
+      }
+    }
+
    if(requestedPlan==="expert"){
   await startCheckout("expert", user);
   return;
