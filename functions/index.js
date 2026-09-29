@@ -3043,7 +3043,7 @@ exports.marketingStats = onRequest(async (req, res) => {
 
   try {
     const authHeader = String(req.headers.authorization || "");
-    const match = authHeader.match(/^Bearer\\s+(.+)$/i);
+    const match = authHeader.match(/^Bearer\s+(.+)$/i);
     if (!match) return res.status(401).json({ error: "Authentification requise." });
 
     const decoded = await admin.auth().verifyIdToken(match[1]);
