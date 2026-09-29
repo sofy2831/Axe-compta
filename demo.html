@@ -87,7 +87,7 @@ h1{font-size:clamp(40px,6vw,72px);line-height:.98;letter-spacing:-.055em;margin:
 <section class="cta">
   <h2>Testez Axe Compta pendant 30 jours</h2>
   <p>Accès complet pendant 30 jours, sans engagement.</p>
-  <a class="button" href="mailto:contact@axe-dossier.fr?subject=Je%20souhaite%20tester%20Axe%20Compta&body=Bonjour%2C%0A%0AJe%20souhaite%20tester%20Axe%20Compta.%0A%0AVoici%20l%E2%80%99adresse%20email%20%C3%A0%20utiliser%20pour%20ma%20connexion%20%3A%0A%0A%0ACordialement%2C">Je souhaite tester Axe Compta</a>
+  <a id="pilotCta" class="button" href="mailto:contact@axe-dossier.fr?subject=Je%20souhaite%20tester%20Axe%20Compta&body=Bonjour%2C%0A%0AJe%20souhaite%20tester%20Axe%20Compta.%0A%0AVoici%20l%E2%80%99adresse%20email%20%C3%A0%20utiliser%20pour%20ma%20connexion%20%3A%0A%0A%0ACordialement%2C">Je souhaite tester Axe Compta</a>
   <div class="note" style="font-size:14px;line-height:1.6;margin-top:18px">
     Découvrez Axe Compta sur vos propres dossiers pendant 30 jours.
   </div>
@@ -95,4 +95,34 @@ h1{font-size:clamp(40px,6vw,72px);line-height:.98;letter-spacing:-.055em;margin:
 </div>
 </main>
 <footer><div class="wrap">© Axe Compta - Assistant de préparation de clôture comptable.</div></footer>
+
+<script>
+(() => {
+  const TRACK_URL = "https://europe-west9-axe-compta.cloudfunctions.net/marketingTrack";
+  const params = new URLSearchParams(location.search);
+  const source = (params.get("src") || "direct").trim().slice(0, 80);
+  const campaign = (params.get("camp") || "direct").trim().slice(0, 120);
+
+  function send(event) {
+    const payload = JSON.stringify({ event, source, campaign });
+    fetch(TRACK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true
+    }).catch(() => {});
+  }
+
+  const visitKey = `axecompta_demo_${source}_${campaign}`;
+  if (!sessionStorage.getItem(visitKey)) {
+    sessionStorage.setItem(visitKey, "1");
+    send("demo_view");
+  }
+
+  document.getElementById("pilotCta")?.addEventListener("click", () => {
+    send("test_click");
+  });
+})();
+</script>
+
 </body></html>
