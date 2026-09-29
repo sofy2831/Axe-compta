@@ -2978,6 +2978,108 @@ exports.activatePilotAccess = onRequest(async (req, res) => {
   }
 });
 
+
+// ============================================================
+// AXE COMPTA — SUIVI PROSPECTION / CABINETS PILOTES
+// ============================================================
+function marketingCors(res, methods = "POST, OPTIONS") {
+  res.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  res.set("Access-Control-Allow-Methods", methods);
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("Cache-Control", "no-store");
+}
+
+function cleanMarketingValue(value, fallback, maxLength) {
+  const v = String(value || fallback || "")
+    .trim()
+    .replace(/[^\p{L}\p{N}_.\- ]/gu, "-")
+    .replace(/\s+/g, "-")
+    .slice(0, maxLength);
+  return v || fallback;
+}
+
+exports.marketingTrack = onRequest(async (req, res) => {
+  marketingCors(res, "POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  try {
+    const event = String(req.body?.event || "").trim();
+    if (!["demo_view", "test_click", "login_click"].includes(event)) {
+      return res.status(400).json({ error: "Événement invalide." });
+    }
+
+    const source = cleanMarketingValue(req.body?.source, "direct", 80);
+    const campaign = cleanMarketingValue(req.body?.campaign, "direct", 120);
+    const docId = `${source}__${campaign}`.slice(0, 220);
+    const ref = admin.firestore().collection("marketingStats").doc(docId);
+
+    const increments = {
+      demo_view: { demoViews: admin.firestore.FieldValue.increment(1) },
+      test_click: { testClicks: admin.firestore.FieldValue.increment(1) },
+      login_click: { loginClicks: admin.firestore.FieldValue.increment(1) },
+    };
+
+    await ref.set({
+      source,
+      campaign,
+      ...increments[event],
+      lastEvent: event,
+      lastActivity: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("marketingTrack error:", error);
+    return res.status(500).json({ error: "Erreur suivi marketing." });
+  }
+});
+
+exports.marketingStats = onRequest(async (req, res) => {
+  marketingCors(res, "GET, OPTIONS");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+
+  try {
+    const authHeader = String(req.headers.authorization || "");
+    const match = authHeader.match(/^Bearer\\s+(.+)$/i);
+    if (!match) return res.status(401).json({ error: "Authentification requise." });
+
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    const userSnap = await admin.firestore().collection("users").doc(decoded.uid).get();
+    const user = userSnap.exists ? (userSnap.data() || {}) : {};
+
+    const allowed =
+      user.role === "admin" ||
+      user.role === "superadmin" ||
+      user.developerAccess === true ||
+      user.admin === true;
+
+    if (!allowed) return res.status(403).json({ error: "Accès administrateur requis." });
+
+    const snap = await admin.firestore().collection("marketingStats")
+      .orderBy("lastActivity", "desc").limit(200).get();
+
+    const rows = snap.docs.map(doc => {
+      const d = doc.data() || {};
+      return {
+        source: d.source || "direct",
+        campaign: d.campaign || "direct",
+        demoViews: Number(d.demoViews || 0),
+        testClicks: Number(d.testClicks || 0),
+        loginClicks: Number(d.loginClicks || 0),
+        lastActivity: d.lastActivity?.toDate ? d.lastActivity.toDate().toISOString() : null,
+      };
+    });
+
+    return res.json({ rows });
+  } catch (error) {
+    console.error("marketingStats error:", error);
+    return res.status(401).json({ error: "Session administrateur invalide." });
+  }
+});
+
 exports.syncStripeSubscription = onRequest(
   { secrets: ["STRIPE_SECRET_KEY"] },
   async (req, res) => {
