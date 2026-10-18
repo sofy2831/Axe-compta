@@ -3005,24 +3005,28 @@ exports.marketingTrack = onRequest(async (req, res) => {
 
   try {
     const event = String(req.body?.event || "").trim();
-    if (!["demo_view", "test_click", "login_click"].includes(event)) {
+    if (!["demo_view", "test_click", "login_click", "assistant_home_click"].includes(event)) {
       return res.status(400).json({ error: "Événement invalide." });
     }
 
     const source = cleanMarketingValue(req.body?.source, "direct", 80);
+    const deviceId = cleanMarketingValue(req.body?.deviceId, "", 100);
+    const isInternal = !!deviceId && (await admin.firestore().collection("marketingInternalDevices").doc(deviceId).get()).exists;
     const campaign = cleanMarketingValue(req.body?.campaign, "direct", 120);
-    const docId = `${source}__${campaign}`.slice(0, 220);
+    const docId = `${isInternal ? "internal__" : ""}${source}__${campaign}`.slice(0, 220);
     const ref = admin.firestore().collection("marketingStats").doc(docId);
 
     const increments = {
       demo_view: { demoViews: admin.firestore.FieldValue.increment(1) },
       test_click: { testClicks: admin.firestore.FieldValue.increment(1) },
       login_click: { loginClicks: admin.firestore.FieldValue.increment(1) },
+      assistant_home_click: { homeClicks: admin.firestore.FieldValue.increment(1) },
     };
 
     await ref.set({
       source,
       campaign,
+      internal: isInternal,
       ...increments[event],
       lastEvent: event,
       lastActivity: admin.firestore.FieldValue.serverTimestamp(),
@@ -3059,13 +3063,15 @@ exports.marketingStats = onRequest(async (req, res) => {
     if (!allowed) return res.status(403).json({ error: "Accès administrateur requis." });
 
     const snap = await admin.firestore().collection("marketingStats")
-      .orderBy("lastActivity", "desc").limit(200).get();
+      .orderBy("lastActivity", "desc").limit(1000).get();
 
     const rows = snap.docs.map(doc => {
       const d = doc.data() || {};
       return {
         source: d.source || "direct",
         campaign: d.campaign || "direct",
+        internal: d.internal === true,
+        homeClicks: Number(d.homeClicks || 0),
         demoViews: Number(d.demoViews || 0),
         testClicks: Number(d.testClicks || 0),
         loginClicks: Number(d.loginClicks || 0),
@@ -3078,6 +3084,26 @@ exports.marketingStats = onRequest(async (req, res) => {
     console.error("marketingStats error:", error);
     return res.status(401).json({ error: "Session administrateur invalide." });
   }
+});
+
+// Identification volontaire des appareils internes (administrateur uniquement).
+exports.marketingRegisterDevice = onRequest(async (req, res) => {
+  marketingCors(res, "POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return res.status(405).json({ error: "Méthode non autorisée" });
+  try {
+    const match = String(req.headers.authorization || "").match(/^Bearer\s+(.+)$/i);
+    if (!match) return res.status(401).json({ error: "Connexion requise" });
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    const snap = await admin.firestore().collection("users").doc(decoded.uid).get();
+    const u = snap.data() || {};
+    if (!(u.role === "admin" || u.role === "superadmin" || u.developerAccess === true || u.admin === true)) return res.status(403).json({ error: "Administrateur requis" });
+    const id = String(req.body?.deviceId || "").trim();
+    if (!/^[a-zA-Z0-9_-]{20,100}$/.test(id)) return res.status(400).json({ error: "Identifiant appareil invalide" });
+    const label = String(req.body?.label || "Mon appareil").slice(0, 60);
+    await admin.firestore().collection("marketingInternalDevices").doc(id).set({ label, registeredBy: decoded.uid, registeredAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    return res.json({ ok: true });
+  } catch (e) { console.error("marketingRegisterDevice", e); return res.status(500).json({ error: "Enregistrement impossible" }); }
 });
 
 exports.syncStripeSubscription = onRequest(
