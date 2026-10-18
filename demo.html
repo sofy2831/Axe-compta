@@ -100,8 +100,18 @@ h1{font-size:clamp(40px,6vw,72px);line-height:.98;letter-spacing:-.055em;margin:
   const source = (params.get("src") || "direct").trim().slice(0, 80);
   const campaign = (params.get("camp") || "direct").trim().slice(0, 120);
 
+  function getDeviceId() {
+    let id = localStorage.getItem("axecompta_marketing_device");
+    if (!id) { id = "dev_" + Array.from(crypto.getRandomValues(new Uint8Array(20)), b => b.toString(16).padStart(2,"0")).join(""); localStorage.setItem("axecompta_marketing_device", id); }
+    return id;
+  }
+  const activation = params.get("internalDevice");
+  if (activation && /^[a-zA-Z0-9_-]{20,100}$/.test(activation)) {
+    localStorage.setItem("axecompta_marketing_device", activation);
+    history.replaceState(null, "", location.pathname + (params.get("camp") ? "?camp="+encodeURIComponent(campaign) : ""));
+  }
   function send(event) {
-    const payload = JSON.stringify({ event, source, campaign });
+    const payload = JSON.stringify({ event, source, campaign, deviceId: getDeviceId() });
     fetch(TRACK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
